@@ -595,8 +595,9 @@
                   <div class="helper-text">Username harus unik.</div>
                 </div>
                 <div class="form-row">
-                  <label for="userEmail">Email: <span class="required">*</span></label>
+                  <label for="userEmail">Email:</label>
                   <input class="form-control" id="userEmail" type="email" maxlength="150">
+                  <div class="helper-text">Wajib untuk Pelamar. Opsional untuk Admin dan Karyawan.</div>
                 </div>
                 <div class="form-row user-create-password">
                   <label for="userPassword">Password: <span class="required">*</span></label>
@@ -638,12 +639,13 @@
               </div>
             </section>
 
-            <section class="form-section">
+            <section class="form-section" id="userAccessSection">
               <h2 class="section-title">Akses Perusahaan</h2>
-              <div class="toolbar" style="justify-content:flex-start;margin-bottom:14px">
+              <div class="helper-text hidden" id="userApplicantAccessInfo">Pelamar tidak membutuhkan akses perusahaan. Akses pelamar mengikuti data lamaran.</div>
+              <div class="toolbar" id="userAccessControls" style="justify-content:flex-start;margin-bottom:14px">
                 <button class="btn secondary" type="button" id="userAddAccessBtn">Tambah Akses Perusahaan</button>
               </div>
-              <div class="table-wrap">
+              <div class="table-wrap" id="userAccessTableWrap">
                 <table>
                   <thead>
                     <tr>
@@ -1816,6 +1818,21 @@
       document.getElementById("userActiveLabel").textContent = document.getElementById("userActive").checked ? "Aktif" : "Tidak Aktif";
     }
 
+    function isApplicantUserType(type = document.getElementById("userType").value) {
+      return type === "APPLICANT";
+    }
+
+    function requiresCompanyAccess(type = document.getElementById("userType").value) {
+      return type === "ADMIN" || type === "EMPLOYEE";
+    }
+
+    function updateUserAccessVisibility() {
+      const applicant = isApplicantUserType();
+      document.getElementById("userApplicantAccessInfo").classList.toggle("hidden", !applicant);
+      document.getElementById("userAccessControls").classList.toggle("hidden", applicant);
+      document.getElementById("userAccessTableWrap").classList.toggle("hidden", applicant);
+    }
+
     function populateUserAccessOptions() {
       document.getElementById("userAccessCompany").innerHTML = '<option value="">Pilih Perusahaan</option>' + userCompanies.map(company => (
         `<option value="${company.id}">${escapeHtml(company.name)}</option>`
@@ -1837,6 +1854,7 @@
       document.querySelectorAll(".user-create-password").forEach(item => item.classList.toggle("hidden", Boolean(user)));
       document.getElementById("userResetPasswordBtn").classList.toggle("hidden", !user);
       updateUserActiveLabel();
+      updateUserAccessVisibility();
       showUserErrors(userFormErrors, []);
       renderUserAccessRows();
     }
@@ -1874,10 +1892,12 @@
     function validateUserForm(data) {
       const errors = [];
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const currentId = editingUserId;
+      const currentId = editingUserId == null ? null : Number(editingUserId);
+      const applicant = isApplicantUserType(data.user_type);
+      const needsAccess = requiresCompanyAccess(data.user_type);
       if (!data.username) errors.push("Username wajib diisi.");
       if (data.username && users.some(item => item.username.toLowerCase() === data.username.toLowerCase() && item.id !== currentId)) errors.push("Username tidak boleh duplikat.");
-      if (!data.email) errors.push("Email wajib diisi.");
+      if (applicant && !data.email) errors.push("Email wajib diisi untuk Pelamar.");
       if (data.email && !emailPattern.test(data.email)) errors.push("Format Email tidak valid.");
       if (data.email && users.some(item => item.email.toLowerCase() === data.email.toLowerCase() && item.id !== currentId)) errors.push("Email tidak boleh duplikat.");
       if (!data.display_name) errors.push("Display Name wajib diisi.");
@@ -1887,15 +1907,17 @@
         if (!data.confirm_password) errors.push("Konfirmasi Password wajib diisi.");
         if (data.password && data.confirm_password && data.password !== data.confirm_password) errors.push("Password dan Konfirmasi Password harus sama.");
       }
-      if (!currentUserAccess.length) errors.push("Minimal 1 akses perusahaan wajib diisi.");
-      const companyIds = currentUserAccess.map(item => Number(item.company_id));
-      if (new Set(companyIds).size !== companyIds.length) errors.push("Perusahaan tidak boleh duplikat dalam akses pengguna.");
-      currentUserAccess.forEach(item => {
-        if (!item.company_id) errors.push("Setiap akses perusahaan wajib memiliki Perusahaan.");
-        if (!item.role_id) errors.push("Setiap akses perusahaan wajib memiliki Role.");
-      });
-      const defaults = currentUserAccess.filter(item => item.is_default);
-      if (currentUserAccess.length && defaults.length !== 1) errors.push("Harus ada tepat 1 akses perusahaan yang menjadi default.");
+      if (needsAccess) {
+        if (!currentUserAccess.length) errors.push("Minimal 1 akses perusahaan wajib diisi untuk Admin/Karyawan.");
+        const companyIds = currentUserAccess.map(item => Number(item.company_id));
+        if (new Set(companyIds).size !== companyIds.length) errors.push("Perusahaan tidak boleh duplikat dalam akses pengguna.");
+        currentUserAccess.forEach(item => {
+          if (!item.company_id) errors.push("Setiap akses perusahaan wajib memiliki Perusahaan.");
+          if (!item.role_id) errors.push("Setiap akses perusahaan wajib memiliki Role.");
+        });
+        const defaults = currentUserAccess.filter(item => item.is_default);
+        if (currentUserAccess.length && defaults.length !== 1) errors.push("Harus ada tepat 1 akses perusahaan yang menjadi default.");
+      }
       showUserErrors(userFormErrors, errors);
       return !errors.length;
     }
@@ -1909,7 +1931,7 @@
         display_name: data.display_name,
         user_type: data.user_type,
         is_active: data.is_active,
-        access: currentUserAccess.map(item => ({ ...item }))
+        access: isApplicantUserType(data.user_type) ? [] : currentUserAccess.map(item => ({ ...item }))
       };
       if (userMode === "edit") {
         const targetId = Number(editingUserId);
@@ -1941,10 +1963,10 @@
           <td>${escapeHtml(companyNameById(access.company_id))}</td>
           <td>${escapeHtml(roleNameById(access.role_id))}</td>
           <td>${yesNoBadge(access.is_default)}</td>
-          <td>
-            <div class="actions">
-              <button class="btn small" type="button" data-module-action="openUserAccessModal" data-module-args="${index}">Ubah</button>
-              <button class="btn red small" type="button" data-module-action="removeUserAccess" data-module-args="${index}">Hapus</button>
+          <td class="action-cell">
+            <div class="actions inline-actions">
+              <button class="btn small icon-btn" type="button" title="Ubah" aria-label="Ubah" data-module-action="openUserAccessModal" data-module-args="${index}">${window.iconPencil()}</button>
+              <button class="btn red small icon-btn" type="button" title="Hapus" aria-label="Hapus" data-module-action="removeUserAccess" data-module-args="${index}">${window.iconTrash()}</button>
             </div>
           </td>
         </tr>
@@ -2887,6 +2909,7 @@
     document.getElementById("userTypeFilter").addEventListener("change", renderUsers);
     document.getElementById("userPageSize").addEventListener("change", renderUsers);
     document.getElementById("userActive").addEventListener("change", updateUserActiveLabel);
+    document.getElementById("userType").addEventListener("change", updateUserAccessVisibility);
     document.getElementById("userResetPasswordBtn").addEventListener("click", openUserResetPasswordModal);
     document.getElementById("userAddAccessBtn").addEventListener("click", () => openUserAccessModal());
     document.getElementById("userAccessDefault").addEventListener("change", updateUserAccessDefaultLabel);
