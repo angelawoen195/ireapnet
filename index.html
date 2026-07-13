@@ -123,12 +123,27 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 16px;
       padding: 0 32px 0 20px;
       box-shadow: 0 2px 4px rgba(0,0,0,.2);
     }
-    .crumbs { display: flex; align-items: center; gap: 13px; font-weight: 700; }
+    .crumbs {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      align-content: center;
+      gap: 8px;
+      font-size: 13px;
+      line-height: 1.25;
+      font-weight: 700;
+      flex-wrap: wrap;
+    }
+    .crumbs.long-breadcrumb { gap: 6px; font-size: 12px; }
+    .crumbs span { white-space: normal; }
     .hamburger { width: 38px; height: 30px; border: 1px solid rgba(255,255,255,.12); border-radius: 3px; background: rgba(255,255,255,.04); color: #fff; font-size: 20px; line-height: 1; cursor: pointer; }
-    .account { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+    .hamburger { flex: 0 0 auto; }
+    .account { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; font-weight: 700; }
     .company-select { width: 265px; height: 28px; border: 1px solid #ccc; border-radius: 4px; color: #555; background: #fff; padding: 0 8px; }
     main { grid-column: 2; min-width: 0; max-width: 100%; padding: 30px 34px 62px; background: var(--sky); }
     .content-card { min-width: 0; max-width: 100%; min-height: 0; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.24); overflow: visible; }
@@ -3311,6 +3326,139 @@
           </div>
         </div>
 
+        <div id="approvalSettingListView" class="hidden">
+          <div class="toolbar">
+            <button class="btn" id="approvalSettingAddBtn" type="button">Tambah</button>
+          </div>
+          <div class="filter-row">
+            <div class="filter-controls">
+              <label>
+                <span>Jenis Transaksi</span>
+                <select id="approvalSettingTransactionFilter"></select>
+              </label>
+              <label>
+                <span>Status</span>
+                <select id="approvalSettingStatusFilter">
+                  <option value="all">Semua</option>
+                  <option value="active">Aktif</option>
+                  <option value="inactive">Tidak Aktif</option>
+                </select>
+              </label>
+            </div>
+          </div>
+          <div class="table-tools table-utility-row">
+            <div>Menampilkan
+              <select id="approvalSettingPageSize"><option>10</option><option>25</option><option>50</option></select>
+              data
+            </div>
+            <label class="table-search">
+              <span>Cari</span>
+              <input id="approvalSettingSearchBox" type="text" style="width:180px">
+            </label>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:17%">Kode Pengaturan</th>
+                  <th style="width:20%">Nama Pengaturan</th>
+                  <th style="width:15%">Jenis Transaksi</th>
+                  <th style="width:12%">Subtipe Transaksi</th>
+                  <th style="width:16%">Berlaku Untuk</th>
+                  <th style="width:9%">Status</th>
+                  <th class="action-col">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="approvalSettingRows"></tbody>
+            </table>
+          </div>
+          <div class="pager">
+            <span id="approvalSettingPageInfo"></span>
+            <span class="pages"><button type="button">&lt;</button><button type="button">1</button><button type="button">&gt;</button></span>
+          </div>
+        </div>
+
+        <div id="approvalSettingFormView" class="hidden">
+          <div class="toolbar" style="justify-content:flex-start">
+            <button class="btn" id="approvalSettingSaveBtn" type="button">Simpan</button>
+            <button class="btn secondary" id="approvalSettingBackBtn" type="button">Batal</button>
+          </div>
+          <div id="approvalSettingFormErrors" class="error-box"></div>
+          <section class="form-section">
+            <h2 class="section-title">Header Pengaturan Approval</h2>
+            <div class="form-grid">
+              <div class="form-row">
+                <label for="approvalSettingCode">Kode Pengaturan: <span class="required">*</span></label>
+                <input class="form-control" id="approvalSettingCode" type="text" placeholder="Kode Pengaturan">
+              </div>
+              <div class="form-row">
+                <label for="approvalSettingName">Nama Pengaturan: <span class="required">*</span></label>
+                <input class="form-control" id="approvalSettingName" type="text" placeholder="Nama Pengaturan">
+              </div>
+              <div class="form-row">
+                <label for="approvalSettingTransactionType">Jenis Transaksi: <span class="required">*</span></label>
+                <select class="form-control" id="approvalSettingTransactionType"></select>
+              </div>
+              <div class="form-row">
+                <label for="approvalSettingTransactionSubtype">Subtipe Transaksi:</label>
+                <select class="form-control" id="approvalSettingTransactionSubtype"></select>
+              </div>
+              <div class="form-row">
+                <label for="approvalSettingAppliesTo">Berlaku Untuk: <span class="required">*</span></label>
+                <select class="form-control" id="approvalSettingAppliesTo">
+                  <option value="">Pilih Berlaku Untuk</option>
+                  <option value="ALL">Semua</option>
+                  <option value="DEPARTMENT">Departemen</option>
+                  <option value="EMPLOYMENT_TYPE">Employment Type</option>
+                  <option value="EMPLOYEE">Karyawan</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>Status:</label>
+                <label class="status-check"><input id="approvalSettingActive" type="checkbox"> Aktif</label>
+              </div>
+              <div class="form-row" style="grid-column:1 / -1">
+                <label for="approvalSettingDescription">Deskripsi:</label>
+                <textarea class="form-control" id="approvalSettingDescription" placeholder="Deskripsi"></textarea>
+              </div>
+            </div>
+          </section>
+          <section class="detail-wrap" id="approvalSettingScopeInfo">
+            <div class="value-text">Pengaturan ini berlaku untuk semua konteks transaksi yang sesuai.</div>
+          </section>
+          <section class="detail-wrap hidden" id="approvalSettingScopeSection">
+            <button class="btn outline" id="approvalSettingAddScopeBtn" type="button">Tambah Scope</button>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:70px">No</th>
+                    <th id="approvalSettingScopeHead">Scope</th>
+                    <th id="approvalSettingScopeActionHead" style="width:110px">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="approvalSettingScopeRows"></tbody>
+              </table>
+            </div>
+          </section>
+          <section class="detail-wrap">
+            <button class="btn outline" id="approvalSettingAddStageBtn" type="button">Tambah Tahap</button>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:110px">Urutan</th>
+                    <th>Tahap Approval</th>
+                    <th style="width:170px">Tipe Approver</th>
+                    <th id="approvalSettingStageActionHead" style="width:110px">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="approvalSettingStageRows"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
         <div id="applicationStageListView" class="hidden">
           <div class="toolbar">
             <button class="btn" id="applicationStageAddBtn" type="button">Tambah</button>
@@ -3835,6 +3983,8 @@
     const employmentTypeFormView = document.getElementById("employmentTypeFormView");
     const approvalStageListView = document.getElementById("approvalStageListView");
     const approvalStageFormView = document.getElementById("approvalStageFormView");
+    const approvalSettingListView = document.getElementById("approvalSettingListView");
+    const approvalSettingFormView = document.getElementById("approvalSettingFormView");
     const applicationStageListView = document.getElementById("applicationStageListView");
     const applicationStageFormView = document.getElementById("applicationStageFormView");
     const workTypeListView = document.getElementById("workTypeListView");
@@ -3852,6 +4002,7 @@
     const formErrors = document.getElementById("formErrors");
     const employmentTypeFormErrors = document.getElementById("employmentTypeFormErrors");
     const approvalStageFormErrors = document.getElementById("approvalStageFormErrors");
+    const approvalSettingFormErrors = document.getElementById("approvalSettingFormErrors");
     const applicationStageFormErrors = document.getElementById("applicationStageFormErrors");
     const workTypeFormErrors = document.getElementById("workTypeFormErrors");
     const categoryFormErrors = document.getElementById("categoryFormErrors");
@@ -3994,6 +4145,123 @@
     let approvalStageEditingCode = null;
     let approvalStageDetailRows = [];
     let approvalStageReadonly = false;
+
+    const approvalSettingTransactionTypes = [
+      { value: "EMPLOYEE_REQUEST", label: "Pengajuan Karyawan" },
+      { value: "EMPLOYEE_ALLOCATION", label: "Alokasi Karyawan" },
+      { value: "ADDITIONAL_TASK", label: "Tugas Tambahan" },
+      { value: "EMPLOYEE_REQUISITION", label: "Permohonan Penambahan Karyawan" },
+      { value: "EMPLOYEE_MOVEMENT", label: "Perubahan Jabatan & Mutasi" },
+      { value: "EMPLOYEE_TERMINATION", label: "Pemberhentian Karyawan" },
+      { value: "SALARY_ADJUSTMENT", label: "Penyesuaian Gaji" },
+      { value: "PAYROLL_PROCESS", label: "Proses Penggajian" }
+    ];
+
+    const approvalSettingSubtypes = {
+      EMPLOYEE_REQUEST: [
+        { value: "SICK", label: "Sakit" },
+        { value: "PERMISSION", label: "Izin" },
+        { value: "ANNUAL_LEAVE", label: "Cuti Tahunan" },
+        { value: "LATE", label: "Terlambat" },
+        { value: "EARLY_LEAVE", label: "Pulang Cepat" },
+        { value: "BUSINESS_TRIP", label: "Dinas" },
+        { value: "DAY_OFF_CHANGE", label: "Ganti Libur" }
+      ],
+      ADDITIONAL_TASK: [
+        { value: "OVERTIME", label: "Lembur" },
+        { value: "EXTRA_TASK", label: "Tugas Tambahan" }
+      ],
+      EMPLOYEE_REQUISITION: [
+        { value: "NEW_POSITION", label: "Posisi Baru" },
+        { value: "REPLACEMENT", label: "Pengganti Karyawan" }
+      ],
+      EMPLOYEE_MOVEMENT: [
+        { value: "PROMOTION", label: "Promosi" },
+        { value: "DEMOTION", label: "Demosi" },
+        { value: "TRANSFER", label: "Mutasi" }
+      ],
+      EMPLOYEE_TERMINATION: [
+        { value: "RESIGNATION", label: "Resign" },
+        { value: "TERMINATION", label: "Pemberhentian" }
+      ],
+      PAYROLL_PROCESS: [
+        { value: "WEEKLY", label: "Mingguan" },
+        { value: "MONTHLY", label: "Bulanan" }
+      ]
+    };
+
+    const approvalSettingAppliesToTypes = [
+      { value: "ALL", label: "Semua" },
+      { value: "DEPARTMENT", label: "Departemen" },
+      { value: "EMPLOYMENT_TYPE", label: "Employment Type" },
+      { value: "EMPLOYEE", label: "Karyawan" }
+    ];
+
+    const approvalSettingDepartments = ["Produksi", "HR", "Finance", "Gudang", "Sales", "IT"];
+    const approvalSettingEmployees = ["Budi Santoso", "Rina Wijaya", "Andi Pratama", "Siti Aminah", "Michael Tan", "Dewi Lestari"];
+
+    let approvalSettings = [
+      {
+        setting_code: "EMP_REQ_PROD",
+        setting_name: "Approval Pengajuan Karyawan Produksi",
+        transaction_type: "EMPLOYEE_REQUEST",
+        transaction_subtype: "",
+        applies_to_type: "DEPARTMENT",
+        description: "Approval pengajuan karyawan untuk area produksi dan gudang.",
+        is_active: true,
+        scopes: [{ value: "Produksi" }, { value: "Gudang" }],
+        stages: [{ sequence_no: 1, stage_id: "MGR" }, { sequence_no: 2, stage_id: "HR" }]
+      },
+      {
+        setting_code: "LEAVE_STAFF",
+        setting_name: "Approval Cuti Staff",
+        transaction_type: "EMPLOYEE_REQUEST",
+        transaction_subtype: "ANNUAL_LEAVE",
+        applies_to_type: "EMPLOYMENT_TYPE",
+        description: "Approval cuti tahunan untuk karyawan staff.",
+        is_active: true,
+        scopes: [{ value: "Staff" }],
+        stages: [{ sequence_no: 1, stage_id: "MGR" }, { sequence_no: 2, stage_id: "HR" }]
+      },
+      {
+        setting_code: "REQ_NEW_EMP",
+        setting_name: "Approval Permohonan Penambahan Karyawan",
+        transaction_type: "EMPLOYEE_REQUISITION",
+        transaction_subtype: "",
+        applies_to_type: "DEPARTMENT",
+        description: "Approval permohonan penambahan karyawan dari departemen.",
+        is_active: true,
+        scopes: [{ value: "Produksi" }, { value: "Sales" }],
+        stages: [{ sequence_no: 1, stage_id: "HR" }, { sequence_no: 2, stage_id: "DIR" }]
+      },
+      {
+        setting_code: "PAYROLL_MONTHLY",
+        setting_name: "Approval Payroll Bulanan",
+        transaction_type: "PAYROLL_PROCESS",
+        transaction_subtype: "MONTHLY",
+        applies_to_type: "ALL",
+        description: "Approval proses penggajian bulanan.",
+        is_active: true,
+        scopes: [],
+        stages: [{ sequence_no: 1, stage_id: "PAYROLL" }]
+      },
+      {
+        setting_code: "OVERTIME_ALL",
+        setting_name: "Approval Lembur Semua Karyawan",
+        transaction_type: "ADDITIONAL_TASK",
+        transaction_subtype: "OVERTIME",
+        applies_to_type: "ALL",
+        description: "Approval lembur untuk semua karyawan.",
+        is_active: true,
+        scopes: [],
+        stages: [{ sequence_no: 1, stage_id: "MGR" }]
+      }
+    ];
+
+    let approvalSettingEditingCode = null;
+    let approvalSettingReadonly = false;
+    let approvalSettingScopeRows = [];
+    let approvalSettingStageRows = [];
 
     let applicationStages = [
       { sequence: 1, name: "Baru", is_hired_stage: false },
@@ -4246,6 +4514,8 @@
       employmentTypeFormView.classList.toggle("hidden", nextMode === "employment-type-list");
       approvalStageListView.classList.add("hidden");
       approvalStageFormView.classList.add("hidden");
+      approvalSettingListView.classList.add("hidden");
+      approvalSettingFormView.classList.add("hidden");
       applicationStageListView.classList.add("hidden");
       applicationStageFormView.classList.add("hidden");
       workTypeListView.classList.add("hidden");
@@ -4281,6 +4551,8 @@
       employmentTypeFormView.classList.add("hidden");
       approvalStageListView.classList.toggle("hidden", nextMode !== "approval-stage-list");
       approvalStageFormView.classList.toggle("hidden", nextMode === "approval-stage-list");
+      approvalSettingListView.classList.add("hidden");
+      approvalSettingFormView.classList.add("hidden");
       applicationStageListView.classList.add("hidden");
       applicationStageFormView.classList.add("hidden");
       workTypeListView.classList.add("hidden");
@@ -4294,6 +4566,44 @@
       structureListView.classList.add("hidden");
       structureFormView.classList.add("hidden");
       approvalStageFormErrors.classList.remove("show");
+    }
+
+    function setApprovalSettingView(nextMode, title) {
+      mode = nextMode;
+      activeMenu = "approval-setting";
+      crumbMenu.textContent = "Pengaturan Approval";
+      crumbTitle.textContent = title;
+      setOptionalActive("employmentTypeMenu", false);
+      setOptionalActive("approvalStageMenu", false);
+      setOptionalActive("approvalSettingMenu", true);
+      setOptionalActive("applicationStageMenu", false);
+      setOptionalActive("workTypeMenu", false);
+      setOptionalActive("parameterMenu", false);
+      setOptionalActive("categoryMenu", false);
+      setOptionalActive("componentMenu", false);
+      setOptionalActive("inputTypeMenu", false);
+      setOptionalActive("structureMenu", false);
+      listView.classList.add("hidden");
+      formView.classList.add("hidden");
+      employmentTypeListView.classList.add("hidden");
+      employmentTypeFormView.classList.add("hidden");
+      approvalStageListView.classList.add("hidden");
+      approvalStageFormView.classList.add("hidden");
+      approvalSettingListView.classList.toggle("hidden", nextMode !== "approval-setting-list");
+      approvalSettingFormView.classList.toggle("hidden", nextMode === "approval-setting-list");
+      applicationStageListView.classList.add("hidden");
+      applicationStageFormView.classList.add("hidden");
+      workTypeListView.classList.add("hidden");
+      workTypeFormView.classList.add("hidden");
+      categoryListView.classList.add("hidden");
+      categoryFormView.classList.add("hidden");
+      componentListView.classList.add("hidden");
+      componentFormView.classList.add("hidden");
+      inputTypeListView.classList.add("hidden");
+      inputTypeFormView.classList.add("hidden");
+      structureListView.classList.add("hidden");
+      structureFormView.classList.add("hidden");
+      approvalSettingFormErrors.classList.remove("show");
     }
 
     function setApplicationStageView(nextMode, title) {
@@ -4316,6 +4626,8 @@
       employmentTypeFormView.classList.add("hidden");
       approvalStageListView.classList.add("hidden");
       approvalStageFormView.classList.add("hidden");
+      approvalSettingListView.classList.add("hidden");
+      approvalSettingFormView.classList.add("hidden");
       applicationStageListView.classList.toggle("hidden", nextMode !== "application-stage-list");
       applicationStageFormView.classList.toggle("hidden", nextMode === "application-stage-list");
       workTypeListView.classList.add("hidden");
@@ -4351,6 +4663,8 @@
       employmentTypeFormView.classList.add("hidden");
       approvalStageListView.classList.add("hidden");
       approvalStageFormView.classList.add("hidden");
+      approvalSettingListView.classList.add("hidden");
+      approvalSettingFormView.classList.add("hidden");
       applicationStageListView.classList.add("hidden");
       applicationStageFormView.classList.add("hidden");
       workTypeListView.classList.add("hidden");
@@ -4386,6 +4700,8 @@
       employmentTypeFormView.classList.add("hidden");
       approvalStageListView.classList.add("hidden");
       approvalStageFormView.classList.add("hidden");
+      approvalSettingListView.classList.add("hidden");
+      approvalSettingFormView.classList.add("hidden");
       applicationStageListView.classList.add("hidden");
       applicationStageFormView.classList.add("hidden");
       workTypeListView.classList.add("hidden");
@@ -4421,6 +4737,8 @@
       employmentTypeFormView.classList.add("hidden");
       approvalStageListView.classList.add("hidden");
       approvalStageFormView.classList.add("hidden");
+      approvalSettingListView.classList.add("hidden");
+      approvalSettingFormView.classList.add("hidden");
       applicationStageListView.classList.add("hidden");
       applicationStageFormView.classList.add("hidden");
       workTypeListView.classList.add("hidden");
@@ -4456,6 +4774,8 @@
       employmentTypeFormView.classList.add("hidden");
       approvalStageListView.classList.add("hidden");
       approvalStageFormView.classList.add("hidden");
+      approvalSettingListView.classList.add("hidden");
+      approvalSettingFormView.classList.add("hidden");
       applicationStageListView.classList.add("hidden");
       applicationStageFormView.classList.add("hidden");
       workTypeListView.classList.toggle("hidden", nextMode !== "work-type-list");
@@ -4491,6 +4811,8 @@
       employmentTypeFormView.classList.add("hidden");
       approvalStageListView.classList.add("hidden");
       approvalStageFormView.classList.add("hidden");
+      approvalSettingListView.classList.add("hidden");
+      approvalSettingFormView.classList.add("hidden");
       applicationStageListView.classList.add("hidden");
       applicationStageFormView.classList.add("hidden");
       workTypeListView.classList.add("hidden");
@@ -4526,6 +4848,8 @@
       employmentTypeFormView.classList.add("hidden");
       approvalStageListView.classList.add("hidden");
       approvalStageFormView.classList.add("hidden");
+      approvalSettingListView.classList.add("hidden");
+      approvalSettingFormView.classList.add("hidden");
       applicationStageListView.classList.add("hidden");
       applicationStageFormView.classList.add("hidden");
       workTypeListView.classList.add("hidden");
@@ -4572,7 +4896,7 @@
         <tr>
           <td>${formatDate(item.date)}</td>
           <td><div class="value-text">${escapeHtml(item.value)}</div></td>
-          ${readonly ? "" : `<td><button class="btn red icon-only" type="button" title="Hapus" data-module-action="deleteValue" data-module-args="${index}">x</button></td>`}
+          ${readonly ? "" : `<td class="action-cell"><div class="actions inline-actions"><button class="btn red small icon-btn" type="button" title="Hapus" aria-label="Hapus" data-module-action="deleteValue" data-module-args="${index}">${window.iconTrash()}</button></div></td>`}
         </tr>
       `).join("");
     }
@@ -4746,6 +5070,16 @@
         if (!confirmDeleted("Tahap Approval", deleteCode, before, approvalStages.length)) return;
         closeDelete();
         renderApprovalStageList();
+        showToast("Data berhasil dihapus.");
+        return;
+      }
+
+      if (deleteType === "approval-setting") {
+        const before = approvalSettings.length;
+        approvalSettings = approvalSettings.filter(item => item.setting_code !== deleteCode);
+        if (!confirmDeleted("Pengaturan Approval", deleteCode, before, approvalSettings.length)) return;
+        closeDelete();
+        renderApprovalSettingList();
         showToast("Data berhasil dihapus.");
         return;
       }
@@ -5181,6 +5515,347 @@
       deleteMessage.textContent = `Apakah Anda yakin ingin menghapus Tahap Approval ${stage.name || code || "ini"}?`;
       document.getElementById("confirmDeleteBtn").textContent = "Ya";
       document.getElementById("cancelDeleteBtn").textContent = "Tidak";
+      deleteModal.classList.add("show");
+    }
+
+    function approvalSettingLabel(source, value) {
+      return source.find(item => item.value === value)?.label || value || "Semua";
+    }
+
+    function approvalSettingTransactionLabel(value) {
+      return approvalSettingLabel(approvalSettingTransactionTypes, value);
+    }
+
+    function approvalSettingSubtypeLabel(type, subtype) {
+      if (!subtype) return "Semua";
+      return approvalSettingLabel(approvalSettingSubtypes[type] || [], subtype);
+    }
+
+    function approvalSettingAppliesToLabel(value) {
+      return approvalSettingLabel(approvalSettingAppliesToTypes, value);
+    }
+
+    function approvalStageByCode(code) {
+      return approvalStages.find(stage => stage.code === code);
+    }
+
+    function approvalSettingScopeOptions(type, selected = "") {
+      const source = type === "DEPARTMENT"
+        ? approvalSettingDepartments
+        : type === "EMPLOYMENT_TYPE"
+          ? employmentTypes.map(item => item.name)
+          : type === "EMPLOYEE"
+            ? approvalSettingEmployees
+            : [];
+      return source.map(item => `<option value="${escapeHtml(item)}" ${item === selected ? "selected" : ""}>${escapeHtml(item)}</option>`).join("");
+    }
+
+    function approvalSettingStageOptions(selected = "") {
+      return approvalStages.map(stage => `<option value="${escapeHtml(stage.code)}" ${stage.code === selected ? "selected" : ""}>${escapeHtml(stage.name)}</option>`).join("");
+    }
+
+    function approvalSettingScopeSummary(item) {
+      if (item.applies_to_type === "ALL") return "Semua";
+      const label = approvalSettingAppliesToLabel(item.applies_to_type);
+      const values = item.scopes.map(scope => scope.value).join(", ") || "-";
+      return `${label}: ${values}`;
+    }
+
+    function approvalSettingStageSummary(item) {
+      return item.stages
+        .slice()
+        .sort((a, b) => Number(a.sequence_no) - Number(b.sequence_no))
+        .map(stage => {
+          const master = approvalStageByCode(stage.stage_id);
+          return `${stage.sequence_no}. ${master?.name || stage.stage_id}`;
+        })
+        .join(" -> ");
+    }
+
+    function renderApprovalSettingFilterOptions(selected = "all") {
+      document.getElementById("approvalSettingTransactionFilter").innerHTML = '<option value="all">Semua</option>' + approvalSettingTransactionTypes.map(item => (
+        `<option value="${escapeHtml(item.value)}" ${item.value === selected ? "selected" : ""}>${escapeHtml(item.label)}</option>`
+      )).join("");
+    }
+
+    function renderApprovalSettingList() {
+      setApprovalSettingView("approval-setting-list", "Daftar Pengaturan Approval");
+      const query = document.getElementById("approvalSettingSearchBox").value.trim().toLowerCase();
+      const transaction = document.getElementById("approvalSettingTransactionFilter").value || "all";
+      const status = document.getElementById("approvalSettingStatusFilter").value || "all";
+      renderApprovalSettingFilterOptions(transaction);
+      const pageSize = Number(document.getElementById("approvalSettingPageSize").value || 10);
+      const rows = approvalSettings.filter(item => {
+        const text = [
+          item.setting_code,
+          item.setting_name,
+          approvalSettingTransactionLabel(item.transaction_type),
+          approvalSettingSubtypeLabel(item.transaction_type, item.transaction_subtype),
+          approvalSettingScopeSummary(item),
+          approvalSettingStageSummary(item),
+          item.is_active ? "Aktif" : "Tidak Aktif"
+        ].join(" ").toLowerCase();
+        const transactionMatch = transaction === "all" || item.transaction_type === transaction;
+        const statusMatch = status === "all" || (status === "active" && item.is_active) || (status === "inactive" && !item.is_active);
+        return text.includes(query) && transactionMatch && statusMatch;
+      });
+      const visibleRows = rows.slice(0, pageSize);
+      document.getElementById("approvalSettingRows").innerHTML = visibleRows.map(item => `
+        <tr>
+          <td>${escapeHtml(item.setting_code)}</td>
+          <td>${escapeHtml(item.setting_name)}</td>
+          <td>${escapeHtml(approvalSettingTransactionLabel(item.transaction_type))}</td>
+          <td>${escapeHtml(approvalSettingSubtypeLabel(item.transaction_type, item.transaction_subtype))}</td>
+          <td>${escapeHtml(approvalSettingScopeSummary(item))}</td>
+          <td><span class="badge ${item.is_active ? "active" : "muted"}">${item.is_active ? "Aktif" : "Tidak Aktif"}</span></td>
+          <td class="action-cell">
+            <div class="actions inline-actions">
+              <button class="btn teal small icon-btn" type="button" title="Lihat" aria-label="Lihat" data-module-action="openApprovalSettingView" data-module-args="${escapeHtml(item.setting_code)}">${window.iconEye()}</button>
+              <button class="btn small icon-btn" type="button" title="Ubah" aria-label="Ubah" data-module-action="openApprovalSettingEdit" data-module-args="${escapeHtml(item.setting_code)}">${window.iconPencil()}</button>
+              <button class="btn red small icon-btn" type="button" title="Hapus" aria-label="Hapus" data-module-action="openApprovalSettingDelete" data-module-args="${escapeHtml(item.setting_code)}">${window.iconTrash()}</button>
+            </div>
+          </td>
+        </tr>
+      `).join("");
+      const shown = rows.length ? `1 - ${visibleRows.length}` : "0 - 0";
+      document.getElementById("approvalSettingPageInfo").textContent = `Menampilkan ${shown} dari ${rows.length} data`;
+    }
+
+    function renderApprovalSettingTransactionOptions(selected = "") {
+      document.getElementById("approvalSettingTransactionType").innerHTML = '<option value="">Pilih Jenis Transaksi</option>' + approvalSettingTransactionTypes.map(item => (
+        `<option value="${escapeHtml(item.value)}" ${item.value === selected ? "selected" : ""}>${escapeHtml(item.label)}</option>`
+      )).join("");
+    }
+
+    function renderApprovalSettingSubtypeOptions(selected = "") {
+      const type = document.getElementById("approvalSettingTransactionType").value;
+      const options = approvalSettingSubtypes[type] || [];
+      document.getElementById("approvalSettingTransactionSubtype").innerHTML = '<option value="">Semua</option>' + options.map(item => (
+        `<option value="${escapeHtml(item.value)}" ${item.value === selected ? "selected" : ""}>${escapeHtml(item.label)}</option>`
+      )).join("");
+    }
+
+    function setApprovalSettingReadonly(readonly) {
+      approvalSettingReadonly = readonly;
+      document.getElementById("approvalSettingSaveBtn").classList.toggle("hidden", readonly);
+      document.getElementById("approvalSettingBackBtn").textContent = readonly ? "Kembali" : "Batal";
+      [
+        "approvalSettingCode",
+        "approvalSettingName",
+        "approvalSettingTransactionType",
+        "approvalSettingTransactionSubtype",
+        "approvalSettingAppliesTo",
+        "approvalSettingDescription",
+        "approvalSettingActive"
+      ].forEach(id => {
+        const element = document.getElementById(id);
+        if ("disabled" in element) element.disabled = readonly;
+        else element.readOnly = readonly;
+      });
+      document.getElementById("approvalSettingAddScopeBtn").classList.toggle("hidden", readonly);
+      document.getElementById("approvalSettingAddStageBtn").classList.toggle("hidden", readonly);
+      document.getElementById("approvalSettingScopeActionHead").classList.toggle("hidden", readonly);
+      document.getElementById("approvalSettingStageActionHead").classList.toggle("hidden", readonly);
+    }
+
+    function renderApprovalSettingScopeRows() {
+      const type = document.getElementById("approvalSettingAppliesTo").value;
+      const isAll = type === "ALL" || !type;
+      const scopeLabel = type === "DEPARTMENT"
+        ? "Departemen"
+        : type === "EMPLOYMENT_TYPE"
+          ? "Employment Type"
+          : type === "EMPLOYEE"
+            ? "Karyawan"
+            : "Scope";
+      document.getElementById("approvalSettingScopeInfo").classList.toggle("hidden", !isAll);
+      document.getElementById("approvalSettingScopeSection").classList.toggle("hidden", isAll);
+      document.getElementById("approvalSettingScopeHead").textContent = scopeLabel;
+      document.getElementById("approvalSettingAddScopeBtn").textContent = `Tambah ${scopeLabel}`;
+      document.getElementById("approvalSettingScopeRows").innerHTML = approvalSettingScopeRows.length ? approvalSettingScopeRows.map((row, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${approvalSettingReadonly ? escapeHtml(row.value) : `<select class="form-control" data-approval-setting-scope="${index}">${approvalSettingScopeOptions(type, row.value)}</select>`}</td>
+          ${approvalSettingReadonly ? "" : `<td class="action-cell"><div class="actions inline-actions"><button class="btn red small icon-btn" type="button" title="Hapus" aria-label="Hapus" data-module-action="deleteApprovalSettingScope" data-module-args="${index}">${window.iconTrash()}</button></div></td>`}
+        </tr>
+      `).join("") : `<tr><td colspan="${approvalSettingReadonly ? 2 : 3}">Belum ada ${scopeLabel.toLowerCase()}.</td></tr>`;
+      document.querySelectorAll("[data-approval-setting-scope]").forEach(select => {
+        select.addEventListener("change", event => {
+          approvalSettingScopeRows[Number(event.target.dataset.approvalSettingScope)].value = event.target.value;
+        });
+      });
+    }
+
+    function renderApprovalSettingStageRows() {
+      document.getElementById("approvalSettingStageRows").innerHTML = approvalSettingStageRows.length ? approvalSettingStageRows.map((row, index) => {
+        const master = approvalStageByCode(row.stage_id);
+        return `
+          <tr>
+            <td>${approvalSettingReadonly ? escapeHtml(row.sequence_no) : `<input class="form-control" type="number" min="1" value="${escapeHtml(row.sequence_no)}" data-approval-setting-stage-sequence="${index}">`}</td>
+            <td>${approvalSettingReadonly ? escapeHtml(master?.name || row.stage_id) : `<select class="form-control" data-approval-setting-stage="${index}">${approvalSettingStageOptions(row.stage_id)}</select>`}</td>
+            <td>${escapeHtml(approvalStageTypeLabel(master?.approver_type || ""))}</td>
+            ${approvalSettingReadonly ? "" : `<td class="action-cell"><div class="actions inline-actions"><button class="btn red small icon-btn" type="button" title="Hapus" aria-label="Hapus" data-module-action="deleteApprovalSettingStage" data-module-args="${index}">${window.iconTrash()}</button></div></td>`}
+          </tr>
+        `;
+      }).join("") : `<tr><td colspan="${approvalSettingReadonly ? 3 : 4}">Belum ada tahap approval.</td></tr>`;
+      document.querySelectorAll("[data-approval-setting-stage-sequence]").forEach(input => {
+        input.addEventListener("input", event => {
+          approvalSettingStageRows[Number(event.target.dataset.approvalSettingStageSequence)].sequence_no = Number(event.target.value || 0);
+        });
+      });
+      document.querySelectorAll("[data-approval-setting-stage]").forEach(select => {
+        select.addEventListener("change", event => {
+          approvalSettingStageRows[Number(event.target.dataset.approvalSettingStage)].stage_id = event.target.value;
+          renderApprovalSettingStageRows();
+        });
+      });
+    }
+
+    function refreshApprovalSettingFormDetails() {
+      renderApprovalSettingSubtypeOptions(document.getElementById("approvalSettingTransactionSubtype").value);
+      if (document.getElementById("approvalSettingAppliesTo").value === "ALL") approvalSettingScopeRows = [];
+      renderApprovalSettingScopeRows();
+      renderApprovalSettingStageRows();
+    }
+
+    function fillApprovalSettingForm(item = null) {
+      approvalSettingScopeRows = item ? item.scopes.map(scope => ({ ...scope })) : [];
+      approvalSettingStageRows = item ? item.stages.map(stage => ({ ...stage })) : [{ sequence_no: 1, stage_id: "MGR" }];
+      document.getElementById("approvalSettingCode").value = item?.setting_code || "";
+      document.getElementById("approvalSettingName").value = item?.setting_name || "";
+      renderApprovalSettingTransactionOptions(item?.transaction_type || "");
+      renderApprovalSettingSubtypeOptions(item?.transaction_subtype || "");
+      document.getElementById("approvalSettingTransactionSubtype").value = item?.transaction_subtype || "";
+      document.getElementById("approvalSettingAppliesTo").value = item?.applies_to_type || "ALL";
+      document.getElementById("approvalSettingDescription").value = item?.description || "";
+      document.getElementById("approvalSettingActive").checked = item ? item.is_active : true;
+      showErrors(approvalSettingFormErrors, []);
+      refreshApprovalSettingFormDetails();
+    }
+
+    function openApprovalSettingCreate() {
+      approvalSettingEditingCode = null;
+      setApprovalSettingReadonly(false);
+      fillApprovalSettingForm(null);
+      setApprovalSettingView("approval-setting-create", "Tambah Pengaturan Approval");
+    }
+
+    function openApprovalSettingEdit(code) {
+      const item = approvalSettings.find(setting => setting.setting_code === code);
+      if (!item) return;
+      approvalSettingEditingCode = code;
+      setApprovalSettingReadonly(false);
+      fillApprovalSettingForm(item);
+      setApprovalSettingView("approval-setting-edit", "Ubah Pengaturan Approval");
+    }
+
+    function openApprovalSettingView(code) {
+      const item = approvalSettings.find(setting => setting.setting_code === code);
+      if (!item) return;
+      approvalSettingEditingCode = code;
+      setApprovalSettingReadonly(true);
+      fillApprovalSettingForm(item);
+      setApprovalSettingView("approval-setting-view", "Detail Pengaturan Approval");
+    }
+
+    function addApprovalSettingScope() {
+      const type = document.getElementById("approvalSettingAppliesTo").value;
+      if (type === "ALL") return;
+      const options = type === "DEPARTMENT"
+        ? approvalSettingDepartments
+        : type === "EMPLOYMENT_TYPE"
+          ? employmentTypes.map(item => item.name)
+          : approvalSettingEmployees;
+      const next = options.find(item => !approvalSettingScopeRows.some(row => row.value === item)) || options[0] || "";
+      if (next) approvalSettingScopeRows.push({ value: next });
+      renderApprovalSettingScopeRows();
+    }
+
+    function deleteApprovalSettingScope(index) {
+      approvalSettingScopeRows.splice(Number(index), 1);
+      renderApprovalSettingScopeRows();
+    }
+
+    function addApprovalSettingStage() {
+      const nextSequence = approvalSettingStageRows.length
+        ? Math.max(...approvalSettingStageRows.map(row => Number(row.sequence_no) || 0)) + 1
+        : 1;
+      approvalSettingStageRows.push({ sequence_no: nextSequence, stage_id: approvalStages[0]?.code || "" });
+      renderApprovalSettingStageRows();
+    }
+
+    function deleteApprovalSettingStage(index) {
+      approvalSettingStageRows.splice(Number(index), 1);
+      renderApprovalSettingStageRows();
+    }
+
+    function readApprovalSettingForm() {
+      return {
+        setting_code: document.getElementById("approvalSettingCode").value.trim().toUpperCase(),
+        setting_name: document.getElementById("approvalSettingName").value.trim(),
+        transaction_type: document.getElementById("approvalSettingTransactionType").value,
+        transaction_subtype: document.getElementById("approvalSettingTransactionSubtype").value,
+        applies_to_type: document.getElementById("approvalSettingAppliesTo").value,
+        description: document.getElementById("approvalSettingDescription").value.trim(),
+        is_active: document.getElementById("approvalSettingActive").checked,
+        scopes: document.getElementById("approvalSettingAppliesTo").value === "ALL" ? [] : approvalSettingScopeRows.map(row => ({ ...row })),
+        stages: approvalSettingStageRows
+          .map(row => ({ sequence_no: Number(row.sequence_no), stage_id: row.stage_id }))
+          .sort((a, b) => a.sequence_no - b.sequence_no)
+      };
+    }
+
+    function validateApprovalSettingForm(data) {
+      const errors = [];
+      if (!data.setting_code) errors.push("Kode Pengaturan wajib diisi.");
+      if (!data.setting_name) errors.push("Nama Pengaturan wajib diisi.");
+      if (!data.transaction_type) errors.push("Jenis Transaksi wajib dipilih.");
+      if (!data.applies_to_type) errors.push("Berlaku Untuk wajib dipilih.");
+      if (data.setting_code && approvalSettings.some(item => item.setting_code.toLowerCase() === data.setting_code.toLowerCase() && item.setting_code !== approvalSettingEditingCode)) {
+        errors.push("Kode Pengaturan tidak boleh duplikat.");
+      }
+      if (data.applies_to_type !== "ALL" && !data.scopes.length) errors.push("Minimal 1 scope wajib diisi.");
+      const scopeValues = new Set();
+      data.scopes.forEach(scope => {
+        if (!scope.value) errors.push("Scope wajib dipilih.");
+        if (scope.value && scopeValues.has(scope.value)) errors.push("Scope tidak boleh duplikat.");
+        scopeValues.add(scope.value);
+      });
+      if (!data.stages.length) errors.push("Minimal 1 tahap approval wajib diisi.");
+      const stageSequences = new Set();
+      data.stages.forEach(stage => {
+        if (!stage.sequence_no || stage.sequence_no < 1) errors.push("Urutan tahap harus angka lebih besar dari 0.");
+        if (!stage.stage_id) errors.push("Tahap Approval wajib dipilih.");
+        if (stage.sequence_no && stageSequences.has(stage.sequence_no)) errors.push("Urutan tahap tidak boleh duplikat.");
+        stageSequences.add(stage.sequence_no);
+      });
+      showErrors(approvalSettingFormErrors, [...new Set(errors)]);
+      return !errors.length;
+    }
+
+    function saveApprovalSettingForm() {
+      const data = readApprovalSettingForm();
+      if (!validateApprovalSettingForm(data)) return;
+      const isEdit = Boolean(approvalSettingEditingCode);
+      if (isEdit) {
+        const index = approvalSettings.findIndex(item => item.setting_code === approvalSettingEditingCode);
+        if (index < 0) return;
+        approvalSettings[index] = data;
+      } else {
+        approvalSettings.push(data);
+      }
+      approvalSettingEditingCode = null;
+      renderApprovalSettingList();
+      showToast(isEdit ? "Data berhasil diperbarui." : "Data berhasil ditambahkan.");
+    }
+
+    function openApprovalSettingDelete(code) {
+      const item = approvalSettings.find(setting => setting.setting_code === code);
+      if (!item) return;
+      deleteType = "approval-setting";
+      deleteCode = code;
+      deleteErrors.classList.remove("show");
+      deleteMessage.textContent = `Apakah Anda yakin ingin menghapus pengaturan approval ini? ${item.setting_name}`;
       deleteModal.classList.add("show");
     }
 
@@ -6252,6 +6927,26 @@
     });
     document.getElementById("approvalStageAddRoleBtn").addEventListener("click", () => addApprovalStageDetail("ROLE"));
     document.getElementById("approvalStageAddUserBtn").addEventListener("click", () => addApprovalStageDetail("USER"));
+    document.getElementById("approvalSettingAddBtn").addEventListener("click", openApprovalSettingCreate);
+    document.getElementById("approvalSettingBackBtn").addEventListener("click", renderApprovalSettingList);
+    document.getElementById("approvalSettingSaveBtn").addEventListener("click", saveApprovalSettingForm);
+    document.getElementById("approvalSettingSearchBox").addEventListener("input", renderApprovalSettingList);
+    document.getElementById("approvalSettingTransactionFilter").addEventListener("change", renderApprovalSettingList);
+    document.getElementById("approvalSettingStatusFilter").addEventListener("change", renderApprovalSettingList);
+    document.getElementById("approvalSettingPageSize").addEventListener("change", renderApprovalSettingList);
+    document.getElementById("approvalSettingCode").addEventListener("input", event => {
+      event.target.value = event.target.value.trim().toUpperCase().replace(/\s+/g, "_");
+    });
+    document.getElementById("approvalSettingTransactionType").addEventListener("change", () => {
+      document.getElementById("approvalSettingTransactionSubtype").value = "";
+      renderApprovalSettingSubtypeOptions();
+    });
+    document.getElementById("approvalSettingAppliesTo").addEventListener("change", () => {
+      approvalSettingScopeRows = [];
+      renderApprovalSettingScopeRows();
+    });
+    document.getElementById("approvalSettingAddScopeBtn").addEventListener("click", addApprovalSettingScope);
+    document.getElementById("approvalSettingAddStageBtn").addEventListener("click", addApprovalSettingStage);
     document.getElementById("applicationStageAddBtn").addEventListener("click", applicationStageOpenCreate);
     document.getElementById("applicationStageBackBtn").addEventListener("click", renderApplicationStageList);
     document.getElementById("applicationStageSaveBtn").addEventListener("click", saveApplicationStageForm);
@@ -6376,6 +7071,12 @@
       cursor: pointer;
       border-radius: 0 3px 3px 0;
       line-height: 1;
+    }
+    .lookup-select-row {
+      cursor: pointer;
+    }
+    .lookup-select-row:hover td {
+      background: #f4f7ff;
     }
     .info-bar {
       display: flex;
@@ -6550,7 +7251,7 @@
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Kode</th><th>Nama</th><th style="width:100px">Aksi</th></tr></thead>
+            <thead><tr><th>Kode</th><th>Nama</th></tr></thead>
             <tbody id="lookupRows"></tbody>
           </table>
         </div>
@@ -7043,10 +7744,9 @@
         item.code.toLowerCase().includes(query) || item.name.toLowerCase().includes(query)
       );
       document.getElementById("lookupRows").innerHTML = rows.map(item => `
-        <tr>
+        <tr class="lookup-select-row" data-module-action="selectLookup" data-module-args="${encodeURIComponent(item.code)}|${encodeURIComponent(item.name)}">
           <td>${item.code}</td>
           <td>${item.name}</td>
-          <td><button class="btn small" type="button" data-module-action="selectLookup" data-module-args="${encodeURIComponent(item.code)}|${encodeURIComponent(item.name)}">Pilih</button></td>
         </tr>
       `).join("");
     }
@@ -7555,6 +8255,2115 @@
     renderList();
   </script>
 </template>
+  <template id="page-approval-source">
+<style>
+    .approval-crumb-meta {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    .approval-bulk-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .approval-filter-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .approval-filter-controls label,
+    .approval-date-range {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin: 0;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .approval-filter-controls select {
+      width: 190px;
+    }
+    .approval-date-range input {
+      width: 132px;
+    }
+    .approval-process-tools {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: nowrap;
+      min-width: 0;
+    }
+    .approval-process-tools .table-search {
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+    .table-wrap.approval-process-table-wrap {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+    .approval-process-table {
+      width: 1320px;
+      min-width: 100%;
+      table-layout: fixed;
+    }
+    .approval-process-table th,
+    .approval-process-table td {
+      overflow-wrap: anywhere;
+    }
+    .approval-action-cell {
+      width: 170px;
+      min-width: 170px;
+      white-space: nowrap;
+    }
+    .approval-status-cell {
+      white-space: nowrap;
+    }
+    .approval-status-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .approval-status-wrap .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px;
+      min-width: 80px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .approval-info-icon {
+      width: 22px;
+      height: 22px;
+      min-width: 22px;
+      min-height: 22px;
+      padding: 0;
+      border: 1px solid #cbd5e1;
+      border-radius: 50%;
+      background: #fff;
+      color: #475569;
+      font-size: 13px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      cursor: pointer;
+      flex: 0 0 22px;
+    }
+    .approval-info-icon:hover {
+      background: #f3f6fb;
+      color: #1f4e79;
+      border-color: #9fb7d8;
+    }
+    .approval-row-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      flex-wrap: nowrap;
+    }
+    .approval-row-actions .btn-approval-compact {
+      min-width: 60px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .approval-row-actions .btn-approval-compact.btn.green,
+    .approval-row-actions .btn-approval-compact.btn.red {
+      color: #fff;
+    }
+    .approval-clamp {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.35;
+    }
+    .approval-clamp.short {
+      -webkit-line-clamp: 1;
+    }
+    .approval-doc-link {
+      border: 0;
+      background: transparent;
+      color: #3150a5;
+      padding: 0;
+      cursor: pointer;
+      font-weight: 700;
+      text-align: left;
+      text-decoration: underline;
+    }
+    .approval-muted {
+      color: #777;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .approval-summary {
+      border: 1px solid #e5e5e5;
+      background: #fbfbfb;
+      padding: 12px;
+      margin: 12px 0 16px;
+      line-height: 1.65;
+      text-align: left;
+    }
+    .approval-summary b {
+      color: #3f4d5c;
+    }
+    .approval-detail-grid {
+      max-width: 760px;
+      display: grid;
+      gap: 14px;
+    }
+    .approval-detail-row {
+      display: grid;
+      grid-template-columns: 190px 1fr;
+      gap: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #eee;
+      line-height: 1.5;
+    }
+    .approval-detail-row b {
+      color: #3f4d5c;
+    }
+    .approval-history-table {
+      width: 100%;
+      table-layout: fixed;
+    }
+    .approval-history-table th,
+    .approval-history-table td {
+      overflow-wrap: anywhere;
+    }
+
+    .approval-status-filter {
+      width: 120px;
+      min-width: 120px;
+      max-width: 120px;
+    }
+</style>
+<div class="module-screen-root">
+  <div class="module-content">
+    <span id="crumbTitle" class="approval-crumb-meta">Daftar Proses Approval</span>
+
+    <div id="approvalProcessListView">
+      <div class="approval-bulk-row">
+        <button class="btn green" id="approvalProcessBulkApproveBtn" type="button">Setujui</button>
+        <button class="btn red" id="approvalProcessBulkRejectBtn" type="button">Tolak</button>
+      </div>
+
+      <div class="filter-row">
+        <div class="filter-controls approval-filter-controls">
+          <label>
+            <span>Status</span>
+            <select class="approval-status-filter" id="approvalProcessStatusFilter">
+              <option value="all">Semua</option>
+              <option value="PENDING" selected>Menunggu</option>
+              <option value="APPROVED">Disetujui</option>
+              <option value="REJECTED">Ditolak</option>
+              <option value="CANCELLED">Dibatalkan</option>
+            </select>
+          </label>
+          <label>
+            <span>Jenis Transaksi</span>
+            <select id="approvalProcessTypeFilter"></select>
+          </label>
+          <div class="approval-date-range">
+            <span>Tanggal Submit</span>
+            <input id="approvalProcessDateFrom" type="date">
+            <span>s.d.</span>
+            <input id="approvalProcessDateTo" type="date">
+          </div>
+        </div>
+      </div>
+
+      <div class="table-tools table-utility-row approval-process-tools">
+        <div>Menampilkan
+          <select id="approvalProcessPageSize"><option>10</option><option>25</option><option>50</option></select>
+          data
+        </div>
+        <label class="table-search">
+          <span>Cari</span>
+          <input id="approvalProcessSearchBox" type="text" style="width:180px">
+        </label>
+      </div>
+
+      <div class="table-wrap approval-process-table-wrap">
+        <table class="approval-process-table">
+          <thead>
+            <tr>
+              <th style="width:40px"><input id="approvalProcessCheckAll" type="checkbox"></th>
+              <th style="width:125px">Pengajuan</th>
+              <th style="width:110px">No Dokumen</th>
+              <th style="width:175px">Jenis Approval</th>
+              <th style="width:180px">Objek Approval</th>
+              <th style="width:100px">Periode</th>
+              <th style="width:170px">Keterangan</th>
+              <th style="width:120px">Tahap Approval</th>
+              <th style="width:120px">Status</th>
+              <th style="width:150px">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="approvalProcessRows"></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <span id="approvalProcessPageInfo"></span>
+        <span class="pages"><button type="button">&lt;</button><button type="button">1</button><button type="button">&gt;</button></span>
+      </div>
+    </div>
+
+    <div id="approvalProcessDocumentView" class="hidden">
+      <div class="toolbar" style="justify-content:flex-start">
+        <button class="btn secondary" id="approvalProcessDocumentBackBtn" type="button">Kembali</button>
+      </div>
+      <section class="form-section">
+        <h2 class="section-title">Detail Dokumen Asal</h2>
+        <div class="approval-detail-grid" id="approvalProcessDocumentDetail"></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="approvalProcessApproveModal">
+    <div class="modal">
+      <div class="modal-head" id="approvalProcessApproveTitle">Setujui Approval</div>
+      <div class="modal-body">
+        <p id="approvalProcessApproveMessage" style="margin-top:0">Apakah Anda yakin ingin menyetujui dokumen ini?</p>
+        <div class="approval-summary" id="approvalProcessApproveSummary"></div>
+        <div class="form-row">
+          <label for="approvalProcessApproveNote">Catatan</label>
+          <textarea class="form-control" id="approvalProcessApproveNote"></textarea>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn green" id="approvalProcessApproveConfirmBtn" type="button">Ya, Setujui</button>
+        <button class="btn secondary" id="approvalProcessApproveCancelBtn" type="button">Tidak</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="approvalProcessRejectModal">
+    <div class="modal">
+      <div class="modal-head" id="approvalProcessRejectTitle">Tolak Approval</div>
+      <div class="modal-body">
+        <p id="approvalProcessRejectMessage" style="margin-top:0">Masukkan alasan penolakan untuk dokumen ini.</p>
+        <div class="approval-summary" id="approvalProcessRejectSummary"></div>
+        <div id="approvalProcessRejectErrors" class="error-box"></div>
+        <div class="form-row">
+          <label for="approvalProcessRejectNote">Catatan Penolakan <span class="required">*</span></label>
+          <textarea class="form-control" id="approvalProcessRejectNote"></textarea>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn red" id="approvalProcessRejectConfirmBtn" type="button">Ya, Tolak</button>
+        <button class="btn secondary" id="approvalProcessRejectCancelBtn" type="button">Tidak</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="approvalProcessHistoryModal">
+    <div class="modal wide">
+      <div class="modal-head">Riwayat Approval</div>
+      <div class="modal-body">
+        <div class="approval-summary" id="approvalProcessHistorySummary"></div>
+        <div class="table-wrap">
+          <table class="approval-history-table">
+            <thead>
+              <tr>
+                <th style="width:24%">Tahap Approval</th>
+                <th style="width:14%">Status</th>
+                <th style="width:18%">Diproses Oleh</th>
+                <th style="width:18%">Tanggal</th>
+                <th>Catatan</th>
+              </tr>
+            </thead>
+            <tbody id="approvalProcessHistoryRows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn secondary" id="approvalProcessHistoryCloseBtn" type="button">Kembali</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Data berhasil disetujui.</div>
+</div>
+<script>
+    const approvalProcessListView = document.getElementById("approvalProcessListView");
+    const approvalProcessDocumentView = document.getElementById("approvalProcessDocumentView");
+    const approvalProcessRows = document.getElementById("approvalProcessRows");
+    const approvalProcessPageInfo = document.getElementById("approvalProcessPageInfo");
+    const approvalProcessApproveModal = document.getElementById("approvalProcessApproveModal");
+    const approvalProcessRejectModal = document.getElementById("approvalProcessRejectModal");
+    const approvalProcessHistoryModal = document.getElementById("approvalProcessHistoryModal");
+    const approvalProcessRejectErrors = document.getElementById("approvalProcessRejectErrors");
+    const approvalProcessHistorySummary = document.getElementById("approvalProcessHistorySummary");
+    const approvalProcessHistoryRows = document.getElementById("approvalProcessHistoryRows");
+    const toast = document.getElementById("toast");
+
+    const approvalProcessTypes = [
+      { value: "EMPLOYEE_REQUEST", label: "Pengajuan Karyawan" },
+      { value: "EMPLOYEE_ALLOCATION", label: "Alokasi Karyawan" },
+      { value: "ADDITIONAL_TASK", label: "Tugas Tambahan" },
+      { value: "EMPLOYEE_REQUISITION", label: "Permohonan Penambahan Karyawan" },
+      { value: "EMPLOYEE_MOVEMENT", label: "Perubahan Jabatan & Mutasi" },
+      { value: "EMPLOYEE_TERMINATION", label: "Pemberhentian Karyawan" },
+      { value: "SALARY_ADJUSTMENT", label: "Penyesuaian Gaji" },
+      { value: "PAYROLL_PROCESS", label: "Proses Penggajian" }
+    ];
+
+    let approvalProcessRowsData = [
+      { id: 1, status: "PENDING", submittedAt: "2026-07-10 09:15", submittedDate: "2026-07-10", requester: "HR Admin", documentNo: "EMPREQ-0001", transactionType: "EMPLOYEE_REQUEST", typeLabel: "Pengajuan Karyawan - Cuti Tahunan", object: "Budi Santoso - Produksi", period: "15/07/2026 - 17/07/2026", description: "Keperluan keluarga", stage: "Approval Atasan Langsung", note: "" },
+      { id: 2, status: "PENDING", submittedAt: "2026-07-10 10:00", submittedDate: "2026-07-10", requester: "Siti Aminah", documentNo: "TASK-0008", transactionType: "ADDITIONAL_TASK", typeLabel: "Tugas Tambahan - Lembur", object: "Siti Aminah - Gudang", period: "10/07/2026 18:00 - 21:00", description: "Closing produksi", stage: "Approval Atasan Langsung", note: "" },
+      { id: 3, status: "PENDING", submittedAt: "2026-07-10 11:20", submittedDate: "2026-07-10", requester: "Andi Pratama", documentNo: "RECRUIT-0003", transactionType: "EMPLOYEE_REQUISITION", typeLabel: "Permohonan Penambahan Karyawan - Posisi Baru", object: "Produksi - 5 karyawan Harian", period: "Dibutuhkan 01/08/2026", description: "Penambahan shift malam", stage: "Approval HR", note: "" },
+      { id: 4, status: "PENDING", submittedAt: "2026-07-10 14:00", submittedDate: "2026-07-10", requester: "HR Admin", documentNo: "PAY-202607", transactionType: "PAYROLL_PROCESS", typeLabel: "Proses Penggajian - Bulanan", object: "Periode Juli 2026 - Staff", period: "Juli 2026", description: "Payroll bulanan staff", stage: "Approval Payroll", note: "" },
+      { id: 5, status: "PENDING", submittedAt: "2026-07-11 08:30", submittedDate: "2026-07-11", requester: "HR Admin", documentNo: "MOV-0005", transactionType: "EMPLOYEE_MOVEMENT", typeLabel: "Perubahan Jabatan & Mutasi - Promosi", object: "Andi Pratama - Staff Admin -> Supervisor", period: "Efektif 01/08/2026", description: "Promosi berdasarkan evaluasi kinerja", stage: "Approval Direktur", note: "" },
+      { id: 6, status: "APPROVED", submittedAt: "2026-07-09 15:20", submittedDate: "2026-07-09", requester: "HR Admin", documentNo: "ADJ-0004", transactionType: "SALARY_ADJUSTMENT", typeLabel: "Penyesuaian Gaji", object: "Staff - 15 karyawan", period: "Berlaku 01/08/2026", description: "Penyesuaian tunjangan makan", stage: "Approval Payroll", note: "" },
+      { id: 7, status: "REJECTED", submittedAt: "2026-07-08 13:10", submittedDate: "2026-07-08", requester: "Dewi Lestari", documentNo: "TERM-0002", transactionType: "EMPLOYEE_TERMINATION", typeLabel: "Pemberhentian Karyawan - Resign", object: "Michael Tan - Sales", period: "Efektif 31/07/2026", description: "Dokumen pendukung belum lengkap", stage: "Approval HR", note: "Dokumen pendukung belum lengkap" },
+      { id: 8, status: "CANCELLED", submittedAt: "2026-07-07 09:45", submittedDate: "2026-07-07", requester: "Budi Santoso", documentNo: "EMPREQ-0009", transactionType: "EMPLOYEE_REQUEST", typeLabel: "Pengajuan Karyawan - Izin", object: "Budi Santoso - Produksi", period: "12/07/2026", description: "Izin pribadi", stage: "Approval Atasan Langsung", note: "" }
+    ];
+
+    let approvalProcessSelectedIds = [];
+    let approvalProcessActionMode = "single";
+    let approvalProcessActionIds = [];
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    function approvalProcessStatusLabel(status) {
+      return status === "APPROVED" ? "Disetujui"
+        : status === "REJECTED" ? "Ditolak"
+        : status === "CANCELLED" ? "Dibatalkan"
+        : "Menunggu";
+    }
+
+    function approvalProcessStatusBadge(status) {
+      const cls = status === "APPROVED" ? "active"
+        : status === "REJECTED" ? "cancel"
+        : status === "CANCELLED" ? "muted"
+        : "pending";
+      return `<span class="badge ${cls}">${approvalProcessStatusLabel(status)}</span>`;
+    }
+
+    function iconInfo() {
+      return 'i';
+    }
+
+    function approvalProcessSummary(row) {
+      if (!row) return "";
+      return `
+        <div><b>No Dokumen:</b> ${escapeHtml(row.documentNo)}</div>
+        <div><b>Jenis Approval:</b> ${escapeHtml(row.typeLabel)}</div>
+        <div><b>Objek Approval:</b> ${escapeHtml(row.object)}</div>
+        <div><b>Periode:</b> ${escapeHtml(row.period)}</div>
+        <div><b>Keterangan:</b> ${escapeHtml(row.description)}</div>
+      `;
+    }
+
+    function approvalProcessHistoryEntries(row) {
+      const historyByStatus = {
+        PENDING: [
+          { stage: "Approval Atasan Langsung", status: "Menunggu", by: "-", date: "-", note: "-" },
+          { stage: "Approval HR", status: "Menunggu", by: "-", date: "-", note: "-" }
+        ],
+        APPROVED: [
+          { stage: "Approval Atasan Langsung", status: "Disetujui", by: "Andi Pratama", date: "2026-07-10 10:30", note: "Disetujui" },
+          { stage: "Approval HR", status: "Menunggu", by: "-", date: "-", note: "-" }
+        ],
+        REJECTED: [
+          { stage: "Approval Atasan Langsung", status: "Disetujui", by: "Andi Pratama", date: "2026-07-10 10:30", note: "Disetujui" },
+          { stage: "Approval HR", status: "Ditolak", by: "Rina Wijaya", date: "2026-07-10 11:15", note: "Dokumen pendukung belum lengkap" }
+        ],
+        CANCELLED: [
+          { stage: "Approval Atasan Langsung", status: "Dibatalkan", by: "-", date: "-", note: "-" },
+          { stage: "Approval HR", status: "Dibatalkan", by: "-", date: "-", note: "-" }
+        ]
+      };
+      return historyByStatus[row.status] || historyByStatus.PENDING;
+    }
+
+    function approvalProcessFindRow(id) {
+      return approvalProcessRowsData.find(row => row.id === Number(id));
+    }
+
+    function renderApprovalProcessTypeOptions() {
+      const current = document.getElementById("approvalProcessTypeFilter").value || "all";
+      document.getElementById("approvalProcessTypeFilter").innerHTML = '<option value="all">Semua</option>' + approvalProcessTypes.map(type => (
+        `<option value="${type.value}">${escapeHtml(type.label)}</option>`
+      )).join("");
+      document.getElementById("approvalProcessTypeFilter").value = current;
+    }
+
+    function getApprovalProcessFilteredRows() {
+      const status = document.getElementById("approvalProcessStatusFilter").value || "PENDING";
+      const type = document.getElementById("approvalProcessTypeFilter").value || "all";
+      const from = document.getElementById("approvalProcessDateFrom").value;
+      const to = document.getElementById("approvalProcessDateTo").value;
+      const query = document.getElementById("approvalProcessSearchBox").value.trim().toLowerCase();
+      return approvalProcessRowsData.filter(row => {
+        const matchesStatus = status === "all" || row.status === status;
+        const matchesType = type === "all" || row.transactionType === type;
+        const matchesFrom = !from || row.submittedDate >= from;
+        const matchesTo = !to || row.submittedDate <= to;
+        const matchesSearch = [
+          row.documentNo,
+          row.typeLabel,
+          row.object,
+          row.requester,
+          row.description
+        ].join(" ").toLowerCase().includes(query);
+        return matchesStatus && matchesType && matchesFrom && matchesTo && matchesSearch;
+      });
+    }
+
+    function renderApprovalProcessList() {
+      document.getElementById("crumbTitle").textContent = "Daftar Proses Approval";
+      approvalProcessListView.classList.remove("hidden");
+      approvalProcessDocumentView.classList.add("hidden");
+      renderApprovalProcessTypeOptions();
+
+      const rows = getApprovalProcessFilteredRows();
+      const pageSize = Number(document.getElementById("approvalProcessPageSize").value || 10);
+      const visibleRows = rows.slice(0, pageSize);
+      approvalProcessSelectedIds = approvalProcessSelectedIds.filter(id => rows.some(row => row.id === id && row.status === "PENDING"));
+
+      approvalProcessRows.innerHTML = visibleRows.length ? visibleRows.map(row => {
+        const canAct = row.status === "PENDING";
+        const selected = approvalProcessSelectedIds.includes(row.id);
+        return `
+          <tr>
+            <td><input type="checkbox" ${canAct ? "" : "disabled"} ${selected ? "checked" : ""} data-module-action="toggleApprovalProcessSelection" data-module-args="${row.id}"></td>
+            <td>${escapeHtml(row.submittedAt)}<div class="approval-muted">oleh: ${escapeHtml(row.requester)}</div></td>
+            <td><button class="approval-doc-link" type="button" data-module-action="openApprovalProcessDocumentView" data-module-args="${row.id}">${escapeHtml(row.documentNo)}</button></td>
+            <td><div class="approval-clamp">${escapeHtml(row.typeLabel)}</div></td>
+            <td><div class="approval-clamp">${escapeHtml(row.object)}</div></td>
+            <td>${escapeHtml(row.period || "-")}</td>
+            <td><div class="approval-clamp">${escapeHtml(row.description || "-")}</div></td>
+            <td><div class="approval-clamp">${escapeHtml(row.stage)}</div></td>
+            <td class="approval-status-cell"><span class="approval-status-wrap">${approvalProcessStatusBadge(row.status)}<button class="approval-info-icon" type="button" title="Riwayat Approval" aria-label="Riwayat Approval" data-module-action="openApprovalProcessHistory" data-module-args="${row.id}">${iconInfo()}</button></span></td>
+            <td class="approval-action-cell">${canAct ? `<div class="approval-row-actions"><button class="btn green btn-approval-compact" type="button" data-module-action="openApprovalProcessApprove" data-module-args="${row.id}">Setujui</button><button class="btn red btn-approval-compact" type="button" data-module-action="openApprovalProcessReject" data-module-args="${row.id}">Tolak</button></div>` : "-"}</td>
+          </tr>
+        `;
+      }).join("") : '<tr><td colspan="10" style="text-align:center;color:#777">Data approval tidak ditemukan.</td></tr>';
+
+      const shown = rows.length ? `1 - ${visibleRows.length}` : "0 - 0";
+      approvalProcessPageInfo.textContent = `Menampilkan ${shown} dari ${rows.length} data`;
+      const visiblePending = visibleRows.filter(row => row.status === "PENDING");
+      document.getElementById("approvalProcessCheckAll").checked = visiblePending.length > 0 && visiblePending.every(row => approvalProcessSelectedIds.includes(row.id));
+    }
+
+    function toggleApprovalProcessSelection(id) {
+      const row = approvalProcessFindRow(id);
+      if (!row || row.status !== "PENDING") return;
+      if (approvalProcessSelectedIds.includes(row.id)) {
+        approvalProcessSelectedIds = approvalProcessSelectedIds.filter(item => item !== row.id);
+      } else {
+        approvalProcessSelectedIds.push(row.id);
+      }
+      renderApprovalProcessList();
+    }
+
+    function toggleAllApprovalProcessSelection() {
+      const visiblePending = getApprovalProcessFilteredRows()
+        .slice(0, Number(document.getElementById("approvalProcessPageSize").value || 10))
+        .filter(row => row.status === "PENDING");
+      const allSelected = visiblePending.length > 0 && visiblePending.every(row => approvalProcessSelectedIds.includes(row.id));
+      if (allSelected) {
+        approvalProcessSelectedIds = approvalProcessSelectedIds.filter(id => !visiblePending.some(row => row.id === id));
+      } else {
+        approvalProcessSelectedIds = [...new Set([...approvalProcessSelectedIds, ...visiblePending.map(row => row.id)])];
+      }
+      renderApprovalProcessList();
+    }
+
+    function openApprovalProcessApprove(id) {
+      const row = approvalProcessFindRow(id);
+      if (!row || row.status !== "PENDING") return;
+      approvalProcessActionMode = "single";
+      approvalProcessActionIds = [row.id];
+      document.getElementById("approvalProcessApproveTitle").textContent = "Setujui Approval";
+      document.getElementById("approvalProcessApproveMessage").textContent = "Apakah Anda yakin ingin menyetujui dokumen ini?";
+      document.getElementById("approvalProcessApproveSummary").innerHTML = approvalProcessSummary(row);
+      document.getElementById("approvalProcessApproveNote").value = "";
+      approvalProcessApproveModal.classList.add("show");
+    }
+
+    function openApprovalProcessReject(id) {
+      const row = approvalProcessFindRow(id);
+      if (!row || row.status !== "PENDING") return;
+      approvalProcessActionMode = "single";
+      approvalProcessActionIds = [row.id];
+      document.getElementById("approvalProcessRejectTitle").textContent = "Tolak Approval";
+      document.getElementById("approvalProcessRejectMessage").textContent = "Masukkan alasan penolakan untuk dokumen ini.";
+      document.getElementById("approvalProcessRejectSummary").innerHTML = approvalProcessSummary(row);
+      document.getElementById("approvalProcessRejectNote").value = "";
+      approvalProcessRejectErrors.classList.remove("show");
+      approvalProcessRejectModal.classList.add("show");
+    }
+
+    function openApprovalProcessBulkApprove() {
+      const ids = approvalProcessSelectedIds.filter(id => approvalProcessFindRow(id)?.status === "PENDING");
+      if (!ids.length) {
+        showToast("Pilih minimal satu dokumen approval.");
+        return;
+      }
+      approvalProcessActionMode = "bulk";
+      approvalProcessActionIds = ids;
+      document.getElementById("approvalProcessApproveTitle").textContent = "Setujui Approval Terpilih";
+      document.getElementById("approvalProcessApproveMessage").textContent = `Anda akan menyetujui ${ids.length} dokumen approval yang dipilih.`;
+      document.getElementById("approvalProcessApproveSummary").innerHTML = ids.map(id => {
+        const row = approvalProcessFindRow(id);
+        return `<div><b>${escapeHtml(row.documentNo)}</b> - ${escapeHtml(row.typeLabel)}</div>`;
+      }).join("");
+      document.getElementById("approvalProcessApproveNote").value = "";
+      approvalProcessApproveModal.classList.add("show");
+    }
+
+    function openApprovalProcessBulkReject() {
+      const ids = approvalProcessSelectedIds.filter(id => approvalProcessFindRow(id)?.status === "PENDING");
+      if (!ids.length) {
+        showToast("Pilih minimal satu dokumen approval.");
+        return;
+      }
+      approvalProcessActionMode = "bulk";
+      approvalProcessActionIds = ids;
+      document.getElementById("approvalProcessRejectTitle").textContent = "Tolak Approval Terpilih";
+      document.getElementById("approvalProcessRejectMessage").textContent = `Anda akan menolak ${ids.length} dokumen approval yang dipilih.`;
+      document.getElementById("approvalProcessRejectSummary").innerHTML = ids.map(id => {
+        const row = approvalProcessFindRow(id);
+        return `<div><b>${escapeHtml(row.documentNo)}</b> - ${escapeHtml(row.typeLabel)}</div>`;
+      }).join("");
+      document.getElementById("approvalProcessRejectNote").value = "";
+      approvalProcessRejectErrors.classList.remove("show");
+      approvalProcessRejectModal.classList.add("show");
+    }
+
+    function closeApprovalProcessApproveModal() {
+      approvalProcessApproveModal.classList.remove("show");
+      approvalProcessActionIds = [];
+    }
+
+    function closeApprovalProcessRejectModal() {
+      approvalProcessRejectModal.classList.remove("show");
+      approvalProcessRejectErrors.classList.remove("show");
+      approvalProcessActionIds = [];
+    }
+
+    function confirmApprovalProcessApprove() {
+      const note = document.getElementById("approvalProcessApproveNote").value.trim();
+      approvalProcessRowsData = approvalProcessRowsData.map(row => (
+        approvalProcessActionIds.includes(row.id) && row.status === "PENDING"
+          ? { ...row, status: "APPROVED", note }
+          : row
+      ));
+      approvalProcessSelectedIds = approvalProcessSelectedIds.filter(id => !approvalProcessActionIds.includes(id));
+      closeApprovalProcessApproveModal();
+      renderApprovalProcessList();
+      showToast("Data berhasil disetujui.");
+    }
+
+    function confirmApprovalProcessReject() {
+      const note = document.getElementById("approvalProcessRejectNote").value.trim();
+      if (!note) {
+        approvalProcessRejectErrors.textContent = "Catatan Penolakan wajib diisi.";
+        approvalProcessRejectErrors.classList.add("show");
+        return;
+      }
+      approvalProcessRowsData = approvalProcessRowsData.map(row => (
+        approvalProcessActionIds.includes(row.id) && row.status === "PENDING"
+          ? { ...row, status: "REJECTED", note }
+          : row
+      ));
+      approvalProcessSelectedIds = approvalProcessSelectedIds.filter(id => !approvalProcessActionIds.includes(id));
+      closeApprovalProcessRejectModal();
+      renderApprovalProcessList();
+      showToast("Data berhasil ditolak.");
+    }
+
+    function openApprovalProcessDocumentView(id) {
+      const row = approvalProcessFindRow(id);
+      if (!row) return;
+      document.getElementById("crumbTitle").textContent = "Detail Dokumen Asal";
+      approvalProcessListView.classList.add("hidden");
+      approvalProcessDocumentView.classList.remove("hidden");
+      document.getElementById("approvalProcessDocumentDetail").innerHTML = `
+        <div class="approval-detail-row"><b>No Dokumen</b><div>${escapeHtml(row.documentNo)}</div></div>
+        <div class="approval-detail-row"><b>Jenis Approval</b><div>${escapeHtml(row.typeLabel)}</div></div>
+        <div class="approval-detail-row"><b>Objek Approval</b><div>${escapeHtml(row.object)}</div></div>
+        <div class="approval-detail-row"><b>Periode</b><div>${escapeHtml(row.period || "-")}</div></div>
+        <div class="approval-detail-row"><b>Keterangan</b><div>${escapeHtml(row.description || "-")}</div></div>
+        <div class="approval-detail-row"><b>Status</b><div>${approvalProcessStatusBadge(row.status)}</div></div>
+      `;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function openApprovalProcessHistory(id) {
+      const row = approvalProcessFindRow(id);
+      if (!row) return;
+      approvalProcessHistorySummary.innerHTML = approvalProcessSummary(row);
+      approvalProcessHistoryRows.innerHTML = approvalProcessHistoryEntries(row).map(item => `
+        <tr>
+          <td>${escapeHtml(item.stage)}</td>
+          <td>${escapeHtml(item.status)}</td>
+          <td>${escapeHtml(item.by)}</td>
+          <td>${escapeHtml(item.date)}</td>
+          <td>${escapeHtml(item.note)}</td>
+        </tr>
+      `).join("");
+      approvalProcessHistoryModal.classList.add("show");
+    }
+
+    function closeApprovalProcessHistory() {
+      approvalProcessHistoryModal.classList.remove("show");
+    }
+
+    document.getElementById("approvalProcessStatusFilter").addEventListener("change", renderApprovalProcessList);
+    document.getElementById("approvalProcessTypeFilter").addEventListener("change", renderApprovalProcessList);
+    document.getElementById("approvalProcessDateFrom").addEventListener("change", renderApprovalProcessList);
+    document.getElementById("approvalProcessDateTo").addEventListener("change", renderApprovalProcessList);
+    document.getElementById("approvalProcessSearchBox").addEventListener("input", renderApprovalProcessList);
+    document.getElementById("approvalProcessPageSize").addEventListener("change", renderApprovalProcessList);
+    document.getElementById("approvalProcessCheckAll").addEventListener("change", toggleAllApprovalProcessSelection);
+    document.getElementById("approvalProcessBulkApproveBtn").addEventListener("click", openApprovalProcessBulkApprove);
+    document.getElementById("approvalProcessBulkRejectBtn").addEventListener("click", openApprovalProcessBulkReject);
+    document.getElementById("approvalProcessDocumentBackBtn").addEventListener("click", renderApprovalProcessList);
+    document.getElementById("approvalProcessApproveConfirmBtn").addEventListener("click", confirmApprovalProcessApprove);
+    document.getElementById("approvalProcessApproveCancelBtn").addEventListener("click", closeApprovalProcessApproveModal);
+    document.getElementById("approvalProcessRejectConfirmBtn").addEventListener("click", confirmApprovalProcessReject);
+    document.getElementById("approvalProcessRejectCancelBtn").addEventListener("click", closeApprovalProcessRejectModal);
+    document.getElementById("approvalProcessHistoryCloseBtn").addEventListener("click", closeApprovalProcessHistory);
+    approvalProcessApproveModal.addEventListener("click", event => {
+      if (event.target === approvalProcessApproveModal) closeApprovalProcessApproveModal();
+    });
+    approvalProcessRejectModal.addEventListener("click", event => {
+      if (event.target === approvalProcessRejectModal) closeApprovalProcessRejectModal();
+    });
+    approvalProcessHistoryModal.addEventListener("click", event => {
+      if (event.target === approvalProcessHistoryModal) closeApprovalProcessHistory();
+    });
+
+    renderApprovalProcessTypeOptions();
+    renderApprovalProcessList();
+</script>
+</template>
+  <template id="page-administrasi-source">
+<style>
+    .module-breadcrumb-meta {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    .table-wrap.employee-requisition-list-table-wrap {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+    .employee-requisition-list-table {
+      table-layout: fixed;
+    }
+    .employee-requisition-list-table th,
+    .employee-requisition-list-table td {
+      overflow-wrap: normal;
+      word-break: normal;
+    }
+    .employee-requisition-list-table .employee-requisition-action-col,
+    .employee-requisition-list-table .employee-requisition-action-cell {
+      width: 160px !important;
+      min-width: 160px !important;
+      max-width: 160px !important;
+      white-space: nowrap;
+    }
+    .employee-requisition-list-table .employee-requisition-action-cell {
+      overflow: visible;
+    }
+    .employee-requisition-row-actions {
+      display: flex;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: flex-start;
+      gap: 6px;
+      white-space: nowrap;
+      flex-wrap: nowrap;
+      width: max-content;
+      max-width: none;
+    }
+    .employee-requisition-filter-row {
+      margin: 0 0 14px;
+    }
+    .employee-requisition-filter-row .filter-controls {
+      align-items: center;
+      gap: 10px;
+    }
+    .employee-requisition-date-range {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin: 0;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .employee-requisition-date-range input {
+      width: 132px;
+    }
+    .employee-requisition-filter-row select {
+      width: 170px;
+    }
+    .employee-requisition-row-actions .btn.icon-btn {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      min-height: 28px;
+      padding: 0;
+      flex: 0 0 28px;
+    }
+    .employee-requisition-two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .employee-requisition-status-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      flex-wrap: wrap;
+    }
+    .employee-requisition-status-row .badge {
+      white-space: nowrap;
+    }
+    .employee-requisition-status-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .employee-requisition-approval-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100px;
+      min-width: 100px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .employee-requisition-history-icon {
+      width: 22px;
+      height: 22px;
+      border: 1px solid #cbd5e1;
+      border-radius: 50%;
+      background: #fff;
+      color: #475569;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      flex: 0 0 auto;
+    }
+    .employee-requisition-history-icon:hover {
+      background: #f3f6fb;
+      color: #1f4e79;
+      border-color: #9fb7d8;
+    }
+    .employee-requisition-timeline-wrap {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+    .employee-requisition-timeline-table {
+      width: 100%;
+      min-width: 760px;
+      table-layout: fixed;
+    }
+    .employee-requisition-modal {
+      width: 560px;
+      max-width: calc(100vw - 48px);
+    }
+    .employee-requisition-history-table {
+      width: 100%;
+      table-layout: fixed;
+    }
+    .employee-requisition-history-table th,
+    .employee-requisition-history-table td {
+      overflow-wrap: anywhere;
+    }
+    .employee-requisition-history-summary {
+      border: 1px solid #e5e5e5;
+      background: #fbfbfb;
+      padding: 12px 16px;
+      margin: 12px 0 16px;
+      line-height: 1.65;
+      text-align: left;
+    }
+    .employee-requisition-history-summary b {
+      color: #3f4d5c;
+    }
+    .employee-requisition-lookup-field {
+      display: grid;
+      grid-template-columns: 1fr 38px;
+      gap: 0;
+    }
+    .employee-requisition-lookup-field .form-control {
+      border-right: 0;
+    }
+    .employee-requisition-lookup-btn {
+      width: 38px;
+      height: 33px;
+      border: 1px solid #1677ff;
+      background: #1677ff;
+      color: #fff;
+      cursor: pointer;
+      border-radius: 0 3px 3px 0;
+    }
+    .lookup-select-row {
+      cursor: pointer;
+    }
+    .lookup-select-row:hover td {
+      background: #f4f7ff;
+    }
+    .employee-requisition-view-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    @media (max-width: 1100px) {
+      .employee-requisition-two-col {
+        grid-template-columns: 1fr;
+      }
+      .employee-requisition-list-table {
+        width: 1600px;
+        min-width: 1600px;
+      }
+    }
+</style>
+<div class="module-screen-root">
+  <div class="module-breadcrumb-meta hidden" aria-hidden="true">
+    <span id="crumbMenu"></span><span id="crumbSection"></span><span id="crumbDivider"></span><span id="crumbTitle"></span>
+  </div>
+  <div class="module-content">
+    <div id="employeeRequisitionListView">
+      <div class="toolbar">
+        <button class="btn" type="button" data-module-action="openEmployeeRequisitionCreate">Tambah</button>
+      </div>
+      <div class="filter-row employee-requisition-filter-row">
+        <div class="filter-controls">
+          <label class="employee-requisition-date-range">
+            <span>Tanggal Permohonan</span>
+            <input id="employeeRequisitionDateFromFilter" type="date">
+            <span>s.d.</span>
+            <input id="employeeRequisitionDateToFilter" type="date">
+          </label>
+          <label>
+            <span>Status Approval</span>
+            <select id="employeeRequisitionApprovalFilter">
+              <option value="all">Semua</option>
+              <option value="DRAFT">Draft</option>
+              <option value="PENDING">Menunggu</option>
+              <option value="APPROVED">Disetujui</option>
+              <option value="REJECTED">Ditolak</option>
+              <option value="CANCELED">Dibatalkan</option>
+            </select>
+          </label>
+          <label>
+            <span>Status Pemenuhan</span>
+            <select id="employeeRequisitionFulfillmentFilter">
+              <option value="all">Semua</option>
+              <option value="BELUM_TERPENUHI">Belum Terpenuhi</option>
+              <option value="TERPENUHI">Terpenuhi</option>
+            </select>
+          </label>
+          <label>
+            <span>Departemen Pemohon</span>
+            <select id="employeeRequisitionDepartmentFilter">
+              <option value="all">Semua</option>
+            </select>
+          </label>
+          <label>
+            <span>Tipe Karyawan</span>
+            <select id="employeeRequisitionEmployeeTypeFilter">
+              <option value="all">Semua</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="table-tools table-utility-row">
+        <div>Menampilkan
+          <select id="employeeRequisitionPageSize">
+            <option>10</option>
+            <option>25</option>
+            <option>50</option>
+          </select>
+          data
+        </div>
+        <label class="table-search">
+          <span>Cari</span>
+          <input id="employeeRequisitionSearchBox" class="search-box" type="text">
+        </label>
+      </div>
+      <div class="table-wrap employee-requisition-list-table-wrap">
+        <table class="employee-requisition-list-table">
+          <thead>
+            <tr>
+              <th style="width:125px">No Permohonan</th>
+              <th style="width:105px">Tanggal</th>
+              <th style="width:130px">Diajukan Oleh</th>
+              <th style="width:110px">Departemen Pemohon</th>
+              <th style="width:140px">Posisi / Jabatan</th>
+              <th style="width:100px">Tipe Karyawan</th>
+              <th style="width:75px">Jumlah</th>
+              <th style="width:115px">Target Tanggal Masuk</th>
+              <th style="width:160px">Status Approval</th>
+              <th style="width:120px">Status Pemenuhan</th>
+              <th class="employee-requisition-action-col">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="employeeRequisitionRows"></tbody>
+        </table>
+      </div>
+      <div class="empty-state hidden" id="employeeRequisitionEmptyState">Data permohonan tidak ditemukan.</div>
+      <div class="pager">
+        <span id="employeeRequisitionPageInfo"></span>
+        <span class="pages"><button type="button">&lt;</button><button type="button">1</button><button type="button">&gt;</button></span>
+      </div>
+    </div>
+
+    <div id="employeeRequisitionFormPage" class="hidden">
+      <div class="toolbar" style="justify-content:flex-start">
+        <button class="btn" type="button" data-module-action="saveEmployeeRequisition">Simpan</button>
+        <button class="btn employee-requisition-submit" type="button" data-module-action="submitEmployeeRequisition">Ajukan</button>
+        <button class="btn secondary" type="button" data-module-action="renderEmployeeRequisitionList">Kembali</button>
+      </div>
+      <div id="employeeRequisitionFormErrors" class="error-box"></div>
+      <div class="form-grid">
+        <section class="form-section">
+          <h2 class="section-title">Header Permohonan</h2>
+          <div class="employee-requisition-two-col">
+            <div class="form-row">
+              <label for="employeeRequisitionNo">No Permohonan:</label>
+              <input class="form-control" id="employeeRequisitionNo" type="text" readonly>
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionDate">Tanggal Permohonan:</label>
+              <input class="form-control" id="employeeRequisitionDate" type="date">
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionRequestedBy">Diajukan Oleh:</label>
+              <input class="form-control" id="employeeRequisitionRequestedBy" type="text" maxlength="120" readonly>
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionDepartment">Departemen Pemohon:</label>
+              <div class="employee-requisition-lookup-field">
+                <input class="form-control" id="employeeRequisitionDepartment" type="text" maxlength="120" readonly>
+                <button class="employee-requisition-lookup-btn" type="button" title="Pilih Departemen" aria-label="Pilih Departemen" data-module-action="openEmployeeRequisitionLookup" data-module-args="department">&#128269;</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionPosition">Posisi / Jabatan:</label>
+              <div class="employee-requisition-lookup-field">
+                <input class="form-control" id="employeeRequisitionPosition" type="text" maxlength="120" readonly>
+                <button class="employee-requisition-lookup-btn" type="button" title="Pilih Posisi" aria-label="Pilih Posisi" data-module-action="openEmployeeRequisitionLookup" data-module-args="position">&#128269;</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionEmployeeType">Tipe Karyawan:</label>
+              <select class="form-control" id="employeeRequisitionEmployeeType">
+                <option value="">Pilih Tipe Karyawan</option>
+                <option value="Harian">Harian</option>
+                <option value="Bulanan">Bulanan</option>
+                <option value="Borongan">Borongan</option>
+                <option value="Staff">Staff</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionQty">Jumlah Kebutuhan:</label>
+              <input class="form-control" id="employeeRequisitionQty" type="number" min="1">
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionTargetStartDate">Target Masuk:</label>
+              <input class="form-control" id="employeeRequisitionTargetStartDate" type="date">
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionNeedStatus">Status Kebutuhan:</label>
+              <select class="form-control" id="employeeRequisitionNeedStatus">
+                <option value="BARU">Baru</option>
+                <option value="PENGGANTI">Pengganti</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionFormApprovalStatus">Status Approval:</label>
+              <input class="form-control" id="employeeRequisitionFormApprovalStatus" type="text" readonly>
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionFormFulfillmentStatus">Status Pemenuhan:</label>
+              <input class="form-control" id="employeeRequisitionFormFulfillmentStatus" type="text" readonly>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2 class="section-title">Informasi Kebutuhan Karyawan</h2>
+          <div class="form-row">
+            <label for="employeeRequisitionReason">Alasan Kebutuhan:</label>
+            <textarea class="form-control" id="employeeRequisitionReason" placeholder="Alasan kebutuhan"></textarea>
+          </div>
+          <div class="form-row">
+            <label for="employeeRequisitionCandidateRequirement">Kriteria Kandidat:</label>
+            <textarea class="form-control" id="employeeRequisitionCandidateRequirement" placeholder="Kriteria kandidat"></textarea>
+          </div>
+          <div class="form-row">
+            <label for="employeeRequisitionJobDescription">Deskripsi Pekerjaan:</label>
+            <textarea class="form-control" id="employeeRequisitionJobDescription" placeholder="Deskripsi pekerjaan"></textarea>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <div id="employeeRequisitionViewPage" class="hidden">
+      <div class="toolbar" style="justify-content:flex-start">
+        <div class="employee-requisition-view-actions" id="employeeRequisitionViewActions"></div>
+      </div>
+      <div class="form-grid">
+        <section class="form-section">
+          <h2 class="section-title">Header Permohonan</h2>
+          <div class="employee-requisition-two-col">
+            <div class="form-row">
+              <label for="employeeRequisitionViewNo">No Permohonan:</label>
+              <input class="form-control" id="employeeRequisitionViewNo" type="text" readonly>
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionViewDate">Tanggal Permohonan:</label>
+              <input class="form-control" id="employeeRequisitionViewDate" type="text" readonly>
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionViewRequestedBy">Diajukan Oleh:</label>
+              <input class="form-control" id="employeeRequisitionViewRequestedBy" type="text" readonly>
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionViewDepartment">Departemen Pemohon:</label>
+              <input class="form-control" id="employeeRequisitionViewDepartment" type="text" readonly>
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionViewPosition">Posisi / Jabatan:</label>
+              <input class="form-control" id="employeeRequisitionViewPosition" type="text" readonly>
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionViewEmployeeType">Tipe Karyawan:</label>
+              <input class="form-control" id="employeeRequisitionViewEmployeeType" type="text" readonly>
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionViewQty">Jumlah Kebutuhan:</label>
+              <input class="form-control" id="employeeRequisitionViewQty" type="text" readonly>
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionViewTargetStartDate">Target Masuk:</label>
+              <input class="form-control" id="employeeRequisitionViewTargetStartDate" type="text" readonly>
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionViewNeedStatus">Status Kebutuhan:</label>
+              <select class="form-control" id="employeeRequisitionViewNeedStatus" disabled>
+                <option value="BARU">Baru</option>
+                <option value="PENGGANTI">Pengganti</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionViewApprovalStatus">Status Approval:</label>
+              <input class="form-control" id="employeeRequisitionViewApprovalStatus" type="text" readonly>
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionViewFulfillmentStatus">Status Pemenuhan:</label>
+              <input class="form-control" id="employeeRequisitionViewFulfillmentStatus" type="text" readonly>
+            </div>
+            <div class="form-row hidden" id="employeeRequisitionViewCancelReasonRow" style="grid-column:1 / -1;">
+              <label for="employeeRequisitionViewCancelReason">Alasan Pembatalan:</label>
+              <textarea class="form-control" id="employeeRequisitionViewCancelReason" readonly></textarea>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2 class="section-title">Informasi Kebutuhan Karyawan</h2>
+          <div class="form-row">
+            <label for="employeeRequisitionViewReason">Alasan Kebutuhan:</label>
+            <textarea class="form-control" id="employeeRequisitionViewReason" readonly></textarea>
+          </div>
+          <div class="form-row">
+            <label for="employeeRequisitionViewCandidateRequirement">Kriteria Kandidat:</label>
+            <textarea class="form-control" id="employeeRequisitionViewCandidateRequirement" readonly></textarea>
+          </div>
+          <div class="form-row">
+            <label for="employeeRequisitionViewJobDescription">Deskripsi Pekerjaan:</label>
+            <textarea class="form-control" id="employeeRequisitionViewJobDescription" readonly></textarea>
+          </div>
+        </section>
+
+        <section class="form-section" id="employeeRequisitionViewFulfillmentSection">
+          <h2 class="section-title">Pemenuhan &amp; Closing</h2>
+          <div class="employee-requisition-two-col">
+            <div class="form-row">
+              <label for="employeeRequisitionViewFulfilledQty">Jumlah Terpenuhi:</label>
+              <input class="form-control" id="employeeRequisitionViewFulfilledQty" type="text" readonly>
+            </div>
+            <div class="form-row">
+              <label for="employeeRequisitionViewFulfilledDate">Tanggal Pemenuhan:</label>
+              <input class="form-control" id="employeeRequisitionViewFulfilledDate" type="text" readonly>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="employeeRequisitionCancelModal">
+  <div class="modal employee-requisition-modal employee-requisition-history-modal">
+    <div class="modal-head">
+      Batalkan Permohonan
+      <button class="modal-close" id="employeeRequisitionCancelCloseBtn" type="button">x</button>
+    </div>
+    <div class="modal-body">
+      <div id="employeeRequisitionCancelErrors" class="error-box"></div>
+      <div class="table-wrap" style="margin-bottom:14px">
+        <table>
+          <tbody id="employeeRequisitionCancelSummary"></tbody>
+        </table>
+      </div>
+      <div class="form-row" style="margin-bottom:0">
+        <label for="employeeRequisitionCancelReasonInput">Alasan Pembatalan:</label>
+        <textarea class="form-control" id="employeeRequisitionCancelReasonInput" placeholder="Masukkan alasan pembatalan"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn red" type="button" id="employeeRequisitionCancelSaveBtn" data-module-action="cancelEmployeeRequisition">Batalkan</button>
+      <button class="btn secondary" type="button" id="employeeRequisitionCancelCancelBtn">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="employeeRequisitionFulfillmentModal">
+  <div class="modal employee-requisition-modal">
+    <div class="modal-head">
+      Pemenuhan Karyawan
+      <button class="modal-close" id="employeeRequisitionFulfillmentCloseBtn" type="button">x</button>
+    </div>
+    <div class="modal-body">
+      <div id="employeeRequisitionFulfillmentErrors" class="error-box"></div>
+      <div class="table-wrap" style="margin-bottom:14px">
+        <table>
+          <tbody id="employeeRequisitionFulfillmentSummary"></tbody>
+        </table>
+      </div>
+      <div class="employee-requisition-two-col">
+        <div class="form-row">
+          <label for="employeeRequisitionFulfillmentQtyInput">Jumlah Terpenuhi:</label>
+          <input class="form-control" id="employeeRequisitionFulfillmentQtyInput" type="number" min="1">
+        </div>
+        <div class="form-row">
+          <label for="employeeRequisitionFulfillmentDateInput">Tanggal Pemenuhan:</label>
+          <input class="form-control" id="employeeRequisitionFulfillmentDateInput" type="date">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn green" type="button" id="employeeRequisitionFulfillmentSaveBtn" data-module-action="saveEmployeeRequisitionFulfillment">Simpan</button>
+      <button class="btn secondary" type="button" id="employeeRequisitionFulfillmentCancelBtn">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="employeeRequisitionApprovalHistoryModal">
+  <div class="modal wide employee-requisition-history-modal">
+    <div class="modal-head">Riwayat Approval</div>
+    <div class="modal-body">
+      <div class="employee-requisition-history-summary" id="employeeRequisitionApprovalHistorySummary"></div>
+      <div class="table-wrap" id="employeeRequisitionApprovalHistoryWrap">
+        <table class="employee-requisition-timeline-table employee-requisition-history-table">
+          <thead>
+            <tr>
+              <th style="width:24%">Tahap Approval</th>
+              <th style="width:14%">Status</th>
+              <th style="width:18%">Diproses Oleh</th>
+              <th style="width:18%">Tanggal</th>
+              <th>Catatan</th>
+            </tr>
+          </thead>
+          <tbody id="employeeRequisitionApprovalHistoryRows"></tbody>
+        </table>
+      </div>
+      <div class="empty-state hidden" id="employeeRequisitionApprovalHistoryEmpty">Belum ada riwayat approval.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn secondary" type="button" id="employeeRequisitionApprovalHistoryCancelBtn">Kembali</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="employeeRequisitionLookupModal">
+  <div class="modal employee-requisition-modal">
+    <div class="modal-head">
+      <span id="employeeRequisitionLookupTitle">Pilih Data</span>
+      <button class="modal-close" id="employeeRequisitionLookupCloseBtn" type="button">x</button>
+    </div>
+    <div class="modal-body">
+      <div class="table-tools" style="margin-top:0">
+        <div></div>
+        <label class="table-search">
+          <span>Cari</span>
+          <input id="employeeRequisitionLookupSearch" type="text" style="width:180px">
+        </label>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:120px">Kode</th>
+              <th>Nama</th>
+            </tr>
+          </thead>
+          <tbody id="employeeRequisitionLookupRows"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn secondary" type="button" id="employeeRequisitionLookupCancelBtn">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="employeeRequisitionToast">Data berhasil disimpan.</div>
+
+<script>
+  const el = id => document.getElementById(id);
+  let employeeRequisitionEditingId = null;
+  let employeeRequisitionViewingId = null;
+  let employeeRequisitionCancelId = null;
+  let employeeRequisitionFulfillmentId = null;
+  let employeeRequisitionLookupType = "";
+  let employeeRequisitionNoSeed = 7;
+  const loggedInEmployeeRequisitionUser = "HR STERLING";
+
+  let employeeRequisitions = [
+    {
+      id: 1,
+      requisition_no: "REQ-2026-001",
+      requisition_date: "2026-07-02",
+      requested_by: "Andi Pratama",
+      department: "Produksi",
+      job_position: "Operator Produksi",
+      employee_type: "Harian",
+      requested_qty: 5,
+      target_start_date: "2026-08-01",
+      need_status: "BARU",
+      reason: "Penambahan shift malam untuk menjaga kelancaran produksi.",
+      candidate_requirement: "Sehat jasmani, bersedia kerja shift, pengalaman minimal 1 tahun.",
+      job_description: "Mendukung proses produksi malam pada lini packing.",
+      approval_status: "DRAFT",
+      fulfillment_status: "BELUM_TERPENUHI",
+      fulfilled_qty: 0,
+      fulfilled_date: "",
+      cancel_reason: "",
+      approval_timeline: []
+    },
+    {
+      id: 2,
+      requisition_no: "REQ-2026-002",
+      requisition_date: "2026-07-03",
+      requested_by: "Maya Sari",
+      department: "Gudang",
+      job_position: "Admin Gudang",
+      employee_type: "Bulanan",
+      requested_qty: 1,
+      target_start_date: "2026-08-05",
+      need_status: "PENGGANTI",
+      reason: "Pengganti operator gudang yang mutasi.",
+      candidate_requirement: "Teliti, menguasai Excel dasar, mampu administrasi stok.",
+      job_description: "Mengelola penerimaan dan pengeluaran barang gudang.",
+      approval_status: "PENDING",
+      fulfillment_status: "BELUM_TERPENUHI",
+      fulfilled_qty: 0,
+      fulfilled_date: "",
+      cancel_reason: "",
+      approval_timeline: [
+        { stage: "Approval Atasan Langsung", status: "Disetujui", by: "Budi Santoso", date: "2026-07-04 10:30", note: "Disetujui untuk diteruskan." },
+        { stage: "Approval HR", status: "Menunggu", by: "-", date: "-", note: "-" }
+      ]
+    },
+    {
+      id: 3,
+      requisition_no: "REQ-2026-003",
+      requisition_date: "2026-07-04",
+      requested_by: "Rina Wijaya",
+      department: "Produksi",
+      job_position: "Leader Line",
+      employee_type: "Staff",
+      requested_qty: 1,
+      target_start_date: "2026-08-10",
+      need_status: "BARU",
+      reason: "Kebutuhan leader untuk line tambahan.",
+      candidate_requirement: "Pengalaman supervisor minimal 2 tahun.",
+      job_description: "Memimpin aktivitas harian tim produksi.",
+      approval_status: "APPROVED",
+      fulfillment_status: "BELUM_TERPENUHI",
+      fulfilled_qty: 0,
+      fulfilled_date: "",
+      cancel_reason: "",
+      approval_timeline: [
+        { stage: "Approval Atasan Langsung", status: "Disetujui", by: "Budi Santoso", date: "2026-07-05 09:15", note: "OK" },
+        { stage: "Approval HR", status: "Disetujui", by: "Dewi Lestari", date: "2026-07-05 11:20", note: "Siap direkrut" }
+      ]
+    },
+    {
+      id: 4,
+      requisition_no: "REQ-2026-004",
+      requisition_date: "2026-07-05",
+      requested_by: "Anton Kurnia",
+      department: "Maintenance",
+      job_position: "Technician",
+      employee_type: "Borongan",
+      requested_qty: 2,
+      target_start_date: "2026-08-15",
+      need_status: "PENGGANTI",
+      reason: "Pergantian teknisi untuk shift perawatan.",
+      candidate_requirement: "Paham perawatan mesin dan kelistrikan dasar.",
+      job_description: "Menangani perawatan mesin produksi dan inspeksi rutin.",
+      approval_status: "APPROVED",
+      fulfillment_status: "TERPENUHI",
+      fulfilled_qty: 2,
+      fulfilled_date: "2026-07-10",
+      cancel_reason: "",
+      approval_timeline: [
+        { stage: "Approval Atasan Langsung", status: "Disetujui", by: "Seno", date: "2026-07-06 08:50", note: "Setuju" },
+        { stage: "Approval HR", status: "Disetujui", by: "Nina", date: "2026-07-06 13:05", note: "Diproses" }
+      ]
+    },
+    {
+      id: 5,
+      requisition_no: "REQ-2026-005",
+      requisition_date: "2026-07-06",
+      requested_by: "M. Fikri",
+      department: "Finance",
+      job_position: "Staff Finance",
+      employee_type: "Bulanan",
+      requested_qty: 1,
+      target_start_date: "2026-08-20",
+      need_status: "BARU",
+      reason: "Tambahan support invoice dan rekonsiliasi.",
+      candidate_requirement: "Menguasai akuntansi dasar dan Microsoft Excel.",
+      job_description: "Membantu proses administrasi keuangan harian.",
+      approval_status: "REJECTED",
+      fulfillment_status: "BELUM_TERPENUHI",
+      fulfilled_qty: 0,
+      fulfilled_date: "",
+      cancel_reason: "",
+      approval_timeline: [
+        { stage: "Approval Atasan Langsung", status: "Ditolak", by: "Rina Wijaya", date: "2026-07-07 11:15", note: "Dokumen pendukung belum lengkap" }
+      ]
+    },
+    {
+      id: 6,
+      requisition_no: "REQ-2026-006",
+      requisition_date: "2026-07-07",
+      requested_by: "Dian Permata",
+      department: "Logistik",
+      job_position: "Driver",
+      employee_type: "Harian",
+      requested_qty: 1,
+      target_start_date: "2026-08-25",
+      need_status: "PENGGANTI",
+      reason: "Pengganti driver yang pindah area.",
+      candidate_requirement: "Memiliki SIM A, disiplin, dan memahami rute pengiriman.",
+      job_description: "Mengantar barang antar gudang dan ke pelanggan.",
+      approval_status: "CANCELED",
+      fulfillment_status: "BELUM_TERPENUHI",
+      fulfilled_qty: 0,
+      fulfilled_date: "",
+      cancel_reason: "Permohonan dibatalkan oleh pemohon.",
+      approval_timeline: [
+        { stage: "Approval Atasan Langsung", status: "Disetujui", by: "Budi Santoso", date: "2026-07-08 09:00", note: "Sudah oke" },
+        { stage: "Approval HR", status: "Dibatalkan", by: "Dian Permata", date: "2026-07-09 15:30", note: "Permohonan ditutup" }
+      ]
+    }
+  ];
+
+  const requisitionNeedLabels = {
+    BARU: ["Baru", "all"],
+    PENGGANTI: ["Pengganti", "own"]
+  };
+
+  const requisitionApprovalLabels = {
+    DRAFT: ["Draft", "approval-draft"],
+    PENDING: ["Menunggu", "pending"],
+    APPROVED: ["Disetujui", "active"],
+    REJECTED: ["Ditolak", "approval-rejected"],
+    CANCELED: ["Dibatalkan", "approval-canceled"]
+  };
+
+  const requisitionFulfillmentLabels = {
+    BELUM_TERPENUHI: ["Belum Terpenuhi", "pending"],
+    TERPENUHI: ["Terpenuhi", "done"]
+  };
+
+  function escapeAdminHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function cloneRequisition(row) {
+    return JSON.parse(JSON.stringify(row));
+  }
+
+  function todayIso() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function generateRequisitionNo() {
+    return `REQ-2026-${String(employeeRequisitionNoSeed).padStart(3, "0")}`;
+  }
+
+  function requisitionBadge(label, cls) {
+    return `<span class="badge ${cls}">${escapeAdminHtml(label)}</span>`;
+  }
+
+  function approvalBadge(status) {
+    const item = requisitionApprovalLabels[status] || ["-", "muted"];
+    return requisitionBadge(item[0], item[1]);
+  }
+
+  function needBadge(status) {
+    const item = requisitionNeedLabels[status] || ["-", "muted"];
+    return requisitionBadge(item[0], item[1]);
+  }
+
+  function fulfillmentBadge(status) {
+    const item = requisitionFulfillmentLabels[status] || ["-", "muted"];
+    return requisitionBadge(item[0], item[1]);
+  }
+
+  function approvalLabel(status) {
+    return requisitionApprovalLabels[status]?.[0] || "-";
+  }
+
+  function fulfillmentLabel(status) {
+    return requisitionFulfillmentLabels[status]?.[0] || "-";
+  }
+
+  function iconCopy() {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8V4h12v12h-4v4H4V8h4Zm2-2v10h8V6h-8Zm-4 4v8h8v-2H8V10H6Z"/></svg>';
+  }
+
+  function iconSend() {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 20 3l-4.5 17-4.3-6.2L3 11.5Zm6.8.8 2.9 4.2 2.7-10.4-10.1 5.2 4.5 1Z"/></svg>';
+  }
+
+  function iconCheck() {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm-1 14.2-4.2-4.2 1.4-1.4L11 13.4l5.8-5.8 1.4 1.4-7.2 7.2Z"/></svg>';
+  }
+
+  function iconBan() {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm6.2 10a6.1 6.1 0 0 1-.9 3.2L8.8 6.7A6 6 0 0 1 18.2 12ZM6.8 12a6.1 6.1 0 0 1 .9-3.2l8.5 8.5A6 6 0 0 1 6.8 12Z"/></svg>';
+  }
+
+  function setEmployeeRequisitionScreen(nextMode, title = "") {
+    el("employeeRequisitionListView").classList.toggle("hidden", nextMode !== "list");
+    el("employeeRequisitionFormPage").classList.toggle("hidden", nextMode !== "form");
+    el("employeeRequisitionViewPage").classList.toggle("hidden", nextMode !== "view");
+    const crumbTitle = el("crumbTitle");
+    if (nextMode === "list") {
+      crumbTitle.classList.add("hidden");
+      crumbTitle.textContent = "";
+    } else {
+      crumbTitle.classList.remove("hidden");
+      crumbTitle.textContent = title;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
+  function requisitionSummaryRow(label, value) {
+    return `<tr><td style="width:180px;color:#777"><b>${escapeAdminHtml(label)}</b></td><td>${value || "-"}</td></tr>`;
+  }
+
+  function renderTimelineRows(timeline, targetId, emptyId) {
+    const target = el(targetId);
+    const empty = el(emptyId);
+    if (!timeline.length) {
+      target.innerHTML = "";
+      empty.classList.remove("hidden");
+      return;
+    }
+    empty.classList.add("hidden");
+    target.innerHTML = timeline.map(item => `
+      <tr>
+        <td>${escapeAdminHtml(item.stage)}</td>
+        <td>${approvalBadge(item.status === "Dibatalkan" ? "CANCELED" : item.status === "Ditolak" ? "REJECTED" : item.status === "Disetujui" ? "APPROVED" : item.status === "Menunggu" ? "PENDING" : "DRAFT")}</td>
+        <td>${escapeAdminHtml(item.by)}</td>
+        <td>${escapeAdminHtml(item.date)}</td>
+        <td>${escapeAdminHtml(item.note)}</td>
+      </tr>
+    `).join("");
+  }
+
+  function employeeRequisitionApprovalHistorySummary(row) {
+    if (!row) return "";
+    return `
+      <div><b>No Permohonan:</b> ${escapeAdminHtml(row.requisition_no)}</div>
+      <div><b>Tanggal Permohonan:</b> ${escapeAdminHtml(row.requisition_date)}</div>
+      <div><b>Departemen Pemohon:</b> ${escapeAdminHtml(row.department)}</div>
+      <div><b>Posisi / Jabatan:</b> ${escapeAdminHtml(row.job_position)}</div>
+      <div><b>Tipe Karyawan:</b> ${escapeAdminHtml(row.employee_type)}</div>
+      <div><b>Jumlah:</b> ${escapeAdminHtml(row.requested_qty)}</div>
+      <div><b>Target Masuk:</b> ${escapeAdminHtml(row.target_start_date)}</div>
+      <div><b>Status Approval:</b> ${approvalBadge(row.approval_status)}</div>
+    `;
+  }
+
+  function filteredEmployeeRequisitions() {
+    const query = el("employeeRequisitionSearchBox").value.trim().toLowerCase();
+    const dateFrom = el("employeeRequisitionDateFromFilter").value;
+    const dateTo = el("employeeRequisitionDateToFilter").value;
+    const approvalFilter = el("employeeRequisitionApprovalFilter").value;
+    const fulfillmentFilter = el("employeeRequisitionFulfillmentFilter").value;
+    const departmentFilter = el("employeeRequisitionDepartmentFilter").value;
+    const employeeTypeFilter = el("employeeRequisitionEmployeeTypeFilter").value;
+    return employeeRequisitions.filter(row => {
+      const matchesDateFrom = !dateFrom || row.requisition_date >= dateFrom;
+      const matchesDateTo = !dateTo || row.requisition_date <= dateTo;
+      const matchesApproval = approvalFilter === "all" || row.approval_status === approvalFilter;
+      const matchesFulfillment = fulfillmentFilter === "all" || row.fulfillment_status === fulfillmentFilter;
+      const matchesDepartment = departmentFilter === "all" || row.department === departmentFilter;
+      const matchesEmployeeType = employeeTypeFilter === "all" || row.employee_type === employeeTypeFilter;
+      const haystack = [
+        row.requisition_no,
+        row.requisition_date,
+        row.requested_by,
+        row.department,
+        row.job_position,
+        row.employee_type,
+        row.need_status,
+        row.approval_status,
+        row.fulfillment_status
+      ].join(" ").toLowerCase();
+      return matchesDateFrom
+        && matchesDateTo
+        && matchesApproval
+        && matchesFulfillment
+        && matchesDepartment
+        && matchesEmployeeType
+        && haystack.includes(query);
+    });
+  }
+
+  function employeeRequisitionApprovalStatusCell(row) {
+    const item = requisitionApprovalLabels[row.approval_status] || ["-", "muted"];
+    return `
+      <div class="employee-requisition-status-wrap">
+        <span class="badge ${item[1]} employee-requisition-approval-badge">${escapeAdminHtml(item[0])}</span>
+        <button class="employee-requisition-history-icon" type="button" title="Riwayat Approval" aria-label="Riwayat Approval" data-module-action="openEmployeeRequisitionApprovalHistory" data-module-args="${row.id}">i</button>
+      </div>
+    `;
+  }
+
+  function employeeRequisitionActionHtml(row) {
+    const actions = [];
+    actions.push(`<button class="btn teal icon-btn" type="button" title="Lihat" aria-label="Lihat" data-module-action="openEmployeeRequisitionView" data-module-args="${row.id}">${window.iconEye()}</button>`);
+    if (row.approval_status === "DRAFT") {
+      actions.push(`<button class="btn icon-btn" type="button" title="Ubah" aria-label="Ubah" data-module-action="openEmployeeRequisitionEdit" data-module-args="${row.id}">${window.iconPencil()}</button>`);
+      actions.push(`<button class="btn employee-requisition-cancel icon-btn" type="button" title="Batal" aria-label="Batal" data-module-action="openEmployeeRequisitionCancelModal" data-module-args="${row.id}">${iconBan()}</button>`);
+      actions.push(`<button class="btn employee-requisition-submit icon-btn" type="button" title="Ajukan" aria-label="Ajukan" data-module-action="submitEmployeeRequisition" data-module-args="${row.id}">${iconSend()}</button>`);
+    } else if (row.approval_status === "PENDING") {
+      actions.push(`<button class="btn employee-requisition-cancel icon-btn" type="button" title="Batal" aria-label="Batal" data-module-action="openEmployeeRequisitionCancelModal" data-module-args="${row.id}">${iconBan()}</button>`);
+    } else if (row.approval_status === "APPROVED") {
+      if (row.fulfillment_status !== "TERPENUHI") {
+        actions.push(`<button class="btn employee-requisition-fulfill icon-btn" type="button" title="Terpenuhi" aria-label="Terpenuhi" data-module-action="openEmployeeRequisitionFulfillmentModal" data-module-args="${row.id}">${iconCheck()}</button>`);
+        actions.push(`<button class="btn employee-requisition-cancel icon-btn" type="button" title="Batal" aria-label="Batal" data-module-action="openEmployeeRequisitionCancelModal" data-module-args="${row.id}">${iconBan()}</button>`);
+      }
+      actions.push(`<button class="btn employee-requisition-duplicate icon-btn" type="button" title="Duplikat" aria-label="Duplikat" data-module-action="openEmployeeRequisitionDuplicate" data-module-args="${row.id}">${iconCopy()}</button>`);
+    } else {
+      actions.push(`<button class="btn employee-requisition-duplicate icon-btn" type="button" title="Duplikat" aria-label="Duplikat" data-module-action="openEmployeeRequisitionDuplicate" data-module-args="${row.id}">${iconCopy()}</button>`);
+    }
+    return `<div class="actions employee-requisition-row-actions">${actions.join("")}</div>`;
+  }
+
+  function renderEmployeeRequisitionList() {
+    renderEmployeeRequisitionFilterOptions();
+    const rows = filteredEmployeeRequisitions();
+    const pageSize = Number(el("employeeRequisitionPageSize").value || 10);
+    const visibleRows = rows.slice(0, pageSize);
+    el("employeeRequisitionRows").innerHTML = visibleRows.map(row => `
+      <tr>
+        <td>${escapeAdminHtml(row.requisition_no)}</td>
+        <td>${escapeAdminHtml(row.requisition_date)}</td>
+        <td>${escapeAdminHtml(row.requested_by)}</td>
+        <td>${escapeAdminHtml(row.department)}</td>
+        <td>${escapeAdminHtml(row.job_position)}</td>
+        <td>${escapeAdminHtml(row.employee_type)}</td>
+        <td>${escapeAdminHtml(row.requested_qty)}</td>
+        <td>${escapeAdminHtml(row.target_start_date)}</td>
+        <td>${employeeRequisitionApprovalStatusCell(row)}</td>
+        <td>${row.approval_status === "APPROVED" ? escapeAdminHtml(requisitionFulfillmentLabels[row.fulfillment_status]?.[0] || "-") : ""}</td>
+        <td class="employee-requisition-action-cell">${employeeRequisitionActionHtml(row)}</td>
+      </tr>
+    `).join("");
+    el("employeeRequisitionEmptyState").classList.toggle("hidden", rows.length > 0);
+    el("employeeRequisitionPageInfo").textContent = rows.length
+      ? `Menampilkan 1 - ${visibleRows.length} dari ${rows.length} data`
+      : "Menampilkan 0 - 0 dari 0 data";
+    setEmployeeRequisitionScreen("list");
+  }
+
+  function renderEmployeeRequisitionFilterOptions() {
+    const departments = [...new Set(employeeRequisitions.map(row => row.department).filter(Boolean))].sort();
+    const employeeTypes = [...new Set(employeeRequisitions.map(row => row.employee_type).filter(Boolean))].sort();
+    const departmentValue = el("employeeRequisitionDepartmentFilter").value || "all";
+    const employeeTypeValue = el("employeeRequisitionEmployeeTypeFilter").value || "all";
+    el("employeeRequisitionDepartmentFilter").innerHTML = '<option value="all">Semua</option>' + departments.map(item => (
+      `<option value="${escapeAdminHtml(item)}">${escapeAdminHtml(item)}</option>`
+    )).join("");
+    el("employeeRequisitionEmployeeTypeFilter").innerHTML = '<option value="all">Semua</option>' + employeeTypes.map(item => (
+      `<option value="${escapeAdminHtml(item)}">${escapeAdminHtml(item)}</option>`
+    )).join("");
+    el("employeeRequisitionDepartmentFilter").value = departments.includes(departmentValue) ? departmentValue : "all";
+    el("employeeRequisitionEmployeeTypeFilter").value = employeeTypes.includes(employeeTypeValue) ? employeeTypeValue : "all";
+  }
+
+  function employeeRequisitionLookupLabel(type) {
+    return type === "department" ? "Departemen" : "Posisi";
+  }
+
+  function employeeRequisitionLookupInputId(type) {
+    return type === "department" ? "employeeRequisitionDepartment" : "employeeRequisitionPosition";
+  }
+
+  function employeeRequisitionLookupData(type) {
+    const field = type === "department" ? "department" : "job_position";
+    return [...new Set(employeeRequisitions.map(row => row[field]).filter(Boolean))]
+      .sort()
+      .map((name, index) => ({ code: String(index + 1).padStart(3, "0"), name }));
+  }
+
+  function openEmployeeRequisitionLookup(type) {
+    employeeRequisitionLookupType = type;
+    el("employeeRequisitionLookupTitle").textContent = `Pilih ${employeeRequisitionLookupLabel(type)}`;
+    el("employeeRequisitionLookupSearch").value = "";
+    renderEmployeeRequisitionLookupRows();
+    el("employeeRequisitionLookupModal").classList.add("show");
+  }
+
+  function renderEmployeeRequisitionLookupRows() {
+    if (!employeeRequisitionLookupType) return;
+    const query = el("employeeRequisitionLookupSearch").value.trim().toLowerCase();
+    const rows = employeeRequisitionLookupData(employeeRequisitionLookupType).filter(item =>
+      item.code.toLowerCase().includes(query) || item.name.toLowerCase().includes(query)
+    );
+    el("employeeRequisitionLookupRows").innerHTML = rows.map(item => `
+      <tr class="lookup-select-row" data-module-action="selectEmployeeRequisitionLookup" data-module-args="${encodeURIComponent(item.name)}">
+        <td>${escapeAdminHtml(item.code)}</td>
+        <td>${escapeAdminHtml(item.name)}</td>
+      </tr>
+    `).join("");
+  }
+
+  function selectEmployeeRequisitionLookup(name) {
+    if (!employeeRequisitionLookupType) return;
+    el(employeeRequisitionLookupInputId(employeeRequisitionLookupType)).value = name;
+    closeEmployeeRequisitionLookup();
+  }
+
+  function closeEmployeeRequisitionLookup() {
+    el("employeeRequisitionLookupModal").classList.remove("show");
+    employeeRequisitionLookupType = "";
+  }
+
+  function syncEmployeeRequisitionFormStatuses(row) {
+    el("employeeRequisitionFormApprovalStatus").value = approvalLabel(row.approval_status);
+    el("employeeRequisitionFormFulfillmentStatus").value = fulfillmentLabel(row.fulfillment_status);
+  }
+
+  function fillEmployeeRequisitionForm(row) {
+    el("employeeRequisitionNo").value = row.requisition_no || generateRequisitionNo();
+    el("employeeRequisitionDate").value = row.requisition_date || todayIso();
+    el("employeeRequisitionRequestedBy").value = row.requested_by || "";
+    el("employeeRequisitionDepartment").value = row.department || "";
+    el("employeeRequisitionPosition").value = row.job_position || "";
+    el("employeeRequisitionEmployeeType").value = row.employee_type || "";
+    el("employeeRequisitionQty").value = row.requested_qty || "";
+    el("employeeRequisitionTargetStartDate").value = row.target_start_date || "";
+    el("employeeRequisitionNeedStatus").value = row.need_status || "BARU";
+    el("employeeRequisitionReason").value = row.reason || "";
+    el("employeeRequisitionCandidateRequirement").value = row.candidate_requirement || "";
+    el("employeeRequisitionJobDescription").value = row.job_description || "";
+    syncEmployeeRequisitionFormStatuses(row);
+  }
+
+  function fillEmployeeRequisitionView(row) {
+    el("employeeRequisitionViewNo").value = row.requisition_no || "";
+    el("employeeRequisitionViewDate").value = row.requisition_date || "";
+    el("employeeRequisitionViewRequestedBy").value = row.requested_by || "";
+    el("employeeRequisitionViewDepartment").value = row.department || "";
+    el("employeeRequisitionViewPosition").value = row.job_position || "";
+    el("employeeRequisitionViewEmployeeType").value = row.employee_type || "";
+    el("employeeRequisitionViewQty").value = row.requested_qty || "";
+    el("employeeRequisitionViewTargetStartDate").value = row.target_start_date || "";
+    el("employeeRequisitionViewReason").value = row.reason || "";
+    el("employeeRequisitionViewCandidateRequirement").value = row.candidate_requirement || "";
+    el("employeeRequisitionViewJobDescription").value = row.job_description || "";
+    el("employeeRequisitionViewFulfilledQty").value = row.fulfilled_qty || 0;
+    el("employeeRequisitionViewFulfilledDate").value = row.fulfilled_date || "-";
+    el("employeeRequisitionViewCancelReason").value = row.cancel_reason || "";
+    el("employeeRequisitionViewCancelReasonRow").classList.toggle("hidden", row.approval_status !== "CANCELED");
+    el("employeeRequisitionViewFulfillmentSection").classList.toggle("hidden", row.approval_status !== "APPROVED");
+    el("employeeRequisitionViewNeedStatus").value = row.need_status || "BARU";
+    el("employeeRequisitionViewApprovalStatus").value = approvalLabel(row.approval_status);
+    el("employeeRequisitionViewFulfillmentStatus").value = fulfillmentLabel(row.fulfillment_status);
+    el("employeeRequisitionViewActions").innerHTML = employeeRequisitionViewActions(row);
+  }
+
+  function employeeRequisitionViewActions(row) {
+    const buttons = [`<button class="btn secondary" type="button" data-module-action="renderEmployeeRequisitionList">Kembali</button>`];
+    if (row.approval_status === "DRAFT") {
+      buttons.push(`<button class="btn employee-requisition-submit" type="button" data-module-action="submitEmployeeRequisition" data-module-args="${row.id}">Ajukan</button>`);
+      buttons.push(`<button class="btn employee-requisition-cancel" type="button" data-module-action="openEmployeeRequisitionCancelModal" data-module-args="${row.id}">Batal</button>`);
+    } else if (row.approval_status === "PENDING") {
+      buttons.push(`<button class="btn employee-requisition-cancel" type="button" data-module-action="openEmployeeRequisitionCancelModal" data-module-args="${row.id}">Batal</button>`);
+    } else if (row.approval_status === "APPROVED" && row.fulfillment_status !== "TERPENUHI") {
+      buttons.push(`<button class="btn employee-requisition-fulfill" type="button" data-module-action="openEmployeeRequisitionFulfillmentModal" data-module-args="${row.id}">Terpenuhi</button>`);
+      buttons.push(`<button class="btn employee-requisition-cancel" type="button" data-module-action="openEmployeeRequisitionCancelModal" data-module-args="${row.id}">Batal</button>`);
+      buttons.push(`<button class="btn employee-requisition-duplicate" type="button" data-module-action="openEmployeeRequisitionDuplicate" data-module-args="${row.id}">Duplikat</button>`);
+    } else {
+      buttons.push(`<button class="btn employee-requisition-duplicate" type="button" data-module-action="openEmployeeRequisitionDuplicate" data-module-args="${row.id}">Duplikat</button>`);
+    }
+    return buttons.join("");
+  }
+
+  function getEmployeeRequisitionFormData() {
+    return {
+      requisition_no: el("employeeRequisitionNo").value.trim(),
+      requisition_date: el("employeeRequisitionDate").value.trim(),
+      requested_by: el("employeeRequisitionRequestedBy").value.trim(),
+      department: el("employeeRequisitionDepartment").value.trim(),
+      job_position: el("employeeRequisitionPosition").value.trim(),
+      employee_type: el("employeeRequisitionEmployeeType").value.trim(),
+      requested_qty: Number(el("employeeRequisitionQty").value || 0),
+      target_start_date: el("employeeRequisitionTargetStartDate").value.trim(),
+      need_status: el("employeeRequisitionNeedStatus").value,
+      reason: el("employeeRequisitionReason").value.trim(),
+      candidate_requirement: el("employeeRequisitionCandidateRequirement").value.trim(),
+      job_description: el("employeeRequisitionJobDescription").value.trim()
+    };
+  }
+
+  function validateEmployeeRequisitionForm(data) {
+    const errors = [];
+    if (!data.requisition_date) errors.push("Tanggal Permohonan wajib diisi.");
+    if (!data.department) errors.push("Departemen Pemohon wajib diisi.");
+    if (!data.job_position) errors.push("Posisi / Jabatan wajib diisi.");
+    if (!data.employee_type) errors.push("Tipe Karyawan wajib diisi.");
+    if (!data.requested_qty || data.requested_qty < 1) errors.push("Jumlah Kebutuhan wajib diisi.");
+    if (!data.target_start_date) errors.push("Target Masuk wajib diisi.");
+    if (!data.need_status) errors.push("Status Kebutuhan wajib diisi.");
+    if (!data.reason) errors.push("Alasan Kebutuhan wajib diisi.");
+    const box = el("employeeRequisitionFormErrors");
+    if (!errors.length) {
+      box.classList.remove("show");
+      box.innerHTML = "";
+      return true;
+    }
+    box.innerHTML = errors.map(error => `<div>${escapeAdminHtml(error)}</div>`).join("");
+    box.classList.add("show");
+    return false;
+  }
+
+  function openEmployeeRequisitionCreate() {
+    employeeRequisitionEditingId = null;
+    employeeRequisitionViewingId = null;
+    const draft = {
+      requisition_no: generateRequisitionNo(),
+      requisition_date: todayIso(),
+      requested_by: loggedInEmployeeRequisitionUser,
+      department: "",
+      job_position: "",
+      employee_type: "",
+      requested_qty: 1,
+      target_start_date: "",
+      need_status: "BARU",
+      reason: "",
+      candidate_requirement: "",
+      job_description: "",
+      approval_status: "DRAFT",
+      fulfillment_status: "BELUM_TERPENUHI",
+      fulfilled_qty: 0,
+      fulfilled_date: "",
+      cancel_reason: "",
+      approval_timeline: []
+    };
+    fillEmployeeRequisitionForm(draft);
+    el("employeeRequisitionFormErrors").classList.remove("show");
+    setEmployeeRequisitionScreen("form", "Tambah");
+  }
+
+  function openEmployeeRequisitionEdit(id) {
+    const row = employeeRequisitions.find(item => item.id === Number(id));
+    if (!row || row.approval_status !== "DRAFT") return;
+    employeeRequisitionEditingId = row.id;
+    employeeRequisitionViewingId = null;
+    fillEmployeeRequisitionForm(row);
+    el("employeeRequisitionFormErrors").classList.remove("show");
+    setEmployeeRequisitionScreen("form", "Ubah");
+  }
+
+  function openEmployeeRequisitionView(id) {
+    const row = employeeRequisitions.find(item => item.id === Number(id));
+    if (!row) return;
+    employeeRequisitionViewingId = row.id;
+    employeeRequisitionEditingId = null;
+    fillEmployeeRequisitionView(row);
+    setEmployeeRequisitionScreen("view", "Lihat");
+  }
+
+  function openEmployeeRequisitionDuplicate(id) {
+    const row = employeeRequisitions.find(item => item.id === Number(id));
+    if (!row) return;
+    employeeRequisitionEditingId = null;
+    employeeRequisitionViewingId = null;
+    const copy = cloneRequisition(row);
+    copy.requisition_no = generateRequisitionNo();
+    copy.requisition_date = todayIso();
+    copy.approval_status = "DRAFT";
+    copy.fulfillment_status = "BELUM_TERPENUHI";
+    copy.fulfilled_qty = 0;
+    copy.fulfilled_date = "";
+    copy.cancel_reason = "";
+    copy.approval_timeline = [];
+    fillEmployeeRequisitionForm(copy);
+    el("employeeRequisitionFormErrors").classList.remove("show");
+    setEmployeeRequisitionScreen("form", "Tambah");
+  }
+
+  function upsertEmployeeRequisitionFromForm(submit = false) {
+    const data = getEmployeeRequisitionFormData();
+    if (!validateEmployeeRequisitionForm(data)) return false;
+    const isEdit = employeeRequisitionEditingId != null;
+    let row = isEdit ? employeeRequisitions.find(item => item.id === employeeRequisitionEditingId) : null;
+    if (!row) {
+      row = {
+        id: employeeRequisitionNoSeed++,
+        approval_status: "DRAFT",
+        fulfillment_status: "BELUM_TERPENUHI",
+        fulfilled_qty: 0,
+        fulfilled_date: "",
+        cancel_reason: "",
+        approval_timeline: []
+      };
+      employeeRequisitions.unshift(row);
+    }
+    Object.assign(row, data, {
+      approval_status: submit ? "PENDING" : "DRAFT",
+      fulfillment_status: row.fulfillment_status === "TERPENUHI" ? "TERPENUHI" : "BELUM_TERPENUHI",
+      fulfilled_qty: row.fulfilled_qty || 0,
+      fulfilled_date: row.fulfilled_date || "",
+      cancel_reason: row.cancel_reason || ""
+    });
+    if (submit) {
+      row.approval_timeline = row.approval_timeline && row.approval_timeline.length ? row.approval_timeline : [
+        { stage: "Approval Atasan Langsung", status: "Menunggu", by: "-", date: "-", note: "-" },
+        { stage: "Approval HR", status: "Menunggu", by: "-", date: "-", note: "-" }
+      ];
+    }
+    employeeRequisitionEditingId = row.id;
+    showToast(isEdit ? (submit ? "Permohonan berhasil diajukan." : "Data berhasil diperbarui.") : (submit ? "Permohonan berhasil diajukan." : "Data berhasil ditambahkan."));
+    renderEmployeeRequisitionList();
+    return true;
+  }
+
+  function saveEmployeeRequisition() {
+    upsertEmployeeRequisitionFromForm(false);
+  }
+
+  function submitEmployeeRequisition(id) {
+    if (typeof id === "number" || typeof id === "string") {
+      const row = employeeRequisitions.find(item => item.id === Number(id));
+      if (!row || row.approval_status !== "DRAFT") return;
+      row.approval_status = "PENDING";
+      row.approval_timeline = row.approval_timeline && row.approval_timeline.length ? row.approval_timeline : [
+        { stage: "Approval Atasan Langsung", status: "Menunggu", by: "-", date: "-", note: "-" },
+        { stage: "Approval HR", status: "Menunggu", by: "-", date: "-", note: "-" }
+      ];
+      showToast("Permohonan berhasil diajukan.");
+      renderEmployeeRequisitionList();
+      return;
+    }
+    upsertEmployeeRequisitionFromForm(true);
+  }
+
+  function openEmployeeRequisitionCancelModal(id) {
+    const row = employeeRequisitions.find(item => item.id === Number(id));
+    if (!row) return;
+    employeeRequisitionCancelId = row.id;
+    el("employeeRequisitionCancelErrors").classList.remove("show");
+    el("employeeRequisitionCancelSummary").innerHTML = [
+      requisitionSummaryRow("No Permohonan", escapeAdminHtml(row.requisition_no)),
+      requisitionSummaryRow("Diajukan Oleh", escapeAdminHtml(row.requested_by)),
+      requisitionSummaryRow("Posisi / Jabatan", escapeAdminHtml(row.job_position)),
+      requisitionSummaryRow("Status Approval", approvalBadge(row.approval_status))
+    ].join("");
+    el("employeeRequisitionCancelReasonInput").value = row.cancel_reason || "";
+    el("employeeRequisitionCancelSaveBtn").dataset.moduleArgs = String(row.id);
+    el("employeeRequisitionCancelModal").classList.add("show");
+  }
+
+  function closeEmployeeRequisitionCancelModal() {
+    el("employeeRequisitionCancelModal").classList.remove("show");
+    employeeRequisitionCancelId = null;
+  }
+
+  function cancelEmployeeRequisition(id) {
+    const row = employeeRequisitions.find(item => item.id === Number(id || employeeRequisitionCancelId));
+    if (!row) return;
+    const reason = el("employeeRequisitionCancelReasonInput").value.trim();
+    if (!reason) {
+      el("employeeRequisitionCancelErrors").innerHTML = "Alasan Pembatalan wajib diisi.";
+      el("employeeRequisitionCancelErrors").classList.add("show");
+      return;
+    }
+    row.approval_status = "CANCELED";
+    row.cancel_reason = reason;
+    row.fulfillment_status = "BELUM_TERPENUHI";
+    row.approval_timeline = row.approval_timeline && row.approval_timeline.length ? row.approval_timeline : [];
+    row.approval_timeline.push({ stage: "Approval HR", status: "Dibatalkan", by: row.requested_by, date: todayIso(), note: reason });
+    closeEmployeeRequisitionCancelModal();
+    showToast("Permohonan berhasil dibatalkan.");
+    renderEmployeeRequisitionList();
+  }
+
+  function openEmployeeRequisitionFulfillmentModal(id) {
+    const row = employeeRequisitions.find(item => item.id === Number(id));
+    if (!row || row.approval_status !== "APPROVED" || row.fulfillment_status === "TERPENUHI") return;
+    employeeRequisitionFulfillmentId = row.id;
+    el("employeeRequisitionFulfillmentErrors").classList.remove("show");
+    el("employeeRequisitionFulfillmentSummary").innerHTML = [
+      requisitionSummaryRow("No Permohonan", escapeAdminHtml(row.requisition_no)),
+      requisitionSummaryRow("Posisi / Jabatan", escapeAdminHtml(row.job_position)),
+      requisitionSummaryRow("Jumlah Kebutuhan", escapeAdminHtml(row.requested_qty)),
+      requisitionSummaryRow("Status Approval", approvalBadge(row.approval_status))
+    ].join("");
+    el("employeeRequisitionFulfillmentQtyInput").value = row.requested_qty || 1;
+    el("employeeRequisitionFulfillmentDateInput").value = todayIso();
+    el("employeeRequisitionFulfillmentSaveBtn").dataset.moduleArgs = String(row.id);
+    el("employeeRequisitionFulfillmentModal").classList.add("show");
+  }
+
+  function closeEmployeeRequisitionFulfillmentModal() {
+    el("employeeRequisitionFulfillmentModal").classList.remove("show");
+    employeeRequisitionFulfillmentId = null;
+  }
+
+  function openEmployeeRequisitionApprovalHistory(id) {
+    const row = employeeRequisitions.find(item => item.id === Number(id));
+    if (!row) return;
+    const timeline = row.approval_timeline || [];
+    el("employeeRequisitionApprovalHistorySummary").innerHTML = employeeRequisitionApprovalHistorySummary(row);
+    el("employeeRequisitionApprovalHistoryWrap").classList.toggle("hidden", !timeline.length);
+    renderTimelineRows(timeline, "employeeRequisitionApprovalHistoryRows", "employeeRequisitionApprovalHistoryEmpty");
+    el("employeeRequisitionApprovalHistoryModal").classList.add("show");
+  }
+
+  function closeEmployeeRequisitionApprovalHistory() {
+    el("employeeRequisitionApprovalHistoryModal").classList.remove("show");
+  }
+
+  function saveEmployeeRequisitionFulfillment(id) {
+    const row = employeeRequisitions.find(item => item.id === Number(id || employeeRequisitionFulfillmentId));
+    if (!row) return;
+    const qty = Number(el("employeeRequisitionFulfillmentQtyInput").value || 0);
+    const date = el("employeeRequisitionFulfillmentDateInput").value.trim();
+    if (!qty || qty < 1) {
+      el("employeeRequisitionFulfillmentErrors").innerHTML = "Jumlah Terpenuhi wajib diisi.";
+      el("employeeRequisitionFulfillmentErrors").classList.add("show");
+      return;
+    }
+    if (!date) {
+      el("employeeRequisitionFulfillmentErrors").innerHTML = "Tanggal Pemenuhan wajib diisi.";
+      el("employeeRequisitionFulfillmentErrors").classList.add("show");
+      return;
+    }
+    row.fulfillment_status = "TERPENUHI";
+    row.fulfilled_qty = qty;
+    row.fulfilled_date = date;
+    closeEmployeeRequisitionFulfillmentModal();
+    showToast("Pemenuhan karyawan berhasil disimpan.");
+    renderEmployeeRequisitionList();
+  }
+
+  el("employeeRequisitionSearchBox").addEventListener("input", renderEmployeeRequisitionList);
+  el("employeeRequisitionDateFromFilter").addEventListener("change", renderEmployeeRequisitionList);
+  el("employeeRequisitionDateToFilter").addEventListener("change", renderEmployeeRequisitionList);
+  el("employeeRequisitionApprovalFilter").addEventListener("change", renderEmployeeRequisitionList);
+  el("employeeRequisitionFulfillmentFilter").addEventListener("change", renderEmployeeRequisitionList);
+  el("employeeRequisitionDepartmentFilter").addEventListener("change", renderEmployeeRequisitionList);
+  el("employeeRequisitionEmployeeTypeFilter").addEventListener("change", renderEmployeeRequisitionList);
+  el("employeeRequisitionPageSize").addEventListener("change", renderEmployeeRequisitionList);
+  el("employeeRequisitionCancelCloseBtn").addEventListener("click", closeEmployeeRequisitionCancelModal);
+  el("employeeRequisitionCancelCancelBtn").addEventListener("click", closeEmployeeRequisitionCancelModal);
+  el("employeeRequisitionFulfillmentCloseBtn").addEventListener("click", closeEmployeeRequisitionFulfillmentModal);
+  el("employeeRequisitionFulfillmentCancelBtn").addEventListener("click", closeEmployeeRequisitionFulfillmentModal);
+  el("employeeRequisitionApprovalHistoryCancelBtn").addEventListener("click", closeEmployeeRequisitionApprovalHistory);
+  el("employeeRequisitionLookupSearch").addEventListener("input", renderEmployeeRequisitionLookupRows);
+  el("employeeRequisitionLookupCloseBtn").addEventListener("click", closeEmployeeRequisitionLookup);
+  el("employeeRequisitionLookupCancelBtn").addEventListener("click", closeEmployeeRequisitionLookup);
+  el("employeeRequisitionCancelModal").addEventListener("click", event => {
+    if (event.target === el("employeeRequisitionCancelModal")) closeEmployeeRequisitionCancelModal();
+  });
+  el("employeeRequisitionFulfillmentModal").addEventListener("click", event => {
+    if (event.target === el("employeeRequisitionFulfillmentModal")) closeEmployeeRequisitionFulfillmentModal();
+  });
+  el("employeeRequisitionApprovalHistoryModal").addEventListener("click", event => {
+    if (event.target === el("employeeRequisitionApprovalHistoryModal")) closeEmployeeRequisitionApprovalHistory();
+  });
+  el("employeeRequisitionLookupModal").addEventListener("click", event => {
+    if (event.target === el("employeeRequisitionLookupModal")) closeEmployeeRequisitionLookup();
+  });
+
+  renderEmployeeRequisitionFilterOptions();
+  renderEmployeeRequisitionList();
+</script>
+</template>
   <script>
     function readEmbeddedPage(id) {
       return document.getElementById(id).innerHTML.trim();
@@ -7563,7 +10372,9 @@
     const APP_MODULES = {
       general: { sourceId: 'page-general-source' },
       config: { sourceId: 'page-config-source' },
-      payroll: { sourceId: 'page-payroll-source' }
+      payroll: { sourceId: 'page-payroll-source' },
+      approval: { sourceId: 'page-approval-source' },
+      administrasi: { sourceId: 'page-administrasi-source' }
     };
 
     const APP_MENU = [
@@ -7594,11 +10405,19 @@
           { label: 'Tipe Input Komponen Gaji', route: 'config.inputType' },
           { label: 'Struktur Gaji', route: 'config.structure' },
           { label: 'Tahap Approval', route: 'config.approvalStage' },
+          { label: 'Pengaturan Approval', route: 'config.approvalSetting' },
           { label: 'Tahap Lamaran', route: 'config.applicationStage' }
         ]
       },
       { label: 'Rekrutmen', icon: '&#9635;', chevron: true },
-      { label: 'Administrasi', icon: '&#9636;', chevron: true },
+      {
+        label: 'Administrasi',
+        icon: '&#9636;',
+        group: 'Administrasi',
+        items: [
+          { label: 'Permohonan Penambahan Karyawan', route: 'administrasi.employeeRequisition' }
+        ]
+      },
       { label: 'Absensi', icon: '&#9827;', chevron: true },
       {
         label: 'Penggajian',
@@ -7609,7 +10428,14 @@
           { label: 'Slip Gaji', route: 'payroll.slip' }
         ]
       },
-      { label: 'Approval', icon: '&#9637;', chevron: true },
+      {
+        label: 'Approval',
+        icon: '&#9637;',
+        group: 'Approval',
+        items: [
+          { label: 'Proses Approval', route: 'approval.process' }
+        ]
+      },
       { label: 'Laporan', icon: '&#9645;', chevron: true }
     ];
 
@@ -7668,9 +10494,12 @@
       ['config.inputType', 'config', 'Konfigurasi', 'Tipe Input Komponen Gaji', 'Daftar Tipe Input Komponen Gaji', 'renderInputTypeList'],
       ['config.structure', 'config', 'Konfigurasi', 'Struktur Gaji', 'Daftar Struktur Gaji', 'renderStructureList'],
       ['config.approvalStage', 'config', 'Konfigurasi', 'Tahap Approval', 'Daftar Tahap Approval', 'renderApprovalStageList'],
+      ['config.approvalSetting', 'config', 'Konfigurasi', 'Pengaturan Approval', 'Daftar Pengaturan Approval', 'renderApprovalSettingList'],
       ['config.applicationStage', 'config', 'Konfigurasi', 'Tahap Lamaran', 'Daftar Tahap Lamaran', 'renderApplicationStageList'],
       ['payroll.process', 'payroll', 'Penggajian', 'Proses Penggajian', 'Daftar Proses Penggajian', 'renderList'],
-      ['payroll.slip', 'payroll', 'Penggajian', 'Slip Gaji', 'Daftar Slip Gaji', 'renderSlipList']
+      ['payroll.slip', 'payroll', 'Penggajian', 'Slip Gaji', 'Daftar Slip Gaji', 'renderSlipList'],
+      ['approval.process', 'approval', 'Approval', 'Proses Approval', 'Daftar Proses Approval', 'renderApprovalProcessList'],
+      ['administrasi.employeeRequisition', 'administrasi', 'Administrasi', 'Permohonan Penambahan Karyawan', 'Daftar', 'renderEmployeeRequisitionList']
     ];
 
     const routes = Object.fromEntries(APP_ROUTES.map(([key, module, group, menu, title, fn]) => [
@@ -7686,6 +10515,7 @@
     let inlineBridgeBound = false;
     const moduleHost = document.getElementById('moduleHost');
     const moduleRoot = moduleHost.attachShadow({ mode: 'open' });
+    const crumbs = document.querySelector('.crumbs');
     const crumbGroup = document.getElementById('crumbGroup');
     const crumbMenu = document.getElementById('crumbMenu');
     const crumbTitle = document.getElementById('crumbTitle');
@@ -7763,6 +10593,13 @@
       .required { color:#ef4f63; }
       .form-control { width:100%; height:34px; }
       .form-control[readonly], .form-control[disabled] { background:#eee; cursor:default; }
+      select.form-control:disabled {
+        color:#3f4d5c;
+        opacity:1;
+        -webkit-text-fill-color:#3f4d5c;
+        background:#eee;
+        cursor:default;
+      }
       textarea.form-control { min-height:72px; resize:vertical; }
       .helper-text { margin-top:6px; color:#888; font-size:12px; line-height:1.35; }
       .table-wrap { border:1px solid #e4e6eb; overflow:hidden; background:#fff; }
@@ -7788,19 +10625,27 @@
       .actions .btn.teal, .action-inline .btn.teal { background:#26bdc6; color:#fff; border-color:#26bdc6; }
       .actions .btn:not(.teal):not(.red), .action-inline .btn:not(.teal):not(.red) { background:#f0ad4e; color:#fff; border-color:#eea236; }
       .actions .btn.red, .action-inline .btn.red { background:#ef4f63; color:#fff; border-color:#ef4f63; }
+      .btn.employee-requisition-submit, .actions .btn.employee-requisition-submit, .employee-requisition-row-actions .btn.employee-requisition-submit { background:#3f55aa !important; color:#fff !important; border-color:#3f55aa !important; }
+      .btn.employee-requisition-cancel, .actions .btn.employee-requisition-cancel, .employee-requisition-row-actions .btn.employee-requisition-cancel { background:#8b95a1 !important; color:#fff !important; border-color:#8b95a1 !important; }
+      .btn.employee-requisition-fulfill, .actions .btn.employee-requisition-fulfill, .employee-requisition-row-actions .btn.employee-requisition-fulfill { background:#31b79d !important; color:#fff !important; border-color:#31b79d !important; }
+      .btn.employee-requisition-duplicate, .actions .btn.employee-requisition-duplicate, .employee-requisition-row-actions .btn.employee-requisition-duplicate { background:#9b8df2 !important; color:#fff !important; border-color:#8b7be6 !important; }
       .badge, .status-badge-normalized { display:inline-flex; align-items:center; min-height:22px; padding:3px 9px; border:1px solid #e1e1e1; border-radius:3px; background:#f3f3f3; color:#777; font-size:12px; font-weight:700; line-height:1; }
-      .badge.active, .status-badge-normalized.active, .badge.done { color:#16826e; background:#e8fbf6; border-color:#c8efe5; }
+      .badge.active, .status-badge-normalized.active, .badge.paid { color:#16826e; background:#e8fbf6; border-color:#c8efe5; }
       .badge.inactive, .status-badge-normalized.inactive, .badge.muted, .badge.draft { color:#777; background:#f3f3f3; border-color:#e1e1e1; }
-      .badge.all, .badge.pending { color:#37557f; background:#ecf4ff; border-color:#d7e5f7; }
+      .badge.all, .badge.pending { color:#9a670d; background:#fff6df; border-color:#f5df9e; }
       .badge.own { color:#16826e; background:#e8fbf6; border-color:#c8efe5; }
-      .badge.filter, .badge.paid { color:#9a670d; background:#fff6df; border-color:#f5df9e; }
+      .badge.filter { color:#9a670d; background:#fff6df; border-color:#f5df9e; }
       .badge.cancel { color:#b52d3d; background:#fff2f4; border-color:#f0b8c0; }
+      .badge.done { color:#37557f; background:#ecf4ff; border-color:#d7e5f7; }
+      .badge.approval-draft { color:#37557f; background:#ecf4ff; border-color:#d7e5f7; }
+      .badge.approval-rejected { color:#b52d3d; background:#fff2f4; border-color:#f0b8c0; }
+      .badge.approval-canceled { color:#777; background:#f3f3f3; border-color:#e1e1e1; }
       .pager { display:flex; justify-content:space-between; align-items:center; margin-top:8px; margin-bottom:0; }
       .pages button { min-width:28px; height:29px; border:1px solid #ddd; background:#fff; color:#667; }
       .error-box { display:none; margin:0 0 15px; padding:10px 12px; border:1px solid #efb4bd; background:#fff2f4; color:#a82838; border-radius:3px; line-height:1.5; }
       .error-box.show { display:block; }
       .hidden { display:none !important; }
-      .empty-state { padding:34px 20px; text-align:center; color:#777; background:#fff; border:1px solid #e4e6eb; border-top:0; }
+      .empty-state { padding:34px 20px; text-align:center; color:#777; background:#fff; border:1px solid #e4e6eb; }
       .modal-backdrop { position:fixed; inset:0; background:rgba(20,30,50,.45); display:none; align-items:center; justify-content:center; z-index:20; }
       .modal-backdrop.show { display:flex; align-items:center; justify-content:center; }
       .modal { width:700px; max-height:calc(100vh - 60px); background:#fff; border-radius:3px; box-shadow:0 10px 34px rgba(0,0,0,.35); overflow:auto; }
@@ -7872,6 +10717,8 @@
       crumbGroup.textContent = route.group;
       crumbMenu.textContent = menu || route.menu;
       crumbTitle.textContent = title || route.title || '';
+      const crumbLength = ['Beranda', route.group, menu || route.menu, title || route.title || ''].join('').length;
+      crumbs.classList.toggle('long-breadcrumb', crumbLength > 78);
     }
 
     function setActiveRoute(routeKey) {
