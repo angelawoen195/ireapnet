@@ -9265,6 +9265,7 @@
       <div class="toolbar" style="justify-content:flex-start">
         <button class="btn" type="button" data-module-action="saveEmployeeRequisition">Simpan</button>
         <button class="btn employee-requisition-submit" type="button" data-module-action="submitEmployeeRequisition">Ajukan</button>
+        <button class="btn employee-requisition-cancel hidden" id="employeeRequisitionFormCancelBtn" type="button" data-module-action="openEmployeeRequisitionCancelModal">Batal</button>
         <button class="btn secondary" type="button" data-module-action="renderEmployeeRequisitionList">Kembali</button>
       </div>
       <div id="employeeRequisitionFormErrors" class="error-box"></div>
@@ -9568,6 +9569,16 @@
 
 <script>
   const el = id => document.getElementById(id);
+
+  function showEmployeeRequisitionToast(message) {
+    const toast = el("employeeRequisitionToast");
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.add("show");
+    window.clearTimeout(showEmployeeRequisitionToast.timer);
+    showEmployeeRequisitionToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2200);
+  }
+
   let employeeRequisitionEditingId = null;
   let employeeRequisitionViewingId = null;
   let employeeRequisitionCancelId = null;
@@ -10134,6 +10145,8 @@
       approval_timeline: []
     };
     fillEmployeeRequisitionForm(draft);
+    el("employeeRequisitionFormCancelBtn").classList.add("hidden");
+    el("employeeRequisitionFormCancelBtn").dataset.moduleArgs = "";
     el("employeeRequisitionFormErrors").classList.remove("show");
     setEmployeeRequisitionScreen("form", "Tambah");
   }
@@ -10144,6 +10157,8 @@
     employeeRequisitionEditingId = row.id;
     employeeRequisitionViewingId = null;
     fillEmployeeRequisitionForm(row);
+    el("employeeRequisitionFormCancelBtn").classList.remove("hidden");
+    el("employeeRequisitionFormCancelBtn").dataset.moduleArgs = String(row.id);
     el("employeeRequisitionFormErrors").classList.remove("show");
     setEmployeeRequisitionScreen("form", "Ubah");
   }
@@ -10172,6 +10187,8 @@
     copy.cancel_reason = "";
     copy.approval_timeline = [];
     fillEmployeeRequisitionForm(copy);
+    el("employeeRequisitionFormCancelBtn").classList.add("hidden");
+    el("employeeRequisitionFormCancelBtn").dataset.moduleArgs = "";
     el("employeeRequisitionFormErrors").classList.remove("show");
     setEmployeeRequisitionScreen("form", "Tambah");
   }
@@ -10206,9 +10223,10 @@
         { stage: "Approval HR", status: "Menunggu", by: "-", date: "-", note: "-" }
       ];
     }
-    employeeRequisitionEditingId = row.id;
-    showToast(isEdit ? (submit ? "Permohonan berhasil diajukan." : "Data berhasil diperbarui.") : (submit ? "Permohonan berhasil diajukan." : "Data berhasil ditambahkan."));
+    employeeRequisitionEditingId = null;
+    employeeRequisitionViewingId = null;
     renderEmployeeRequisitionList();
+    showEmployeeRequisitionToast(submit ? "Data berhasil diajukan." : "Data berhasil disimpan.");
     return true;
   }
 
@@ -10225,8 +10243,8 @@
         { stage: "Approval Atasan Langsung", status: "Menunggu", by: "-", date: "-", note: "-" },
         { stage: "Approval HR", status: "Menunggu", by: "-", date: "-", note: "-" }
       ];
-      showToast("Permohonan berhasil diajukan.");
       renderEmployeeRequisitionList();
+      showEmployeeRequisitionToast("Data berhasil diajukan.");
       return;
     }
     upsertEmployeeRequisitionFromForm(true);
@@ -10268,8 +10286,8 @@
     row.approval_timeline = row.approval_timeline && row.approval_timeline.length ? row.approval_timeline : [];
     row.approval_timeline.push({ stage: "Approval HR", status: "Dibatalkan", by: row.requested_by, date: todayIso(), note: reason });
     closeEmployeeRequisitionCancelModal();
-    showToast("Permohonan berhasil dibatalkan.");
     renderEmployeeRequisitionList();
+    showEmployeeRequisitionToast("Permohonan berhasil dibatalkan.");
   }
 
   function openEmployeeRequisitionFulfillmentModal(id) {
@@ -10327,8 +10345,8 @@
     row.fulfilled_qty = qty;
     row.fulfilled_date = date;
     closeEmployeeRequisitionFulfillmentModal();
-    showToast("Pemenuhan karyawan berhasil disimpan.");
     renderEmployeeRequisitionList();
+    showEmployeeRequisitionToast("Pemenuhan karyawan berhasil disimpan.");
   }
 
   el("employeeRequisitionSearchBox").addEventListener("input", renderEmployeeRequisitionList);
