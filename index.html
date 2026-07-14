@@ -3720,7 +3720,7 @@
                 <tr>
                   <th style="width:16%">Kode Jadwal Kerja</th>
                   <th>Nama Jadwal Kerja</th>
-                  <th style="width:15%">Timezone</th>
+                  <th style="width:15%">Zona Waktu</th>
                   <th style="width:16%">Hari Kerja</th>
                   <th style="width:16%">Jam Kerja</th>
                   <th style="width:10%">Status</th>
@@ -3753,7 +3753,7 @@
               <input class="form-control" id="workScheduleName" type="text" maxlength="150" placeholder="Nama Jadwal Kerja">
             </div>
             <div class="form-row">
-              <label for="workScheduleTimezone">Timezone: <span style="color:#ef4f63">*</span></label>
+              <label for="workScheduleTimezone">Zona Waktu: <span style="color:#ef4f63">*</span></label>
               <select class="form-control" id="workScheduleTimezone">
                 <option value="Asia/Jakarta">Asia/Jakarta</option>
                 <option value="Asia/Makassar">Asia/Makassar</option>
@@ -3819,7 +3819,7 @@
           <div class="form-grid">
             <div class="form-row"><label for="workScheduleViewCode">Kode Jadwal Kerja:</label><input class="form-control" id="workScheduleViewCode" type="text" readonly></div>
             <div class="form-row"><label for="workScheduleViewName">Nama Jadwal Kerja:</label><input class="form-control" id="workScheduleViewName" type="text" readonly></div>
-            <div class="form-row"><label for="workScheduleViewTimezone">Timezone:</label><input class="form-control" id="workScheduleViewTimezone" type="text" readonly></div>
+            <div class="form-row"><label for="workScheduleViewTimezone">Zona Waktu:</label><input class="form-control" id="workScheduleViewTimezone" type="text" readonly></div>
             <div class="form-row"><label for="workScheduleViewCheckInBefore">Batas Scan Sebelum Jam Mulai (menit):</label><input class="form-control" id="workScheduleViewCheckInBefore" type="text" readonly></div>
             <div class="form-row"><label for="workScheduleViewCheckInAfter">Batas Scan Setelah Jam Mulai (menit):</label><input class="form-control" id="workScheduleViewCheckInAfter" type="text" readonly></div>
             <div class="form-row"><label for="workScheduleViewCheckOutBefore">Batas Scan Sebelum Jam Selesai (menit):</label><input class="form-control" id="workScheduleViewCheckOutBefore" type="text" readonly></div>
@@ -3880,7 +3880,8 @@
               <thead>
                 <tr>
                   <th style="width:16%">Kode Kategori</th>
-                  <th style="width:18%">Nama Kategori</th>
+                  <th style="width:17%">Nama Kategori</th>
+                  <th style="width:14%">Zona Waktu</th>
                   <th style="width:10%">Jumlah Shift</th>
                   <th>Ringkasan Shift</th>
                   <th style="width:10%">Status</th>
@@ -3911,6 +3912,14 @@
             <div class="form-row">
               <label for="shiftCategoryName">Nama Kategori Shift: <span style="color:#ef4f63">*</span></label>
               <input class="form-control" id="shiftCategoryName" type="text" maxlength="150" placeholder="Nama Kategori Shift">
+            </div>
+            <div class="form-row">
+              <label for="shiftCategoryTimezone">Zona Waktu: <span style="color:#ef4f63">*</span></label>
+              <select class="form-control" id="shiftCategoryTimezone">
+                <option value="Asia/Jakarta">Asia/Jakarta</option>
+                <option value="Asia/Makassar">Asia/Makassar</option>
+                <option value="Asia/Jayapura">Asia/Jayapura</option>
+              </select>
             </div>
             <div class="form-row">
               <label>Status Aktif:</label>
@@ -3947,6 +3956,7 @@
           <div class="form-grid">
             <div class="form-row"><label for="shiftViewCategoryCode">Kode Kategori Shift:</label><input class="form-control" id="shiftViewCategoryCode" type="text" readonly></div>
             <div class="form-row"><label for="shiftViewCategoryName">Nama Kategori Shift:</label><input class="form-control" id="shiftViewCategoryName" type="text" readonly></div>
+            <div class="form-row"><label for="shiftViewCategoryTimezone">Zona Waktu:</label><input class="form-control" id="shiftViewCategoryTimezone" type="text" readonly></div>
             <div class="form-row"><label for="shiftViewCategoryStatus">Status:</label><input class="form-control" id="shiftViewCategoryStatus" type="text" readonly></div>
           </div>
           <div class="detail-wrap">
@@ -6217,6 +6227,7 @@
         id: 1,
         code: "PRODUKSI",
         name: "Produksi",
+        timezone: "Asia/Jakarta",
         company_id: 1,
         is_active: true,
         created_at: "2026-07-13 09:00",
@@ -6233,6 +6244,7 @@
         id: 2,
         code: "OFFICE",
         name: "Office",
+        timezone: "Asia/Jakarta",
         company_id: 1,
         is_active: true,
         created_at: "2026-07-13 09:10",
@@ -6247,6 +6259,7 @@
         id: 3,
         code: "SECURITY",
         name: "Security",
+        timezone: "Asia/Jakarta",
         company_id: 1,
         is_active: true,
         created_at: "2026-07-13 09:20",
@@ -9052,7 +9065,7 @@
 
       if (!data.code) errors.push("Kode Jadwal Kerja wajib diisi.");
       if (!data.name) errors.push("Nama Jadwal Kerja wajib diisi.");
-      if (!data.timezone) errors.push("Timezone wajib dipilih.");
+      if (!data.timezone) errors.push("Zona Waktu wajib dipilih.");
       if (data.code && workSchedules.some(item => item.code.toLowerCase() === data.code.toLowerCase() && item.id !== workScheduleEditingId)) {
         errors.push("Kode Jadwal Kerja sudah digunakan. Gunakan kode lain.");
       }
@@ -9227,6 +9240,7 @@
         <tr>
           <td>${escapeHtml(item.code)}</td>
           <td>${escapeHtml(item.name)}</td>
+          <td>${escapeHtml(item.timezone || "Asia/Jakarta")}</td>
           <td>${item.shifts.length}</td>
           <td>${escapeHtml(shiftSummaryText(item))}</td>
           <td>${shiftActiveBadge(item.is_active)}</td>
@@ -9293,6 +9307,7 @@
     function fillShiftForm(item) {
       document.getElementById("shiftCategoryCode").value = item?.code || "";
       document.getElementById("shiftCategoryName").value = item?.name || "";
+      document.getElementById("shiftCategoryTimezone").value = item?.timezone || "Asia/Jakarta";
       document.getElementById("shiftCategoryActive").checked = item ? item.is_active : true;
       currentShiftDetails = JSON.parse(JSON.stringify(item?.shifts || []));
       updateShiftCategoryActiveLabel();
@@ -9319,6 +9334,7 @@
       if (!item) return;
       document.getElementById("shiftViewCategoryCode").value = item.code;
       document.getElementById("shiftViewCategoryName").value = item.name;
+      document.getElementById("shiftViewCategoryTimezone").value = item.timezone || "Asia/Jakarta";
       document.getElementById("shiftViewCategoryStatus").value = item.is_active ? "Aktif" : "Tidak Aktif";
       renderShiftDetailRows(true, item.shifts);
       setShiftView("shift-view", "Lihat Shift");
@@ -9328,6 +9344,7 @@
       return {
         code: document.getElementById("shiftCategoryCode").value.trim().toUpperCase().replace(/\s+/g, ""),
         name: document.getElementById("shiftCategoryName").value.trim(),
+        timezone: document.getElementById("shiftCategoryTimezone").value,
         is_active: document.getElementById("shiftCategoryActive").checked,
         shifts: JSON.parse(JSON.stringify(currentShiftDetails))
       };
@@ -9337,6 +9354,7 @@
       const errors = [];
       if (!data.code) errors.push("Kode Kategori Shift wajib diisi.");
       if (!data.name) errors.push("Nama Kategori Shift wajib diisi.");
+      if (!data.timezone) errors.push("Zona Waktu wajib dipilih.");
       if (data.code && shiftCategories.some(item => item.code.toLowerCase() === data.code.toLowerCase() && item.id !== shiftEditingId)) {
         errors.push("Kode Kategori Shift sudah digunakan. Gunakan kode lain.");
       }
