@@ -4625,6 +4625,52 @@
           </div>
         </div>
 
+        <div id="contractTypeListView" class="hidden">
+          <div class="toolbar">
+            <button class="btn" id="contractTypeAddBtn" type="button">Tambah</button>
+          </div>
+          <div class="table-tools table-utility-row">
+            <div>Menampilkan
+              <select id="contractTypePageSize"><option>10</option><option>25</option><option>50</option></select>
+              data
+            </div>
+            <label class="table-search">
+              <span>Cari</span>
+              <input id="contractTypeSearchBox" type="text" style="width:180px">
+            </label>
+          </div>
+          <div class="table-wrap">
+            <table class="parameter-table">
+              <thead>
+                <tr>
+                  <th>Nama Tipe Kontrak</th>
+                  <th style="width:110px">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="contractTypeRows"></tbody>
+            </table>
+          </div>
+          <div class="empty-state hidden" id="contractTypeEmptyState">Data tipe kontrak tidak ditemukan.</div>
+          <div class="pager">
+            <span id="contractTypePageInfo"></span>
+            <span class="pages"><button type="button">&lt;</button><button type="button">1</button><button type="button">&gt;</button></span>
+          </div>
+        </div>
+
+        <div id="contractTypeFormView" class="hidden">
+          <div class="toolbar" style="justify-content:flex-start">
+            <button class="btn" id="contractTypeSaveBtn" type="button">Simpan</button>
+            <button class="btn secondary" id="contractTypeBackBtn" type="button">Kembali</button>
+          </div>
+          <div id="contractTypeFormErrors" class="error-box"></div>
+          <div class="form-grid">
+            <div class="form-row">
+              <label for="contractTypeName">Nama Tipe Kontrak:</label>
+              <input class="form-control" id="contractTypeName" type="text" placeholder="Nama Tipe Kontrak">
+            </div>
+          </div>
+        </div>
+
         <div id="approvalStageListView" class="hidden">
           <div class="toolbar">
             <button class="btn" id="approvalStageAddBtn" type="button">Tambah</button>
@@ -5864,6 +5910,8 @@
     const skillTypeViewPage = document.getElementById("skillTypeViewPage");
     const employmentTypeListView = document.getElementById("employmentTypeListView");
     const employmentTypeFormView = document.getElementById("employmentTypeFormView");
+    const contractTypeListView = document.getElementById("contractTypeListView");
+    const contractTypeFormView = document.getElementById("contractTypeFormView");
     const approvalStageListView = document.getElementById("approvalStageListView");
     const approvalStageFormView = document.getElementById("approvalStageFormView");
     const approvalSettingListView = document.getElementById("approvalSettingListView");
@@ -5884,6 +5932,7 @@
     const crumbTitle = document.getElementById("crumbTitle");
     const formErrors = document.getElementById("formErrors");
     const employmentTypeFormErrors = document.getElementById("employmentTypeFormErrors");
+    const contractTypeFormErrors = document.getElementById("contractTypeFormErrors");
     const approvalStageFormErrors = document.getElementById("approvalStageFormErrors");
     const approvalSettingFormErrors = document.getElementById("approvalSettingFormErrors");
     const applicationStageFormErrors = document.getElementById("applicationStageFormErrors");
@@ -6533,6 +6582,13 @@
     ];
 
     let employmentTypeEditingName = null;
+    let contractTypes = [
+      { id: 1, name: "PKWT" },
+      { id: 2, name: "PKWTT" },
+      { id: 3, name: "Magang" },
+      { id: 4, name: "Probation" }
+    ];
+    let contractTypeEditingId = null;
 
     const approvalRoles = ["HR Admin", "HR Manager", "Payroll Approver", "Finance Manager", "Department Head", "Director"];
     const approvalUsers = ["Budi Santoso", "Rina Wijaya", "Andi Pratama", "Siti Aminah", "Michael Tan"];
@@ -6939,9 +6995,12 @@
     }
 
     function hideDepartmentViews() {
+      setOptionalActive("contractTypeMenu", false);
       setOptionalActive("departmentMenu", false);
       setOptionalActive("positionMenu", false);
       setOptionalActive("workLocationMenu", false);
+      contractTypeListView.classList.add("hidden");
+      contractTypeFormView.classList.add("hidden");
       departmentListView.classList.add("hidden");
       departmentFormView.classList.add("hidden");
       departmentViewPage.classList.add("hidden");
@@ -6955,12 +7014,17 @@
       workScheduleFormView.classList.add("hidden");
       workScheduleViewPage.classList.add("hidden");
       departmentFormErrors.classList.remove("show");
+      contractTypeFormErrors.classList.remove("show");
       positionFormErrors.classList.remove("show");
       workLocationFormErrors.classList.remove("show");
       workScheduleFormErrors.classList.remove("show");
     }
 
     function hideShiftViews() {
+      setOptionalActive("contractTypeMenu", false);
+      contractTypeListView.classList.add("hidden");
+      contractTypeFormView.classList.add("hidden");
+      contractTypeFormErrors.classList.remove("show");
       setOptionalActive("shiftMenu", false);
       shiftListView.classList.add("hidden");
       shiftFormView.classList.add("hidden");
@@ -7695,6 +7759,48 @@
       applicationStageFormErrors.classList.remove("show");
     }
 
+    function setContractTypeView(nextMode, title) {
+      hideShiftViews();
+      mode = nextMode;
+      activeMenu = "contract-type";
+      crumbMenu.textContent = "Tipe Kontrak";
+      crumbTitle.textContent = title;
+      hideDepartmentViews();
+      setOptionalActive("employmentTypeMenu", false);
+      setOptionalActive("contractTypeMenu", true);
+      setOptionalActive("approvalStageMenu", false);
+      setOptionalActive("applicationStageMenu", false);
+      setOptionalActive("workTypeMenu", false);
+      setOptionalActive("parameterMenu", false);
+      setOptionalActive("categoryMenu", false);
+      setOptionalActive("componentMenu", false);
+      setOptionalActive("inputTypeMenu", false);
+      setOptionalActive("structureMenu", false);
+      listView.classList.add("hidden");
+      formView.classList.add("hidden");
+      employmentTypeListView.classList.add("hidden");
+      employmentTypeFormView.classList.add("hidden");
+      contractTypeListView.classList.toggle("hidden", nextMode !== "contract-type-list");
+      contractTypeFormView.classList.toggle("hidden", nextMode === "contract-type-list");
+      approvalStageListView.classList.add("hidden");
+      approvalStageFormView.classList.add("hidden");
+      approvalSettingListView.classList.add("hidden");
+      approvalSettingFormView.classList.add("hidden");
+      applicationStageListView.classList.add("hidden");
+      applicationStageFormView.classList.add("hidden");
+      workTypeListView.classList.add("hidden");
+      workTypeFormView.classList.add("hidden");
+      categoryListView.classList.add("hidden");
+      categoryFormView.classList.add("hidden");
+      componentListView.classList.add("hidden");
+      componentFormView.classList.add("hidden");
+      inputTypeListView.classList.add("hidden");
+      inputTypeFormView.classList.add("hidden");
+      structureListView.classList.add("hidden");
+      structureFormView.classList.add("hidden");
+      contractTypeFormErrors.classList.remove("show");
+    }
+
     function setApprovalStageView(nextMode, title) {
       hideShiftViews();
       mode = nextMode;
@@ -8343,6 +8449,17 @@
         if (!confirmDeleted("Tipe Karyawan", deleteCode, before, employmentTypes.length)) return;
         closeDelete();
         renderEmploymentTypeList();
+        showToast("Data berhasil dihapus.");
+        return;
+      }
+
+      if (deleteType === "contract-type") {
+        const targetId = Number(deleteCode);
+        const before = contractTypes.length;
+        contractTypes = contractTypes.filter(item => item.id !== targetId);
+        if (!confirmDeleted("Tipe Kontrak", targetId, before, contractTypes.length)) return;
+        closeDelete();
+        renderContractTypeList();
         showToast("Data berhasil dihapus.");
         return;
       }
@@ -11007,6 +11124,103 @@
       deleteModal.classList.add("show");
     }
 
+    function renderContractTypeList() {
+      setContractTypeView("contract-type-list", "Daftar Tipe Kontrak");
+      const query = document.getElementById("contractTypeSearchBox").value.trim().toLowerCase();
+      const pageSize = Number(document.getElementById("contractTypePageSize").value || 10);
+      const rows = contractTypes.filter(item => item.name.toLowerCase().includes(query));
+      const visibleRows = rows.slice(0, pageSize);
+
+      document.getElementById("contractTypeRows").innerHTML = visibleRows.map(item => `
+        <tr>
+          <td>${escapeHtml(item.name)}</td>
+          <td>
+            <div class="actions inline-actions">
+              <button class="btn teal small icon-btn" type="button" title="Lihat" aria-label="Lihat" data-module-action="contractTypeOpenView" data-module-args="${item.id}">${window.iconEye()}</button>
+              <button class="btn small icon-btn" type="button" title="Ubah" aria-label="Ubah" data-module-action="contractTypeOpenEdit" data-module-args="${item.id}">${window.iconPencil()}</button>
+              <button class="btn red small icon-btn" type="button" title="Hapus" aria-label="Hapus" data-module-action="contractTypeOpenDelete" data-module-args="${item.id}">${window.iconTrash()}</button>
+            </div>
+          </td>
+        </tr>
+      `).join("");
+
+      document.getElementById("contractTypeEmptyState").classList.toggle("hidden", Boolean(rows.length));
+      const shown = rows.length ? `1 - ${visibleRows.length}` : "0 - 0";
+      document.getElementById("contractTypePageInfo").textContent = `Menampilkan ${shown} dari ${rows.length} data`;
+    }
+
+    function setContractTypeFormReadonly(readonly) {
+      document.getElementById("contractTypeName").readOnly = readonly;
+      document.getElementById("contractTypeSaveBtn").classList.toggle("hidden", readonly);
+    }
+
+    function contractTypeOpenCreate() {
+      contractTypeEditingId = null;
+      document.getElementById("contractTypeName").value = "";
+      setContractTypeFormReadonly(false);
+      setContractTypeView("contract-type-create", "Tambah Tipe Kontrak");
+    }
+
+    function contractTypeOpenEdit(id) {
+      const item = contractTypes.find(contractType => contractType.id === Number(id));
+      if (!item) return;
+      contractTypeEditingId = item.id;
+      document.getElementById("contractTypeName").value = item.name;
+      setContractTypeFormReadonly(false);
+      setContractTypeView("contract-type-edit", "Ubah Tipe Kontrak");
+    }
+
+    function contractTypeOpenView(id) {
+      const item = contractTypes.find(contractType => contractType.id === Number(id));
+      if (!item) return;
+      contractTypeEditingId = item.id;
+      document.getElementById("contractTypeName").value = item.name;
+      setContractTypeFormReadonly(true);
+      setContractTypeView("contract-type-view", "Lihat Tipe Kontrak");
+    }
+
+    function validateContractTypeForm() {
+      const name = document.getElementById("contractTypeName").value.trim();
+      const errors = [];
+      if (!name) errors.push("Nama Tipe Kontrak wajib diisi.");
+      if (name && contractTypes.some(item => item.name.toLowerCase() === name.toLowerCase() && item.id !== contractTypeEditingId)) {
+        errors.push("Nama Tipe Kontrak tidak boleh duplikat.");
+      }
+      showErrors(contractTypeFormErrors, errors);
+      return { valid: !errors.length, name };
+    }
+
+    function saveContractTypeForm() {
+      const result = validateContractTypeForm();
+      if (!result.valid) return;
+
+      const isEdit = contractTypeEditingId != null;
+      if (isEdit) {
+        const item = contractTypes.find(contractType => contractType.id === contractTypeEditingId);
+        if (!item) {
+          console.warn("Tipe Kontrak: data yang akan diubah tidak ditemukan.", { id: contractTypeEditingId });
+          return;
+        }
+        item.name = result.name;
+      } else {
+        const nextId = contractTypes.length ? Math.max(...contractTypes.map(item => item.id)) + 1 : 1;
+        contractTypes.push({ id: nextId, name: result.name });
+      }
+
+      contractTypeEditingId = null;
+      renderContractTypeList();
+      showToast(isEdit ? "Data berhasil diperbarui." : "Data berhasil ditambahkan.");
+    }
+
+    function contractTypeOpenDelete(id) {
+      const item = contractTypes.find(contractType => contractType.id === Number(id));
+      deleteType = "contract-type";
+      deleteCode = Number(id);
+      deleteErrors.classList.remove("show");
+      deleteMessage.textContent = `Apakah Anda yakin ingin menghapus Tipe Kontrak ${item?.name || "ini"}?`;
+      deleteModal.classList.add("show");
+    }
+
     function approvalStageTypeLabel(type) {
       if (type === "DIRECT_MANAGER") return "Atasan Langsung";
       if (type === "ROLE") return "Role";
@@ -12902,6 +13116,11 @@
     document.getElementById("employmentTypeSaveBtn").addEventListener("click", saveEmploymentTypeForm);
     document.getElementById("employmentTypeSearchBox").addEventListener("input", renderEmploymentTypeList);
     document.getElementById("employmentTypePageSize").addEventListener("change", renderEmploymentTypeList);
+    document.getElementById("contractTypeAddBtn").addEventListener("click", contractTypeOpenCreate);
+    document.getElementById("contractTypeBackBtn").addEventListener("click", renderContractTypeList);
+    document.getElementById("contractTypeSaveBtn").addEventListener("click", saveContractTypeForm);
+    document.getElementById("contractTypeSearchBox").addEventListener("input", renderContractTypeList);
+    document.getElementById("contractTypePageSize").addEventListener("change", renderContractTypeList);
     document.getElementById("approvalStageAddBtn").addEventListener("click", approvalStageOpenCreate);
     document.getElementById("approvalStageBackBtn").addEventListener("click", renderApprovalStageList);
     document.getElementById("approvalStageSaveBtn").addEventListener("click", saveApprovalStageForm);
@@ -22863,7 +23082,7 @@
 
     const APP_MENU = [
       { label: 'Beranda', icon: '&#9670;' },
-      { label: 'Notifikasi', icon: '&#9637;', chevron: true },
+      { label: 'Notifikasi', icon: '&#9637;' },
       { label: 'Profil', icon: '&#9635;' },
       {
         label: 'General',
@@ -22885,6 +23104,7 @@
           { label: 'Posisi', route: 'config.position' },
           { label: 'Lokasi Kerja', route: 'config.workLocation' },
           { label: 'Tipe Karyawan', route: 'config.employmentType' },
+          { label: 'Tipe Kontrak', route: 'config.contractType' },
           { label: 'Tipe Waktu Kerja', route: 'config.workType' },
           { label: 'Jadwal Kerja', route: 'config.workSchedule' },
           { label: 'Shift', route: 'config.shift' },
@@ -22991,6 +23211,7 @@
       ['config.position', 'config', 'Konfigurasi', 'Posisi', 'Daftar Posisi', 'renderPositionList'],
       ['config.workLocation', 'config', 'Konfigurasi', 'Lokasi Kerja', 'Daftar Lokasi Kerja', 'renderWorkLocationList'],
       ['config.employmentType', 'config', 'Konfigurasi', 'Tipe Karyawan', 'Daftar Tipe Karyawan', 'renderEmploymentTypeList'],
+      ['config.contractType', 'config', 'Konfigurasi', 'Tipe Kontrak', 'Daftar Tipe Kontrak', 'renderContractTypeList'],
       ['config.approvalStage', 'config', 'Konfigurasi', 'Tahap Approval', 'Daftar Tahap Approval', 'renderApprovalStageList'],
       ['config.applicationStage', 'config', 'Konfigurasi', 'Tahap Lamaran', 'Daftar Tahap Lamaran', 'renderApplicationStageList'],
       ['config.workType', 'config', 'Konfigurasi', 'Tipe Waktu Kerja', 'Daftar Tipe Waktu Kerja', 'renderWorkTypeList'],
