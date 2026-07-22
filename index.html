@@ -1458,7 +1458,7 @@
         email: "finance@trading.co.id",
         website: "https://trading.co.id",
         logo: "",
-        is_active: true,
+        is_active: false,
         created_at: "2026-06-18 09:15",
         created_by: "100",
         updated_at: "2026-07-01 14:22",
@@ -1530,6 +1530,7 @@
       { code: "202", name: "Data Kontrak", parent: "Administrasi" },
       { code: "301", name: "Detail Absensi", parent: "Absensi" },
       { code: "302", name: "Koreksi Absensi", parent: "Absensi" },
+      { code: "303", name: "Tugas Tambahan", parent: "Absensi" },
       { code: "401", name: "Aturan Parameter", parent: "Konfigurasi" },
       { code: "402", name: "Komponen Gaji", parent: "Konfigurasi" },
       { code: "403", name: "Struktur Gaji", parent: "Konfigurasi" },
@@ -6468,13 +6469,14 @@
     let employeeRequestTypeDeleteId = null;
     let employeeRequestTypeWorkEntryTypeId = "";
 
-    let additionalTaskTypes = [
+    window.iReapNetAdditionalTaskTypes = window.iReapNetAdditionalTaskTypes || [
       { id: 1, code: "LEMBUR", name: "Lembur", unit: "HOUR", work_entry_type_id: "LEMBUR", company_id: 1, is_active: true, created_at: "2026-07-13 13:20", created_by: 100, updated_at: "2026-07-13 13:20", updated_by: 100 },
-      { id: 2, code: "MASUK_LIBUR", name: "Masuk Saat Libur", unit: "DAY", work_entry_type_id: "LEMBUR", company_id: 1, is_active: true, created_at: "2026-07-13 13:20", created_by: 100, updated_at: "2026-07-13 13:20", updated_by: 100 },
-      { id: 3, code: "PIKET", name: "Piket Tambahan", unit: "TIMES", work_entry_type_id: "LEMBUR", company_id: 1, is_active: true, created_at: "2026-07-13 13:20", created_by: 100, updated_at: "2026-07-13 13:20", updated_by: 100 },
+      { id: 2, code: "MASUK_LIBUR", name: "Masuk Saat Hari Libur", unit: "DAY", work_entry_type_id: "MASUK_LIBUR", company_id: 1, is_active: true, created_at: "2026-07-13 13:20", created_by: 100, updated_at: "2026-07-13 13:20", updated_by: 100 },
+      { id: 3, code: "PIKET", name: "Piket Tambahan", unit: "TIMES", work_entry_type_id: "PIKET", company_id: 1, is_active: true, created_at: "2026-07-13 13:20", created_by: 100, updated_at: "2026-07-13 13:20", updated_by: 100 },
       { id: 4, code: "ON_CALL", name: "On Call / Standby", unit: "TIMES", work_entry_type_id: "LEMBUR", company_id: 1, is_active: true, created_at: "2026-07-13 13:20", created_by: 100, updated_at: "2026-07-13 13:20", updated_by: 100 },
       { id: 5, code: "TUGAS_KHUSUS", name: "Tugas Khusus", unit: "TIMES", work_entry_type_id: "LEMBUR", company_id: 1, is_active: false, created_at: "2026-07-13 13:20", created_by: 100, updated_at: "2026-07-13 13:20", updated_by: 100 }
     ];
+    let additionalTaskTypes = window.iReapNetAdditionalTaskTypes;
 
     let additionalTaskTypeEditingId = null;
     let additionalTaskTypeDeleteId = null;
@@ -6661,7 +6663,7 @@
         { value: "DAY_OFF_CHANGE", label: "Ganti Libur" }
       ],
       ADDITIONAL_TASK: [
-        { value: "OVERTIME", label: "Lembur" },
+        { value: "LEMBUR", label: "Lembur" },
         { value: "EXTRA_TASK", label: "Tugas Tambahan" }
       ],
       EMPLOYEE_REQUISITION: [
@@ -6772,13 +6774,24 @@
         stages: [{ sequence_no: 1, stage_id: "PAYROLL" }]
       },
       {
-        setting_code: "OVERTIME_ALL",
+        setting_code: "LEMBUR_ALL",
         setting_name: "Approval Lembur Semua Karyawan",
         transaction_type: "ADDITIONAL_TASK",
-        transaction_subtype: "OVERTIME",
+        transaction_subtype: "LEMBUR",
         applies_to_type: "ALL",
         description: "Approval lembur untuk semua karyawan.",
         is_active: true,
+        scopes: [],
+        stages: [{ sequence_no: 1, stage_id: "MGR" }]
+      },
+      {
+        setting_code: "ADDITIONAL_TASK_ALL",
+        setting_name: "Approval Tugas Tambahan Semua Karyawan",
+        transaction_type: "ADDITIONAL_TASK",
+        transaction_subtype: "",
+        applies_to_type: "ALL",
+        description: "Approval umum untuk tipe tugas tambahan selain Lembur.",
+        is_active: false,
         scopes: [],
         stages: [{ sequence_no: 1, stage_id: "MGR" }]
       }
@@ -6810,7 +6823,9 @@
       { code: "CUTI", name: "Cuti" },
       { code: "LIBUR", name: "Libur" },
       { code: "OFF", name: "Off" },
-      { code: "TUGAS_TAMBAHAN", name: "Tugas Tambahan" }
+      { code: "TUGAS_TAMBAHAN", name: "Tugas Tambahan" },
+      { code: "MASUK_LIBUR", name: "Masuk Hari Libur" },
+      { code: "PIKET", name: "Piket" }
     ];
 
     let workTypeEditingCode = null;
@@ -10580,7 +10595,8 @@
 
     function confirmDeleteAdditionalTaskType() {
       if (!additionalTaskTypeDeleteId) return;
-      additionalTaskTypes = additionalTaskTypes.filter(item => item.id !== additionalTaskTypeDeleteId);
+      const index = additionalTaskTypes.findIndex(item => item.id === additionalTaskTypeDeleteId);
+      if (index >= 0) additionalTaskTypes.splice(index, 1);
       closeAdditionalTaskTypeDelete();
       renderAdditionalTaskTypeList();
       showToast("Data berhasil dihapus.");
@@ -14961,7 +14977,7 @@
 
     let approvalProcessRowsData = [
       { id: 1, status: "PENDING", submittedAt: "2026-07-10 09:15", submittedDate: "2026-07-10", requester: "HR Admin", documentNo: "EMPREQ-0001", transactionType: "EMPLOYEE_REQUEST", transaction_date: "2026-07-09", typeLabel: "Pengajuan Karyawan - Cuti Tahunan", approval_object: "Budi Santoso - Produksi", approval_period: "15/07/2026 - 17/07/2026", approval_description: "Keperluan keluarga", stage: "Approval Atasan Langsung", note: "" },
-      { id: 2, status: "PENDING", submittedAt: "2026-07-10 10:00", submittedDate: "2026-07-10", requester: "Siti Aminah", documentNo: "TASK-0008", transactionType: "ADDITIONAL_TASK", transaction_date: "2026-07-10", typeLabel: "Tugas Tambahan - Lembur", approval_object: "Siti Aminah - Gudang", approval_period: "10/07/2026 18:00 - 21:00", approval_description: "Closing produksi", stage: "Approval Atasan Langsung", note: "" },
+      { id: 2, status: "PENDING", approval_status: "PENDING", submittedAt: "2026-07-21 10:00", submittedDate: "2026-07-21", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "ADW-000002", transactionNo: "ADW-000002", transaction_no: "ADW-000002", transactionType: "ADDITIONAL_TASK", transaction_type: "ADDITIONAL_TASK", transactionSubtype: "LEMBUR", transaction_subtype: "LEMBUR", transaction_date: "2026-07-21", typeLabel: "Tugas Tambahan - Lembur", approval_object: "EMP-0007 - Anton Kurnia (Lembur)", approval_period: "22-Jul-2026 22:00 s.d. 23-Jul-2026 02:00 (4 Jam)", approval_description: "Perbaikan mesin lintas shift.", stage: "Approval Atasan Langsung", note: "" },
       { id: 3, status: "PENDING", submittedAt: "2026-07-10 11:20", submittedDate: "2026-07-10", requester: "Andi Pratama", documentNo: "RECRUIT-0003", transactionType: "EMPLOYEE_REQUISITION", transaction_date: "2026-07-09", typeLabel: "Permohonan Penambahan Karyawan - Posisi Baru", approval_object: "Produksi - 5 karyawan Harian", approval_period: "Dibutuhkan 01/08/2026", approval_description: "Penambahan shift malam", stage: "Approval HR", note: "" },
       { id: 4, status: "PENDING", submittedAt: "2026-07-10 14:00", submittedDate: "2026-07-10", requester: "HR Admin", documentNo: "PAY-202607", transactionType: "PAYROLL_PROCESS", transaction_date: "2026-07-10", typeLabel: "Proses Penggajian - Bulanan", approval_object: "Periode Juli 2026 - Staff", approval_period: "Juli 2026", approval_description: "Payroll bulanan staff", stage: "Approval Payroll", note: "" },
       { id: 5, status: "PENDING", submittedAt: "2026-07-11 08:30", submittedDate: "2026-07-11", requester: "HR Admin", documentNo: "MOV-0005", transactionType: "EMPLOYEE_MOVEMENT", transaction_date: "2026-07-11", typeLabel: "Perubahan Data Kerja - Promosi", approval_object: "Andi Pratama - Staff Admin -> Supervisor", approval_period: "Efektif 01/08/2026", approval_description: "Promosi berdasarkan evaluasi kinerja", stage: "Approval Direktur", note: "" },
@@ -17358,8 +17374,8 @@
       </div>
     </div>
     <div class="modal-foot">
-      <button class="btn red" type="button" id="employeeRequisitionCancelSaveBtn" data-module-action="cancelEmployeeRequisition">Batalkan</button>
-      <button class="btn secondary" type="button" id="employeeRequisitionCancelCancelBtn">Tutup</button>
+      <button class="btn red" type="button" id="employeeRequisitionCancelSaveBtn" data-module-action="cancelEmployeeRequisition">Ya, Batalkan</button>
+      <button class="btn secondary" type="button" id="employeeRequisitionCancelCancelBtn">Tidak</button>
     </div>
   </div>
 </div>
@@ -21378,10 +21394,10 @@
     fillEmployeeMovementForm(row);
     employeeMovementSetReadonly(true);
     const buttons = [];
+    buttons.push('<button class="btn secondary" type="button" data-module-action="renderEmployeeMovementList">Kembali</button>');
     if (row.approval_status === "DRAFT") buttons.push(`<button class="btn employee-requisition-submit" type="button" data-module-action="openEmployeeMovementSubmitConfirm" data-module-args="${row.id}">Ajukan</button><button class="btn employee-requisition-cancel" type="button" data-module-action="openEmployeeMovementCancelModal" data-module-args="${row.id}">Batal</button>`);
     if (row.approval_status === "PENDING") buttons.push(`<button class="btn employee-requisition-cancel" type="button" data-module-action="openEmployeeMovementCancelModal" data-module-args="${row.id}">Batal</button>`);
     if (row.approval_status === "APPROVED" && row.apply_status === "NOT_APPLIED") buttons.push(`<button class="btn green" type="button" data-module-action="openEmployeeMovementApplyModal" data-module-args="${row.id}">Terapkan</button><button class="btn employee-requisition-cancel" type="button" data-module-action="openEmployeeMovementCancelModal" data-module-args="${row.id}">Batal</button>`);
-    buttons.push('<button class="btn secondary" type="button" data-module-action="renderEmployeeMovementList">Kembali</button>');
     el("employeeMovementFormActions").innerHTML = buttons.join("");
     setEmployeeMovementScreen("view", "Lihat Perubahan Data Kerja");
   }
@@ -22020,10 +22036,10 @@
     fillEmployeeTerminationForm(row);
     employeeTerminationSetReadonly(true);
     const buttons = [];
+    buttons.push('<button class="btn secondary" type="button" data-module-action="renderEmployeeTerminationList">Kembali</button>');
     if (row.approval_status === "DRAFT") buttons.push(`<button class="btn employee-requisition-submit" type="button" data-module-action="openEmployeeTerminationSubmitConfirm" data-module-args="${row.id}">Ajukan</button><button class="btn employee-requisition-cancel" type="button" data-module-action="openEmployeeTerminationCancelModal" data-module-args="${row.id}">Batal</button>`);
     if (row.approval_status === "PENDING") buttons.push(`<button class="btn employee-requisition-cancel" type="button" data-module-action="openEmployeeTerminationCancelModal" data-module-args="${row.id}">Batal</button>`);
     if (row.approval_status === "APPROVED" && row.apply_status === "NOT_APPLIED") buttons.push(`<button class="btn green" type="button" data-module-action="openEmployeeTerminationApplyModal" data-module-args="${row.id}">Terapkan</button><button class="btn employee-requisition-cancel" type="button" data-module-action="openEmployeeTerminationCancelModal" data-module-args="${row.id}">Batal</button>`);
-    buttons.push('<button class="btn secondary" type="button" data-module-action="renderEmployeeTerminationList">Kembali</button>');
     el("employeeTerminationFormActions").innerHTML = buttons.join("");
     setEmployeeTerminationScreen("view", "Lihat Pemberhentian Karyawan");
   }
@@ -24592,6 +24608,235 @@
     gap: 8px;
     flex-wrap: nowrap;
   }
+  .additional-work-filter {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(180px, 1fr));
+    gap: 12px 18px;
+    align-items: end;
+  }
+  .additional-work-filter label {
+    margin: 0;
+  }
+  .additional-work-filter .form-control {
+    font-weight: 400;
+  }
+  .additional-work-screen.hidden,
+  .additional-work-unit-fields.hidden {
+    display: none;
+  }
+  .additional-work-form-grid,
+  .additional-work-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 18px;
+  }
+  .additional-work-lookup-field {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 38px;
+    gap: 6px;
+  }
+  .additional-work-lookup-btn {
+    width: 38px;
+    min-width: 38px;
+    padding: 0;
+  }
+  .additional-work-section {
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    background: #fff;
+  }
+  .additional-work-section-title {
+    margin: 0 0 12px;
+    color: #2f3d4d;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .table-wrap.additional-work-table-wrap {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto !important;
+    overflow-y: hidden;
+  }
+
+  .additional-work-table {
+    min-width: 1240px;
+    width: max-content;
+    table-layout: fixed;
+  }
+  #additionalWorkListView {
+    min-width: 0;
+  }
+  .additional-work-table th,
+  .additional-work-table td {
+    vertical-align: top;
+  }
+  .additional-work-selected-table table {
+    table-layout: fixed;
+  }
+  .additional-work-selected-table th,
+  .additional-work-selected-table td {
+    vertical-align: top;
+  }
+  .additional-work-selected-note {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    -webkit-box-orient: vertical;
+    white-space: normal;
+    line-height: 1.35;
+  }
+  .additional-work-cell-stack,
+  .additional-work-plan,
+  .additional-work-realization,
+  .additional-work-document {
+    display: grid;
+    gap: 3px;
+    line-height: 1.35;
+  }
+  .additional-work-approval-badge {
+    display: inline-flex;
+    width: 90px;
+    align-items: center;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .additional-work-approval-history-summary {
+    border: 1px solid #ddd;
+    background: #fafafa;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    line-height: 1.55;
+  }
+  .additional-work-status-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .additional-work-history-icon {
+    width: 22px;
+    height: 22px;
+    border: 1px solid #cbd5e1;
+    border-radius: 50%;
+    background: #fff;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    flex: 0 0 auto;
+  }
+  .additional-work-history-icon:hover {
+    background: #f3f6fb;
+    color: #1f4e79;
+    border-color: #9fb7d8;
+  }
+  .additional-work-realization-badge {
+    display: inline-flex;
+    width: 110px;
+    align-items: center;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .additional-work-note {
+    display: -webkit-box;
+    max-width: 100%;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .additional-work-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+  .additional-work-actions .btn.orange.icon-btn {
+    color: #fff;
+  }
+  .table-wrap.additional-work-employee-picker {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto !important;
+    overflow-y: auto;
+  }
+
+  .table-wrap.additional-work-employee-picker table {
+    min-width: 640px;
+    width: max-content;
+    table-layout: fixed;
+  }
+  .additional-work-type-picker {
+    max-height: 360px;
+    overflow: auto;
+  }
+  .additional-work-type-picker table {
+    min-width: 720px;
+  }
+  .additional-work-employee-picker thead th,
+  .additional-work-type-picker thead th,
+  .additional-work-selected-table thead th,
+  .additional-work-modal-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  .additional-work-validation-badge {
+    min-width: 92px;
+    justify-content: center;
+  }
+  .additional-work-modal {
+    width: 920px;
+    max-width: calc(100vw - 48px);
+    max-height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .additional-work-modal .modal-body {
+    overflow: auto;
+  }
+  .additional-work-transaction-modal {
+    width: 560px;
+    max-width: calc(100vw - 48px);
+  }
+  .additional-work-two-col {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 16px;
+  }
+  .additional-work-employee-edit-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 18px;
+    padding: 12px;
+    border: 1px solid #e1e5ec;
+    border-radius: 4px;
+    background: #f8fafc;
+    margin-bottom: 14px;
+  }
+  .additional-work-employee-edit-summary div {
+    display: grid;
+    gap: 2px;
+  }
+  .additional-work-employee-edit-summary span {
+    color: #6d7684;
+    font-size: 12px;
+  }
   .attendance-import-help {
     margin: 0 0 14px;
     color: #667085;
@@ -24917,6 +25162,282 @@
     </div>
     <div class="attendance-correction-draft-bar hidden" id="attendanceCorrectionDraftBar"></div>
     <div class="attendance-correction-bulk-apply-bar hidden" id="attendanceCorrectionBulkApplyBar"></div>
+  </div>
+
+  <div class="module-content hidden" id="additionalWorkPage">
+    <div id="additionalWorkListView" class="additional-work-screen">
+      <div class="toolbar" style="justify-content:flex-start">
+        <button class="btn" type="button" data-module-action="additional-work-create">Tambah</button>
+      </div>
+      <div class="filter-row shift-plan-filter-shell">
+        <div class="additional-work-filter">
+          <label><span>Tanggal Tugas Dari</span><input class="form-control" id="additionalWorkDateFromFilter" type="date"></label>
+          <label><span>Tanggal Tugas Sampai</span><input class="form-control" id="additionalWorkDateToFilter" type="date"></label>
+          <label><span>Tipe Tugas Tambahan</span><select class="form-control" id="additionalWorkTypeFilter"></select></label>
+          <label><span>Departemen</span><select class="form-control" id="additionalWorkDepartmentFilter"></select></label>
+          <label><span>Karyawan</span><select class="form-control" id="additionalWorkEmployeeFilter"></select></label>
+          <label><span>Status Approval</span><select class="form-control" id="additionalWorkApprovalFilter"><option value="all">Semua</option><option value="DRAFT">Draft</option><option value="PENDING">Menunggu</option><option value="APPROVED">Disetujui</option><option value="REJECTED">Ditolak</option><option value="CANCELLED">Dibatalkan</option></select></label>
+          <label><span>Status Realisasi</span><select class="form-control" id="additionalWorkRealizationFilter"><option value="all">Semua</option><option value="NOT_REALIZED">Belum Direalisasikan</option><option value="REALIZED">Sudah Direalisasikan</option></select></label>
+          <div class="attendance-correction-filter-actions">
+            <button class="btn" type="button" data-module-action="additional-work-filter">Filter</button>
+            <button class="btn secondary" type="button" data-module-action="additional-work-reset">Reset</button>
+          </div>
+        </div>
+      </div>
+      <div id="additionalWorkListErrors" class="error-box"></div>
+      <div class="table-tools table-utility-row">
+        <div>Menampilkan <select id="additionalWorkPageSize"><option selected>10</option><option>25</option><option>50</option></select> data</div>
+        <label class="table-search"><span>Cari</span><input class="search-box" id="additionalWorkSearchBox" type="text"></label>
+      </div>
+      <div class="table-wrap additional-work-table-wrap">
+        <table class="additional-work-table">
+          <thead>
+            <tr>
+              <th style="width:120px">Nomor Dokumen</th>
+              <th style="width:140px">Karyawan</th>
+              <th style="width:145px">Tipe Tugas Tambahan</th>
+              <th style="width:180px">Rencana Tugas Tambahan</th>
+              <th style="width:150px">Keterangan</th>
+              <th style="width:120px">Status Approval</th>
+              <th style="width:120px">Status Realisasi</th>
+              <th style="width:120px">Realisasi</th>
+              <th style="width:100px">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="additionalWorkRows"></tbody>
+        </table>
+      </div>
+      <div class="empty-state hidden" id="additionalWorkEmptyState">Data Tugas Tambahan tidak ditemukan.</div>
+      <div class="pager"><span id="additionalWorkPageInfo"></span><span class="pages attendance-log-pages" id="additionalWorkPages"></span></div>
+    </div>
+
+    <div id="additionalWorkFormView" class="additional-work-screen hidden">
+      <div class="toolbar" style="justify-content:flex-start" id="additionalWorkFormActions"></div>
+      <div id="additionalWorkFormErrors" class="error-box"></div>
+      <div class="additional-work-section">
+        <h3 class="additional-work-section-title">Informasi Dokumen</h3>
+        <div class="additional-work-form-grid">
+          <div class="form-row additional-work-edit-only"><label>No Dokumen</label><input class="form-control" id="additionalWorkDocumentNumber" type="text" readonly></div>
+          <div class="form-row"><label>Tanggal Dokumen <span class="required">*</span></label><input class="form-control" id="additionalWorkDocumentDate" type="date"></div>
+          <div class="form-row additional-work-edit-only"><label>Status Approval</label><input class="form-control" id="additionalWorkApprovalStatus" type="text" readonly></div>
+        </div>
+      </div>
+      <div class="additional-work-section hidden" id="additionalWorkSingleEmployeeSection">
+        <h3 class="additional-work-section-title">Informasi Karyawan</h3>
+        <div class="additional-work-form-grid" id="additionalWorkSingleEmployeeInfo"></div>
+      </div>
+      <div class="additional-work-section">
+        <h3 class="additional-work-section-title">Informasi Tugas Tambahan</h3>
+        <div class="additional-work-form-grid">
+          <div class="form-row"><label>Tipe Tugas Tambahan <span class="required">*</span></label><div class="additional-work-lookup-field"><input class="form-control" id="additionalWorkTypeName" type="text" readonly><button class="btn additional-work-lookup-btn" type="button" title="Pilih Tipe Tugas Tambahan" aria-label="Pilih Tipe Tugas Tambahan" data-module-action="additional-work-type-open">&#128269;</button></div><input id="additionalWorkType" type="hidden"></div>
+          <div class="form-row"><label>Satuan</label><input class="form-control" id="additionalWorkUnit" type="text" readonly></div>
+          <div class="form-row" style="grid-column:1 / -1"><label>Keterangan <span class="required">*</span></label><textarea class="form-control" id="additionalWorkReason"></textarea></div>
+        </div>
+      </div>
+      <div class="additional-work-section">
+        <h3 class="additional-work-section-title">Rencana Pelaksanaan</h3>
+        <div class="additional-work-form-grid additional-work-unit-fields" id="additionalWorkHourFields">
+          <div class="form-row"><label>Tanggal dan Jam Mulai <span class="required">*</span></label><input class="form-control" id="additionalWorkPlannedStart" type="datetime-local"></div>
+          <div class="form-row"><label>Tanggal dan Jam Selesai <span class="required">*</span></label><input class="form-control" id="additionalWorkPlannedEnd" type="datetime-local"></div>
+          <div class="form-row"><label>Durasi Rencana</label><input class="form-control" id="additionalWorkPlannedDuration" type="text" readonly></div>
+        </div>
+        <div class="additional-work-form-grid additional-work-unit-fields hidden" id="additionalWorkDayFields">
+          <div class="form-row"><label>Tanggal Tugas <span class="required">*</span></label><input class="form-control" id="additionalWorkTaskDateDay" type="date"></div>
+          <div class="form-row"><label>Jumlah Hari <span class="required">*</span></label><input class="form-control" id="additionalWorkQuantityDay" type="number" min="0" step="0.5"></div>
+        </div>
+        <div class="additional-work-form-grid additional-work-unit-fields hidden" id="additionalWorkTimesFields">
+          <div class="form-row"><label>Tanggal Tugas <span class="required">*</span></label><input class="form-control" id="additionalWorkTaskDateTimes" type="date"></div>
+          <div class="form-row"><label>Jumlah Kali <span class="required">*</span></label><input class="form-control" id="additionalWorkQuantityTimes" type="number" min="0" step="1"></div>
+        </div>
+      </div>
+      <div class="additional-work-section" id="additionalWorkMassEmployeeSection">
+        <h3 class="additional-work-section-title">Daftar Karyawan</h3>
+        <div class="toolbar" style="justify-content:flex-start"><button class="btn secondary" type="button" data-module-action="additional-work-employee-open">Pilih Karyawan</button></div>
+        <div class="table-wrap additional-work-selected-table">
+          <table>
+            <thead><tr><th style="width:15%">Karyawan</th><th style="width:15%">Informasi Kerja</th><th style="width:15%">Tipe Tugas Tambahan</th><th style="width:25%">Rencana Tugas Tambahan</th><th style="width:20%">Keterangan</th><th style="width:10%">Aksi</th></tr></thead>
+            <tbody id="additionalWorkSelectedRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="additionalWorkViewPage" class="additional-work-screen hidden">
+      <div class="toolbar" style="justify-content:flex-start" id="additionalWorkViewActions"></div>
+      <div id="additionalWorkViewBody"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="additionalWorkEmployeeModal">
+    <div class="modal additional-work-modal">
+      <div class="modal-head">Pilih Karyawan</div>
+      <div class="modal-body">
+        <div class="filter-row shift-plan-filter-shell">
+          <div class="additional-work-filter">
+            <label><span>Departemen</span><select class="form-control" id="additionalWorkEmployeeDepartmentFilter"></select></label>
+            <label><span>Tipe Karyawan</span><select class="form-control" id="additionalWorkEmployeeTypeFilter"></select></label>
+            <label><span>Cari</span><input class="form-control" id="additionalWorkEmployeeSearch" type="text"></label>
+          </div>
+        </div>
+        <div class="table-wrap additional-work-employee-picker">
+          <table>
+            <thead><tr><th style="width:52px"><input id="additionalWorkEmployeeCheckAll" type="checkbox" aria-label="Pilih Semua"></th><th style="width:105px">Nomor Pegawai</th><th style="width:150px">Nama</th><th style="width:130px">Departemen</th><th style="width:110px">Tipe Karyawan</th></tr></thead>
+            <tbody id="additionalWorkEmployeeRows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn" type="button" data-module-action="additional-work-employee-add">Tambahkan</button><button class="btn secondary" type="button" id="additionalWorkEmployeeCancelBtn">Batal</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="additionalWorkTypeModal">
+    <div class="modal additional-work-modal">
+      <div class="modal-head">Pilih Tipe Tugas Tambahan</div>
+      <div class="modal-body">
+        <div class="filter-row shift-plan-filter-shell">
+          <div class="additional-work-filter">
+            <label><span>Cari</span><input class="form-control" id="additionalWorkTypeSearch" type="text"></label>
+          </div>
+        </div>
+        <div class="table-wrap additional-work-type-picker">
+          <table>
+            <thead><tr><th style="width:130px">Kode</th><th>Nama Tipe Tugas Tambahan</th><th style="width:110px">Satuan</th><th style="width:170px">Tipe Waktu Kerja</th><th style="width:100px">Status</th></tr></thead>
+            <tbody id="additionalWorkTypeRows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn secondary" type="button" id="additionalWorkTypeCancelBtn">Batal</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="additionalWorkEmployeeEditModal">
+    <div class="modal additional-work-modal">
+      <div class="modal-head">Ubah Tugas Tambahan Karyawan</div>
+      <div class="modal-body">
+        <div id="additionalWorkEmployeeEditSummary" class="additional-work-employee-edit-summary"></div>
+        <div class="additional-work-form-grid">
+          <div class="form-row"><label>Tipe Tugas Tambahan</label><input class="form-control" id="additionalWorkEmployeeEditType" type="text" readonly></div>
+          <div class="form-row"><label>Satuan</label><input class="form-control" id="additionalWorkEmployeeEditUnit" type="text" readonly></div>
+        </div>
+        <div id="additionalWorkEmployeeEditHourFields" class="additional-work-form-grid">
+          <div class="form-row"><label>Tanggal dan Jam Mulai</label><input class="form-control" id="additionalWorkEmployeeEditStart" type="datetime-local"></div>
+          <div class="form-row"><label>Tanggal dan Jam Selesai</label><input class="form-control" id="additionalWorkEmployeeEditEnd" type="datetime-local"></div>
+          <div class="form-row"><label>Durasi Rencana</label><input class="form-control" id="additionalWorkEmployeeEditDuration" type="text" readonly></div>
+        </div>
+        <div id="additionalWorkEmployeeEditDayFields" class="additional-work-form-grid hidden">
+          <div class="form-row"><label>Tanggal Tugas</label><input class="form-control" id="additionalWorkEmployeeEditTaskDateDay" type="date"></div>
+          <div class="form-row"><label>Jumlah Hari</label><input class="form-control" id="additionalWorkEmployeeEditQuantityDay" type="number" min="0" step="0.5"></div>
+        </div>
+        <div id="additionalWorkEmployeeEditTimesFields" class="additional-work-form-grid hidden">
+          <div class="form-row"><label>Tanggal Tugas</label><input class="form-control" id="additionalWorkEmployeeEditTaskDateTimes" type="date"></div>
+          <div class="form-row"><label>Jumlah Kali</label><input class="form-control" id="additionalWorkEmployeeEditQuantityTimes" type="number" min="0" step="1"></div>
+        </div>
+        <div class="form-row"><label>Keterangan</label><textarea class="form-control" id="additionalWorkEmployeeEditReason"></textarea></div>
+      </div>
+      <div class="modal-foot"><button class="btn" type="button" data-module-action="additional-work-employee-edit-save">Simpan</button><button class="btn secondary" type="button" id="additionalWorkEmployeeEditCancelBtn">Batal</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="additionalWorkRealizationModal">
+    <div class="modal additional-work-transaction-modal">
+      <div class="modal-head">Catat Realisasi Tugas Tambahan</div>
+      <div class="modal-body">
+        <div class="table-wrap" style="margin-bottom:14px">
+          <table>
+            <tbody id="additionalWorkRealizationSummary"></tbody>
+          </table>
+        </div>
+        <div id="additionalWorkRealizationErrors" class="error-box"></div>
+        <div id="additionalWorkRealizationHourFields" class="additional-work-two-col">
+          <div class="form-row"><label>Tanggal dan Jam Selesai Aktual <span class="required">*</span></label><input class="form-control" id="additionalWorkActualEnd" type="datetime-local"></div>
+          <div class="form-row"><label>Kuantitas Aktual</label><input class="form-control" id="additionalWorkActualQuantityHour" type="text" readonly></div>
+        </div>
+        <div id="additionalWorkRealizationQuantityFields" class="additional-work-two-col hidden">
+          <div class="form-row"><label>Kuantitas Aktual <span class="required">*</span></label><input class="form-control" id="additionalWorkActualQuantity" type="number" min="0" step="0.5"></div>
+        </div>
+        <div class="form-row" style="grid-column:1 / -1">
+          <label>Catatan Realisasi:</label>
+          <textarea class="form-control" id="additionalWorkRealizationNote"></textarea>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn green" type="button" data-module-action="additional-work-realization-save">Simpan</button><button class="btn secondary" type="button" id="additionalWorkRealizationCancelBtn">Batal</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="additionalWorkDeleteModal">
+    <div class="modal shift-plan-confirm-modal">
+      <div class="modal-head">Hapus Draft Tugas Tambahan</div>
+      <div class="modal-body" id="additionalWorkDeleteSummary"></div>
+      <div class="modal-foot"><button class="btn red" type="button" data-module-action="additional-work-delete-confirm">Hapus</button><button class="btn secondary" type="button" id="additionalWorkDeleteCancelBtn">Batal</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="additionalWorkSubmitModal">
+    <div class="modal shift-plan-confirm-modal">
+      <div class="modal-head">Ajukan Tugas Tambahan</div>
+      <div class="modal-body" id="additionalWorkSubmitSummary"></div>
+      <div class="modal-foot"><button class="btn employee-requisition-submit" type="button" data-module-action="additional-work-submit-confirm">Ajukan</button><button class="btn secondary" type="button" id="additionalWorkSubmitCancelBtn">Batal</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="additionalWorkApprovalHistoryModal">
+    <div class="modal wide employee-requisition-history-modal">
+      <div class="modal-head">Riwayat Approval</div>
+      <div class="modal-body">
+        <div class="approval-summary additional-work-approval-history-summary" id="additionalWorkApprovalHistorySummary"></div>
+        <div class="table-wrap" id="additionalWorkApprovalHistoryWrap">
+          <table class="employee-requisition-timeline-table employee-requisition-history-table">
+            <thead>
+              <tr>
+                <th style="width:24%">Tahap</th>
+                <th style="width:18%">Approver</th>
+                <th style="width:14%">Status</th>
+                <th style="width:18%">Tanggal Aksi</th>
+                <th>Catatan</th>
+              </tr>
+            </thead>
+            <tbody id="additionalWorkApprovalHistoryRows"></tbody>
+          </table>
+        </div>
+        <div class="empty-state hidden" id="additionalWorkApprovalHistoryEmpty">Belum ada riwayat approval.</div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn secondary" type="button" id="additionalWorkApprovalHistoryCancelBtn">Kembali</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="additionalWorkCancelModal">
+    <div class="modal shift-plan-confirm-modal">
+      <div class="modal-head">
+        <span>Batalkan Tugas Tambahan</span>
+        <button class="modal-close" type="button" id="additionalWorkCancelCloseBtn">X</button>
+      </div>
+      <div class="modal-body">
+        <div class="table-wrap" style="margin-bottom:14px">
+          <table>
+            <tbody id="additionalWorkCancelSummary"></tbody>
+          </table>
+        </div>
+        <div id="additionalWorkCancelErrors" class="error-box"></div>
+        <div class="form-row">
+          <label>Alasan Pembatalan:</label>
+          <textarea class="form-control" id="additionalWorkCancelReason" placeholder="Masukkan alasan pembatalan"></textarea>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn red" type="button" data-module-action="additional-work-cancel-confirm">Ya, Batalkan</button>
+        <button class="btn secondary" type="button" id="additionalWorkCancelNoBtn">Tidak</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="additionalWorkLeaveModal">
+    <div class="modal shift-plan-confirm-modal">
+      <div class="modal-head">Batalkan Perubahan</div>
+      <div class="modal-body">Perubahan Tugas Tambahan belum disimpan. Batalkan perubahan dan kembali ke daftar?</div>
+      <div class="modal-foot"><button class="btn red" type="button" data-module-action="additional-work-leave-confirm">Ya, Batalkan</button><button class="btn secondary" type="button" id="additionalWorkLeaveStayBtn">Tetap Edit</button></div>
+    </div>
   </div>
 
   <div class="modal-backdrop" id="attendanceCorrectionSwitchEditModal">
@@ -26424,6 +26945,7 @@
     document.getElementById("attendanceLogPage").classList.remove("hidden");
     document.getElementById("attendanceDailyPage").classList.add("hidden");
     document.getElementById("attendanceCorrectionPage").classList.add("hidden");
+    document.getElementById("additionalWorkPage").classList.add("hidden");
     document.getElementById("crumbMenu").textContent = "Log Absensi";
     document.getElementById("crumbTitle").textContent = "Log Absensi";
     renderAttendanceLogEmployeeOptions();
@@ -26435,6 +26957,7 @@
     document.getElementById("attendanceLogPage").classList.add("hidden");
     document.getElementById("attendanceDailyPage").classList.remove("hidden");
     document.getElementById("attendanceCorrectionPage").classList.add("hidden");
+    document.getElementById("additionalWorkPage").classList.add("hidden");
     document.getElementById("crumbMenu").textContent = "Detail Absensi";
     document.getElementById("crumbTitle").textContent = "Daftar Detail Absensi";
     renderAttendanceDailyFilterOptions();
@@ -28043,11 +28566,1426 @@
     bar.innerHTML = count ? `<b>${count} Draft siap diajukan</b><button class="btn attendance-correction-submit-draft-btn" type="button" data-module-action="attendance-correction-draft-open">Ajukan Draft</button>` : "";
   }
 
+  const additionalWorkEmpty = "—";
+  let additionalWorkSeed = 8;
+  let additionalWorkApprovalSeed = 1600;
+  let additionalWorkMode = "list";
+  let additionalWorkEditingId = null;
+  let additionalWorkViewingId = null;
+  let additionalWorkDeleteId = null;
+  let additionalWorkCancelId = null;
+  let additionalWorkSubmitId = null;
+  let additionalWorkRealizationId = null;
+  let additionalWorkEmployeeEditId = null;
+  let additionalWorkPage = 1;
+  let additionalWorkPageSize = 10;
+  let additionalWorkSearch = "";
+  let additionalWorkPendingLeaveCallback = null;
+  window.iReapNetAdditionalTaskTypes = window.iReapNetAdditionalTaskTypes || [
+    { id: 1, code: "LEMBUR", name: "Lembur", unit: "HOUR", work_entry_type_id: "LEMBUR", is_active: true },
+    { id: 2, code: "MASUK_LIBUR", name: "Masuk Saat Hari Libur", unit: "DAY", work_entry_type_id: "MASUK_LIBUR", is_active: true },
+    { id: 3, code: "PIKET", name: "Piket Tambahan", unit: "TIMES", work_entry_type_id: "PIKET", is_active: true }
+  ];
+  window.iReapNetApprovalStages = window.iReapNetApprovalStages || [
+    { code: "MGR", name: "Approval Atasan Langsung", approver_type: "DIRECT_MANAGER" },
+    { code: "HR", name: "Approval HR", approver_type: "ROLE" }
+  ];
+  window.iReapNetApprovalSettings = window.iReapNetApprovalSettings || [
+    { setting_code: "LEMBUR_ALL", setting_name: "Approval Lembur Semua Karyawan", transaction_type: "ADDITIONAL_TASK", transaction_subtype: "LEMBUR", applies_to_type: "ALL", is_active: true, scopes: [], stages: [{ sequence_no: 1, stage_id: "MGR" }] }
+  ];
+  const additionalWorkFilters = { approval: "all", realization: "all", type: "all", dateFrom: "2026-07-19", dateTo: "2026-07-23", department: "all", employee: "all" };
+  const additionalWorkSelectedEmployees = new Set();
+  const additionalWorkEmployeeModalSelected = new Set();
+  const additionalWorkSelectedEmployeeDetails = new Map();
+  const additionalWorkFormState = { original: "", validation: new Map() };
+  let additionalWorks = [
+    { id: 1, company_id: 1, document_number: "ADW-000001", document_date: "2026-07-21", requested_by: "", additional_task_type_id: 1, additional_task_type_code: "LEMBUR", additional_task_type_name: "Lembur", unit: "HOUR", work_entry_type_id: "LEMBUR", employee_id: 5, employee_number: "EMP-0005", employee_name: "Siti Aminah", employment_status: "Aktif", employment_type_id: "Borongan", department_id: "Produksi", department_name: "Produksi", job: "Operator Produksi", position_id: "Operator Produksi", position_name: "Operator Produksi", work_location_id: "Plant A", work_location_name: "Plant A", manager_employee_id: "Budi Santoso", manager_employee_name: "Budi Santoso", task_date: "2026-07-22", planned_start_at: "2026-07-22 14:45", planned_end_at: "2026-07-22 17:45", planned_quantity: 3, reason: "Penyelesaian target packing.", approval_status: "DRAFT", approval_request_id: null, submitted_at: "", realization_status: "NOT_REALIZED", actual_end_at: "", actual_quantity: "", realization_note: "", realized_at: "", realized_by: "", realized_by_name: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", created_at: "2026-07-21 09:00", created_by: "HR STERLING", updated_at: "", updated_by: "", approval_history: [] },
+    { id: 2, company_id: 1, document_number: "ADW-000002", document_date: "2026-07-21", requested_by: "HR STERLING", additional_task_type_id: 1, additional_task_type_code: "LEMBUR", additional_task_type_name: "Lembur", unit: "HOUR", work_entry_type_id: "LEMBUR", employee_id: 7, employee_number: "EMP-0007", employee_name: "Anton Kurnia", employment_status: "Aktif", employment_type_id: "Bulanan", department_id: "Maintenance", department_name: "Maintenance", job: "Technician", position_id: "Technician", position_name: "Technician", work_location_id: "Plant A", work_location_name: "Plant A", manager_employee_id: "Budi Santoso", manager_employee_name: "Budi Santoso", task_date: "2026-07-22", planned_start_at: "2026-07-22 22:00", planned_end_at: "2026-07-23 02:00", planned_quantity: 4, reason: "Perbaikan mesin lintas shift.", approval_status: "PENDING", approval_request_id: "APR-ADW-0002", submitted_at: "2026-07-21 10:00", realization_status: "NOT_REALIZED", actual_end_at: "", actual_quantity: "", realization_note: "", realized_at: "", realized_by: "", realized_by_name: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", created_at: "2026-07-21 09:30", created_by: "HR STERLING", updated_at: "", updated_by: "", approval_history: [{ stage: "Approval HR", approver: "Jennie Lou", status: "Menunggu", actionDate: "-", note: "-" }] },
+    { id: 3, company_id: 1, document_number: "ADW-000003", document_date: "2026-07-21", requested_by: "HR STERLING", additional_task_type_id: 1, additional_task_type_code: "LEMBUR", additional_task_type_name: "Lembur", unit: "HOUR", work_entry_type_id: "LEMBUR", employee_id: 6, employee_number: "EMP-0006", employee_name: "Dian Permata", employment_status: "Aktif", employment_type_id: "Harian", department_id: "Logistik", department_name: "Logistik", job: "Driver", position_id: "Driver", position_name: "Driver", work_location_id: "Warehouse A", work_location_name: "Warehouse A", manager_employee_id: "Andi Pratama", manager_employee_name: "Andi Pratama", task_date: "2026-07-22", planned_start_at: "2026-07-22 18:00", planned_end_at: "2026-07-22 20:30", planned_quantity: 2.5, reason: "Pengiriman tambahan sore hari.", approval_status: "APPROVED", approval_request_id: "APR-ADW-0003", submitted_at: "2026-07-21 10:10", realization_status: "NOT_REALIZED", actual_end_at: "", actual_quantity: "", realization_note: "", realized_at: "", realized_by: "", realized_by_name: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", created_at: "2026-07-21 09:40", created_by: "HR STERLING", updated_at: "", updated_by: "", approval_history: [{ stage: "Approval HR", approver: "Jennie Lou", status: "Disetujui", actionDate: "2026-07-21 10:30", note: "Disetujui" }] },
+    { id: 4, company_id: 1, document_number: "ADW-000004", document_date: "2026-07-20", requested_by: "HR STERLING", additional_task_type_id: 1, additional_task_type_code: "LEMBUR", additional_task_type_name: "Lembur", unit: "HOUR", work_entry_type_id: "LEMBUR", employee_id: 1, employee_number: "EMP-0001", employee_name: "Budi Santoso", employment_status: "Aktif", employment_type_id: "Staff", department_id: "Produksi", department_name: "Produksi", job: "Supervisor Produksi", position_id: "Leader Line", position_name: "Leader Line", work_location_id: "Plant A", work_location_name: "Plant A", manager_employee_id: "Rina Wijaya", manager_employee_name: "Rina Wijaya", task_date: "2026-07-20", planned_start_at: "2026-07-20 15:00", planned_end_at: "2026-07-20 18:00", planned_quantity: 3, reason: "Koordinasi loading tambahan.", approval_status: "APPROVED", approval_request_id: "APR-ADW-0004", submitted_at: "2026-07-20 09:15", realization_status: "REALIZED", actual_end_at: "2026-07-20 18:06", actual_quantity: 3.1, realization_note: "Selesai sedikit melewati rencana.", realized_at: "2026-07-20 18:20", realized_by: "HR STERLING", realized_by_name: "HR STERLING", cancelled_at: "", cancelled_by: "", cancel_reason: "", created_at: "2026-07-20 08:40", created_by: "HR STERLING", updated_at: "", updated_by: "", approval_history: [{ stage: "Approval HR", approver: "Jennie Lou", status: "Disetujui", actionDate: "2026-07-20 10:00", note: "OK" }] },
+    { id: 5, company_id: 1, document_number: "ADW-000005", document_date: "2026-07-19", requested_by: "HR STERLING", additional_task_type_id: 2, additional_task_type_code: "MASUK_LIBUR", additional_task_type_name: "Masuk Saat Hari Libur", unit: "DAY", work_entry_type_id: "MASUK_LIBUR", employee_id: 8, employee_number: "EMP-0008", employee_name: "Maya Sari", employment_status: "Aktif", employment_type_id: "Staff", department_id: "Finance", department_name: "Finance", job: "Staff Finance", position_id: "Staff Finance", position_name: "Staff Finance", work_location_id: "Head Office", work_location_name: "Head Office", manager_employee_id: "Andi Pratama", manager_employee_name: "Andi Pratama", task_date: "2026-07-20", planned_start_at: "", planned_end_at: "", planned_quantity: 1, reason: "Closing dokumen saat hari libur.", approval_status: "REJECTED", approval_request_id: "APR-ADW-0005", submitted_at: "2026-07-19 11:00", realization_status: "NOT_REALIZED", actual_end_at: "", actual_quantity: "", realization_note: "", realized_at: "", realized_by: "", realized_by_name: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", created_at: "2026-07-19 10:30", created_by: "HR STERLING", updated_at: "", updated_by: "", approval_history: [{ stage: "Approval HR", approver: "Jennie Lou", status: "Ditolak", actionDate: "2026-07-19 11:30", note: "Tidak sesuai kebutuhan." }] },
+    { id: 6, company_id: 1, document_number: "ADW-000006", document_date: "2026-07-18", requested_by: "", additional_task_type_id: 3, additional_task_type_code: "PIKET", additional_task_type_name: "Piket Tambahan", unit: "TIMES", work_entry_type_id: "PIKET", employee_id: 10, employee_number: "EMP-0010", employee_name: "Nina Kartika", employment_status: "Aktif", employment_type_id: "Staff", department_id: "Human Resources", department_name: "Human Resources", job: "HR Staff", position_id: "HR Staff", position_name: "HR Staff", work_location_id: "Head Office", work_location_name: "Head Office", manager_employee_id: "Jennie Lou", manager_employee_name: "Jennie Lou", task_date: "2026-07-21", planned_start_at: "", planned_end_at: "", planned_quantity: 2, reason: "Piket administrasi event karyawan.", approval_status: "CANCELLED", approval_request_id: null, submitted_at: "", realization_status: "NOT_REALIZED", actual_end_at: "", actual_quantity: "", realization_note: "", realized_at: "", realized_by: "", realized_by_name: "", cancelled_at: "2026-07-18 14:00", cancelled_by: "HR STERLING", cancel_reason: "Piket dibatalkan karena jadwal diganti.", created_at: "2026-07-18 13:30", created_by: "HR STERLING", updated_at: "", updated_by: "", approval_history: [] },
+    { id: 7, company_id: 1, document_number: "ADW-000007", document_date: "2026-07-19", requested_by: "HR STERLING", additional_task_type_id: 3, additional_task_type_code: "PIKET", additional_task_type_name: "Piket Tambahan", unit: "TIMES", work_entry_type_id: "PIKET", employee_id: 2, employee_number: "EMP-0002", employee_name: "Jennie Lou", employment_status: "Aktif", employment_type_id: "Bulanan", department_id: "HR", department_name: "HR", job: "HR Admin", position_id: "HR Staff", position_name: "HR Staff", work_location_id: "Head Office", work_location_name: "Head Office", manager_employee_id: "Budi Santoso", manager_employee_name: "Budi Santoso", task_date: "2026-07-19", planned_start_at: "", planned_end_at: "", planned_quantity: 2, reason: "Piket rekap data lembur.", approval_status: "APPROVED", approval_request_id: "APR-ADW-0007", submitted_at: "2026-07-19 09:00", realization_status: "REALIZED", actual_end_at: "", actual_quantity: 2, realization_note: "Piket selesai.", realized_at: "2026-07-19 17:30", realized_by: "Admin Personalia", realized_by_name: "Admin Personalia", cancelled_at: "", cancelled_by: "", cancel_reason: "", created_at: "2026-07-19 08:30", created_by: "HR STERLING", updated_at: "", updated_by: "", approval_history: [{ stage: "Approval HR", approver: "Jennie Lou", status: "Disetujui", actionDate: "2026-07-19 09:30", note: "Disetujui" }] }
+  ];
+
+  function additionalWorkTypes() {
+    return window.iReapNetAdditionalTaskTypes || [];
+  }
+
+  function additionalWorkActiveTypes() {
+    return additionalWorkTypes().filter(item => item.is_active);
+  }
+
+  function additionalWorkTypeByCode(code) {
+    return additionalWorkTypes().find(item => item.code === code) || null;
+  }
+
+  function additionalWorkUnitLabel(unit) {
+    return { HOUR: "Jam", DAY: "Hari", TIMES: "Kali" }[unit] || additionalWorkEmpty;
+  }
+
+  function additionalWorkWorkEntryName(code) {
+    if (typeof additionalTaskTypeWorkEntryTypeNameById !== "undefined") return additionalTaskTypeWorkEntryTypeNameById(code);
+    return { LEMBUR: "Lembur", MASUK_LIBUR: "Masuk Hari Libur", PIKET: "Piket" }[code] || code || additionalWorkEmpty;
+  }
+
+  function additionalWorkParseDateTime(value) {
+    return value ? new Date(value.replace(" ", "T")) : null;
+  }
+
+  function additionalWorkInputDateTime(value) {
+    return value ? value.replace(" ", "T") : "";
+  }
+
+  function additionalWorkDateTimeInputValue(value) {
+    return value ? value.replace("T", " ") : "";
+  }
+
+  function additionalWorkMinutesBetween(start, end) {
+    const first = additionalWorkParseDateTime(start);
+    const second = additionalWorkParseDateTime(end);
+    if (!first || !second) return null;
+    return Math.round((second - first) / 60000);
+  }
+
+  function additionalWorkFormatDate(value) {
+    return value ? shiftPlanFormatDate(value) : additionalWorkEmpty;
+  }
+
+  function additionalWorkFormatDateTime(value) {
+    if (!value) return additionalWorkEmpty;
+    return `${shiftPlanFormatDate(value.slice(0, 10))} ${value.slice(11, 16)}`;
+  }
+
+  function additionalWorkFormatQuantity(value, unit) {
+    if (value === "" || value === null || value === undefined) return additionalWorkEmpty;
+    const number = Number(value);
+    if (unit === "HOUR") {
+      const minutes = Math.round(number * 60);
+      const hours = Math.floor(minutes / 60);
+      const rest = minutes % 60;
+      if (hours && rest) return `${hours} Jam ${rest} Menit`;
+      if (hours) return `${hours} Jam`;
+      return `${rest} Menit`;
+    }
+    if (unit === "DAY") return `${Number.isInteger(number) ? number : Number(number.toFixed(2))} Hari`;
+    if (unit === "TIMES") return `${Number.isInteger(number) ? number : Number(number.toFixed(2))} Kali`;
+    return String(value);
+  }
+
+  function additionalWorkPlanText(row) {
+    if (!row) return additionalWorkEmpty;
+    if (row.unit === "HOUR") {
+      const sameDate = row.planned_start_at?.slice(0, 10) === row.planned_end_at?.slice(0, 10);
+      return `
+        <span>${escapeShiftPlanHtml(additionalWorkFormatDate(row.task_date))}</span>
+        <span>${sameDate ? `${escapeShiftPlanHtml(row.planned_start_at.slice(11, 16))} s.d. ${escapeShiftPlanHtml(row.planned_end_at.slice(11, 16))}` : `${escapeShiftPlanHtml(additionalWorkFormatDateTime(row.planned_start_at))} s.d. ${escapeShiftPlanHtml(additionalWorkFormatDateTime(row.planned_end_at))}`}</span>
+        <b>${escapeShiftPlanHtml(additionalWorkFormatQuantity(row.planned_quantity, row.unit))}</b>
+      `;
+    }
+    return `<span>${escapeShiftPlanHtml(additionalWorkFormatDate(row.task_date))}</span><b>${escapeShiftPlanHtml(additionalWorkFormatQuantity(row.planned_quantity, row.unit))}</b>`;
+  }
+
+  function additionalWorkPlanPlain(row) {
+    return additionalWorkPlanText(row).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  }
+
+  function additionalWorkCancelPlanText(row) {
+    if (row.unit === "HOUR") {
+      const sameDate = row.planned_start_at?.slice(0, 10) === row.planned_end_at?.slice(0, 10);
+      const durationText = additionalWorkFormatQuantity(row.planned_quantity, row.unit);
+
+      if (sameDate) {
+        return `${additionalWorkFormatDate(row.task_date)} ${row.planned_start_at.slice(11, 16)} s.d. ${row.planned_end_at.slice(11, 16)} (Durasi: ${durationText})`;
+      }
+
+      return `${additionalWorkFormatDateTime(row.planned_start_at)} s.d. ${additionalWorkFormatDateTime(row.planned_end_at)} (Durasi: ${durationText})`;
+    }
+
+    return `${additionalWorkFormatDate(row.task_date)} (${additionalWorkFormatQuantity(row.planned_quantity, row.unit)})`;
+  }
+
+  function additionalWorkRealizationText(row) {
+    if (row.realization_status !== "REALIZED") return additionalWorkEmpty;
+    if (row.unit === "HOUR") {
+      const datePrefix = row.actual_end_at?.slice(0, 10) !== row.task_date ? `${additionalWorkFormatDate(row.actual_end_at.slice(0, 10))} ` : "";
+      return `<span>Selesai: ${escapeShiftPlanHtml(datePrefix + row.actual_end_at.slice(11, 16))}</span><b>${escapeShiftPlanHtml(additionalWorkFormatQuantity(row.actual_quantity, row.unit))}</b>`;
+    }
+    return `<b>${escapeShiftPlanHtml(additionalWorkFormatQuantity(row.actual_quantity, row.unit))}</b>`;
+  }
+
+  function additionalWorkApprovalBadge(status) {
+    const labels = { DRAFT: ["Draft", "approval-draft"], PENDING: ["Menunggu", "pending"], APPROVED: ["Disetujui", "active"], REJECTED: ["Ditolak", "approval-rejected"], CANCELLED: ["Dibatalkan", "approval-canceled"] };
+    const item = labels[status] || [additionalWorkEmpty, "muted"];
+    return `<span class="badge additional-work-approval-badge ${item[1]}">${escapeShiftPlanHtml(item[0])}</span>`;
+  }
+
+  function additionalWorkApprovalStatusCell(row) {
+    const hasHistory = row.approval_request_id || (row.approval_history || []).length;
+    const historyButton = hasHistory
+      ? `<button class="additional-work-history-icon" type="button" title="Riwayat Approval" aria-label="Riwayat Approval" data-module-action="additional-work-approval-history" data-module-args="${row.id}">i</button>`
+      : "";
+    return `
+      <div class="additional-work-status-wrap">
+        ${additionalWorkApprovalBadge(row.approval_status)}
+        ${historyButton}
+      </div>
+    `;
+  }
+
+  function additionalWorkRealizationBadge(status) {
+    const labels = { NOT_REALIZED: ["Belum Direalisasikan", "pending"], REALIZED: ["Sudah Direalisasikan", "done"] };
+    const item = labels[status] || [additionalWorkEmpty, "muted"];
+    return `<span class="badge additional-work-realization-badge ${item[1]}">${escapeShiftPlanHtml(item[0])}</span>`;
+  }
+
+  function additionalWorkIconSend() {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 20 3l-4.5 17-4.3-6.2L3 11.5Zm6.8.8 2.9 4.2 2.7-10.4-10.1 5.2 4.5 1Z"/></svg>';
+  }
+
+  function additionalWorkIconCheck() {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm-1 14.2-4.2-4.2 1.4-1.4L11 13.4l5.8-5.8 1.4 1.4-7.2 7.2Z"/></svg>';
+  }
+
+  function additionalWorkIconCopy() {
+    return typeof window.iconCopy === "function"
+      ? window.iconCopy()
+      : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8V4h12v12h-4v4H4V8h4Zm2-2v10h8V6h-8Zm-4 4v8h8v-2H8V10H6Z"/></svg>';
+  }
+
+  function additionalWorkIconBan() {
+    return typeof window.iconBan === "function"
+      ? window.iconBan()
+      : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm6.2 10a6.1 6.1 0 0 1-.9 3.2L8.8 6.7A6 6 0 0 1 18.2 12ZM6.8 12a6.1 6.1 0 0 1 .9-3.2l8.5 8.5A6 6 0 0 1 6.8 12Z"/></svg>';
+  }
+
+  function additionalWorkCurrentUserName() {
+    return window.iReapNetCurrentUserName || "HR STERLING";
+  }
+
+  function additionalWorkEmployeeSource() {
+    const map = new Map();
+    if (typeof employees !== "undefined") {
+      employees.forEach(employee => map.set(employee.employee_number, {
+        id: employee.id,
+        employee_number: employee.employee_number,
+        name: employee.name,
+        status: employee.status,
+        employment_type: employee.employment_type,
+        department: employee.department,
+        job: employee.job,
+        position: employee.position,
+        work_location: employee.work_location,
+        manager: employee.manager
+      }));
+    }
+    attendanceDailyRows.forEach(row => {
+      if (!map.has(row.employee_no)) {
+        map.set(row.employee_no, {
+          id: 1000 + row.id,
+          employee_number: row.employee_no,
+          name: row.employee_name,
+          status: "Aktif",
+          employment_type: row.employment_type,
+          department: row.department,
+          job: row.position || row.employment_type,
+          position: row.position || "-",
+          work_location: "Head Office",
+          manager: "Budi Santoso"
+        });
+      }
+    });
+    return [...map.values()].sort((a, b) => a.employee_number.localeCompare(b.employee_number));
+  }
+
+  function additionalWorkEmployee(employeeId) {
+    return additionalWorkEmployeeSource().find(item => Number(item.id) === Number(employeeId)) || null;
+  }
+
+  function additionalWorkSnapshotEmployee(employee) {
+    return {
+      employee_id: employee.id,
+      employee_number: employee.employee_number,
+      employee_name: employee.name,
+      employment_status: employee.status,
+      employment_type_id: employee.employment_type,
+      department_id: employee.department,
+      department_name: employee.department,
+      job: employee.job,
+      position_id: employee.position,
+      position_name: employee.position,
+      work_location_id: employee.work_location,
+      work_location_name: employee.work_location,
+      manager_employee_id: employee.manager,
+      manager_employee_name: employee.manager || ""
+    };
+  }
+
+  function additionalWorkSyncOptions() {
+    const departments = [...new Set(additionalWorkEmployeeSource().map(item => item.department))].sort();
+    const types = additionalWorkTypes();
+    const employeesList = additionalWorkEmployeeSource();
+    document.getElementById("additionalWorkTypeFilter").innerHTML = '<option value="all">Semua</option>' + types.map(item => `<option value="${escapeShiftPlanHtml(item.code)}">${escapeShiftPlanHtml(item.name)}</option>`).join("");
+    document.getElementById("additionalWorkDepartmentFilter").innerHTML = '<option value="all">Semua</option>' + departments.map(item => `<option value="${escapeShiftPlanHtml(item)}">${escapeShiftPlanHtml(item)}</option>`).join("");
+    document.getElementById("additionalWorkEmployeeFilter").innerHTML = '<option value="all">Semua</option>' + employeesList.map(item => `<option value="${escapeShiftPlanHtml(item.employee_number)}">${escapeShiftPlanHtml(item.employee_number)} - ${escapeShiftPlanHtml(item.name)}</option>`).join("");
+    document.getElementById("additionalWorkEmployeeDepartmentFilter").innerHTML = '<option value="all">Semua</option>' + departments.map(item => `<option value="${escapeShiftPlanHtml(item)}">${escapeShiftPlanHtml(item)}</option>`).join("");
+    document.getElementById("additionalWorkEmployeeTypeFilter").innerHTML = '<option value="all">Semua</option>' + [...new Set(employeesList.map(item => item.employment_type))].sort().map(item => `<option value="${escapeShiftPlanHtml(item)}">${escapeShiftPlanHtml(item)}</option>`).join("");
+  }
+
+  function additionalWorkSetType(type) {
+    document.getElementById("additionalWorkType").value = type?.code || "";
+    document.getElementById("additionalWorkTypeName").value = type ? type.name : "";
+    additionalWorkSyncTypeFields();
+  }
+
+  function additionalWorkTypeOpen() {
+    document.getElementById("additionalWorkTypeSearch").value = "";
+    renderAdditionalWorkTypeRows();
+    document.getElementById("additionalWorkTypeModal").classList.add("show");
+  }
+
+  function additionalWorkTypeFilteredRows() {
+    const query = document.getElementById("additionalWorkTypeSearch").value.trim().toLowerCase();
+    return additionalWorkActiveTypes().filter(item => !query || [item.code, item.name, item.unit, additionalWorkWorkEntryName(item.work_entry_type_id)].join(" ").toLowerCase().includes(query));
+  }
+
+  function renderAdditionalWorkTypeRows() {
+    const rows = additionalWorkTypeFilteredRows();
+    document.getElementById("additionalWorkTypeRows").innerHTML = rows.length ? rows.map(item => `
+      <tr class="lookup-select-row" data-module-action="additional-work-type-select" data-module-args="${escapeShiftPlanHtml(item.code)}">
+        <td>${escapeShiftPlanHtml(item.code)}</td>
+        <td>${escapeShiftPlanHtml(item.name)}</td>
+        <td>${escapeShiftPlanHtml(additionalWorkUnitLabel(item.unit))}</td>
+        <td>${escapeShiftPlanHtml(additionalWorkWorkEntryName(item.work_entry_type_id))}</td>
+        <td>${item.is_active ? '<span class="badge active">Aktif</span>' : '<span class="badge inactive">Tidak Aktif</span>'}</td>
+      </tr>
+    `).join("") : `<tr><td colspan="5" class="empty-state">Tipe Tugas Tambahan tidak ditemukan.</td></tr>`;
+  }
+
+  function additionalWorkTypeSelect(code) {
+    const type = additionalWorkTypeByCode(code);
+    if (!type) return;
+    additionalWorkSetType(type);
+    closeShiftPlanModal("additionalWorkTypeModal");
+  }
+
+  function additionalWorkSetFilterFields() {
+    document.getElementById("additionalWorkApprovalFilter").value = additionalWorkFilters.approval;
+    document.getElementById("additionalWorkRealizationFilter").value = additionalWorkFilters.realization;
+    document.getElementById("additionalWorkTypeFilter").value = additionalWorkFilters.type;
+    document.getElementById("additionalWorkDateFromFilter").value = additionalWorkFilters.dateFrom;
+    document.getElementById("additionalWorkDateToFilter").value = additionalWorkFilters.dateTo;
+    document.getElementById("additionalWorkDepartmentFilter").value = additionalWorkFilters.department;
+    document.getElementById("additionalWorkEmployeeFilter").value = additionalWorkFilters.employee;
+    document.getElementById("additionalWorkPageSize").value = String(additionalWorkPageSize);
+    document.getElementById("additionalWorkSearchBox").value = additionalWorkSearch;
+  }
+
+  function additionalWorkFilteredRows() {
+    const query = additionalWorkSearch.trim().toLowerCase();
+    return additionalWorks
+      .filter(row => additionalWorkFilters.approval === "all" || row.approval_status === additionalWorkFilters.approval)
+      .filter(row => additionalWorkFilters.realization === "all" || row.realization_status === additionalWorkFilters.realization)
+      .filter(row => additionalWorkFilters.type === "all" || row.additional_task_type_code === additionalWorkFilters.type)
+      .filter(row => !additionalWorkFilters.dateFrom || row.task_date >= additionalWorkFilters.dateFrom)
+      .filter(row => !additionalWorkFilters.dateTo || row.task_date <= additionalWorkFilters.dateTo)
+      .filter(row => additionalWorkFilters.department === "all" || row.department_name === additionalWorkFilters.department)
+      .filter(row => additionalWorkFilters.employee === "all" || row.employee_number === additionalWorkFilters.employee)
+      .filter(row => !query || [row.document_number, row.employee_number, row.employee_name, row.additional_task_type_name, row.reason].join(" ").toLowerCase().includes(query))
+      .sort((a, b) => b.document_date.localeCompare(a.document_date) || b.id - a.id);
+  }
+
+  function additionalWorkActions(row) {
+    const buttons = [`<button class="btn teal icon-btn" type="button" title="Lihat" aria-label="Lihat" data-module-action="additional-work-view" data-module-args="${row.id}">${window.iconEye()}</button>`];
+    if (row.approval_status === "DRAFT" && row.realization_status === "NOT_REALIZED") {
+      buttons.push(`<button class="btn orange icon-btn" type="button" title="Ubah" aria-label="Ubah" data-module-action="additional-work-edit" data-module-args="${row.id}">${window.iconPencil()}</button>`);
+      buttons.push(`<button class="btn employee-requisition-submit icon-btn" type="button" title="Ajukan" aria-label="Ajukan" data-module-action="additional-work-submit-one" data-module-args="${row.id}">${additionalWorkIconSend()}</button>`);
+    }
+    if (row.approval_status === "APPROVED" && row.realization_status === "NOT_REALIZED") {
+      buttons.push(`<button class="btn green icon-btn" type="button" title="Catat Realisasi" aria-label="Catat Realisasi" data-module-action="additional-work-realization-open" data-module-args="${row.id}">${additionalWorkIconCheck()}</button>`);
+    }
+    if (additionalWorkCanCancel(row)) {
+      buttons.push(`<button class="btn employee-requisition-cancel icon-btn" type="button" title="Batal" aria-label="Batal" data-module-action="additional-work-cancel-open" data-module-args="${row.id}">${additionalWorkIconBan()}</button>`);
+    }
+    if (additionalWorkCanDuplicate(row)) {
+      buttons.push(`<button class="btn employee-requisition-duplicate icon-btn" type="button" title="Duplikat" aria-label="Duplikat" data-module-action="additional-work-duplicate" data-module-args="${row.id}">${additionalWorkIconCopy()}</button>`);
+    }
+    return `<div class="additional-work-actions additional-work-row-actions">${buttons.join("")}</div>`;
+  }
+
+  function additionalWorkCanCancel(row) {
+    return ["DRAFT", "PENDING", "APPROVED"].includes(row?.approval_status) && row?.realization_status === "NOT_REALIZED";
+  }
+
+  function additionalWorkCanDuplicate(row) {
+    return ["APPROVED", "REJECTED", "CANCELLED"].includes(row?.approval_status);
+  }
+
+  function additionalWorkRealizationStatusCell(row) {
+    return row.approval_status === "APPROVED"
+      ? additionalWorkRealizationBadge(row.realization_status)
+      : additionalWorkEmpty;
+  }
+
+  function additionalWorkRow(row) {
+    return `<tr>
+      <td><div class="additional-work-document"><button class="attendance-correction-doc-link" type="button" data-module-action="additional-work-view" data-module-args="${row.id}">${escapeShiftPlanHtml(row.document_number)}</button><span>${escapeShiftPlanHtml(additionalWorkFormatDate(row.document_date))}</span></div></td>
+      <td><div class="additional-work-cell-stack"><b>${escapeShiftPlanHtml(row.employee_number)}</b><span>${escapeShiftPlanHtml(row.employee_name)}</span><small>${escapeShiftPlanHtml(row.department_name || additionalWorkEmpty)} • ${escapeShiftPlanHtml(row.employment_type_id || additionalWorkEmpty)}</small></div>
+      </td>
+      <td><div class="additional-work-cell-stack">${escapeShiftPlanHtml(row.additional_task_type_name)}</div></td>
+      <td><div class="additional-work-plan">${additionalWorkPlanText(row)}</div></td>
+      <td><div class="additional-work-note">${escapeShiftPlanHtml(row.reason || additionalWorkEmpty)}</div></td>
+      <td>${additionalWorkApprovalStatusCell(row)}</td>
+      <td>${additionalWorkRealizationStatusCell(row)}</td>
+      <td><div class="additional-work-realization">${additionalWorkRealizationText(row)}</div></td>
+      <td>${additionalWorkActions(row)}</td>
+    </tr>`;
+  }
+
+  function renderAdditionalWorkList() {
+    additionalWorkMode = "list";
+    additionalWorkEditingId = null;
+    additionalWorkViewingId = null;
+    additionalWorkSyncOptions();
+    additionalWorkSetFilterFields();
+    document.getElementById("additionalWorkListView").classList.remove("hidden");
+    document.getElementById("additionalWorkFormView").classList.add("hidden");
+    document.getElementById("additionalWorkViewPage").classList.add("hidden");
+    const rows = additionalWorkFilteredRows();
+    const totalPages = Math.max(1, Math.ceil(rows.length / additionalWorkPageSize));
+    if (additionalWorkPage > totalPages) additionalWorkPage = totalPages;
+    const start = (additionalWorkPage - 1) * additionalWorkPageSize;
+    const pageRows = rows.slice(start, start + additionalWorkPageSize);
+    document.getElementById("additionalWorkRows").innerHTML = pageRows.map(additionalWorkRow).join("");
+    document.getElementById("additionalWorkEmptyState").classList.toggle("hidden", Boolean(pageRows.length));
+    document.getElementById("additionalWorkPageInfo").textContent = rows.length ? `Menampilkan ${start + 1} - ${start + pageRows.length} dari ${rows.length} data` : "Menampilkan 0 data";
+    document.getElementById("additionalWorkPages").innerHTML = attendanceCorrectionPager(rows.length, additionalWorkPage, additionalWorkPageSize).join("");
+  }
+
+  function additionalWorkSetScreen(mode) {
+    additionalWorkMode = mode;
+    document.getElementById("additionalWorkListView").classList.toggle("hidden", mode !== "list");
+    document.getElementById("additionalWorkFormView").classList.toggle("hidden", !["create", "edit"].includes(mode));
+    document.getElementById("additionalWorkViewPage").classList.toggle("hidden", mode !== "view");
+
+    const titles = {
+      list: "Daftar Tugas Tambahan",
+      create: "Tambah Tugas Tambahan",
+      edit: "Ubah Tugas Tambahan",
+      view: "Lihat Tugas Tambahan"
+    };
+    document.getElementById("crumbTitle").textContent = titles[mode] || "Daftar Tugas Tambahan";
+  }
+
+  function additionalWorkCurrentType() {
+    return additionalWorkTypeByCode(document.getElementById("additionalWorkType").value);
+  }
+
+  function additionalWorkSyncTypeFields() {
+    const type = additionalWorkCurrentType();
+    const unit = type?.unit || "HOUR";
+    document.getElementById("additionalWorkUnit").value = type ? additionalWorkUnitLabel(type.unit) : "";
+    document.getElementById("additionalWorkWorkEntryType").value = type ? additionalWorkWorkEntryName(type.work_entry_type_id) : "";
+    document.getElementById("additionalWorkHourFields").classList.toggle("hidden", unit !== "HOUR");
+    document.getElementById("additionalWorkDayFields").classList.toggle("hidden", unit !== "DAY");
+    document.getElementById("additionalWorkTimesFields").classList.toggle("hidden", unit !== "TIMES");
+    additionalWorkSyncPlanPreview();
+  }
+
+  function additionalWorkReadPlan() {
+    const type = additionalWorkCurrentType();
+    const unit = type?.unit || "";
+    if (unit === "HOUR") {
+      const start = additionalWorkDateTimeInputValue(document.getElementById("additionalWorkPlannedStart").value);
+      const end = additionalWorkDateTimeInputValue(document.getElementById("additionalWorkPlannedEnd").value);
+      const minutes = additionalWorkMinutesBetween(start, end);
+      return { unit, task_date: start.slice(0, 10), planned_start_at: start, planned_end_at: end, planned_quantity: minutes !== null ? minutes / 60 : "" };
+    }
+    if (unit === "DAY") {
+      return { unit, task_date: document.getElementById("additionalWorkTaskDateDay").value, planned_start_at: "", planned_end_at: "", planned_quantity: Number(document.getElementById("additionalWorkQuantityDay").value || 0) };
+    }
+    if (unit === "TIMES") {
+      return { unit, task_date: document.getElementById("additionalWorkTaskDateTimes").value, planned_start_at: "", planned_end_at: "", planned_quantity: Number(document.getElementById("additionalWorkQuantityTimes").value || 0) };
+    }
+    return { unit: "", task_date: "", planned_start_at: "", planned_end_at: "", planned_quantity: "" };
+  }
+
+  function additionalWorkSyncPlanPreview() {
+    const plan = additionalWorkReadPlan();
+    document.getElementById("additionalWorkPlannedDuration").value = plan.unit === "HOUR" && Number(plan.planned_quantity) > 0 ? additionalWorkFormatQuantity(plan.planned_quantity, "HOUR") : "";
+    additionalWorkSyncHeaderToEmployeeDetails();
+    renderAdditionalWorkSelectedRows();
+  }
+
+  function additionalWorkFormPayload() {
+    const type = additionalWorkCurrentType();
+    const plan = additionalWorkReadPlan();
+    return {
+      document_date: document.getElementById("additionalWorkDocumentDate").value,
+      type,
+      additional_task_type_id: type?.id || null,
+      additional_task_type_code: type?.code || "",
+      additional_task_type_name: type?.name || "",
+      unit: type?.unit || "",
+      work_entry_type_id: type?.work_entry_type_id || "",
+      reason: document.getElementById("additionalWorkReason").value.trim(),
+      ...plan
+    };
+  }
+
+  function additionalWorkFormSnapshot() {
+    const employeeIds = [...additionalWorkSelectedEmployees].sort((a, b) => a - b).join(",");
+    const details = [...additionalWorkSelectedEmployeeDetails.entries()].sort((a, b) => a[0] - b[0]);
+    return JSON.stringify({ mode: additionalWorkMode, id: additionalWorkEditingId, form: additionalWorkFormPayload(), employeeIds, details });
+  }
+
+  function additionalWorkMarkClean() {
+    additionalWorkFormState.original = additionalWorkFormSnapshot();
+  }
+
+  function additionalWorkHasDirty() {
+    return ["create", "edit"].includes(additionalWorkMode) && additionalWorkFormState.original && additionalWorkFormState.original !== additionalWorkFormSnapshot();
+  }
+
+  function additionalWorkRunAfterGuard(callback) {
+    if (!additionalWorkHasDirty()) {
+      callback();
+      return;
+    }
+    additionalWorkPendingLeaveCallback = callback;
+    document.getElementById("additionalWorkLeaveModal").classList.add("show");
+  }
+
+  function additionalWorkGenerateNo(id) {
+    return `ADW-${String(id).padStart(6, "0")}`;
+  }
+
+  function additionalWorkDuplicateConflict(payload, employeeId, ignoreId = null) {
+    const existing = additionalWorks.filter(row => row.id !== ignoreId && row.employee_id === employeeId && row.additional_task_type_code === payload.additional_task_type_code && !["REJECTED", "CANCELLED"].includes(row.approval_status));
+    if (payload.unit === "HOUR") {
+      return existing.some(row => row.unit === "HOUR" && payload.planned_start_at < row.planned_end_at && payload.planned_end_at > row.planned_start_at);
+    }
+    return existing.some(row => row.unit === payload.unit && row.task_date === payload.task_date);
+  }
+
+  function additionalWorkMatchingApprovalSetting(payload, employee) {
+    const settings = (window.iReapNetApprovalSettings || []).filter(setting => setting.is_active && setting.transaction_type === "ADDITIONAL_TASK");
+    const specific = settings.filter(setting => (setting.transaction_subtype || "") === payload.additional_task_type_code);
+    const generic = settings.filter(setting => (setting.transaction_subtype || "") === "");
+    const matchesScope = setting => {
+      if (setting.applies_to_type === "ALL") return true;
+      const values = (setting.scopes || []).map(scope => String(scope.value || "").toLowerCase());
+      if (setting.applies_to_type === "DEPARTMENT") return values.includes(String(employee.department || "").toLowerCase());
+      if (setting.applies_to_type === "EMPLOYMENT_TYPE") return values.includes(String(employee.employment_type || "").toLowerCase());
+      if (setting.applies_to_type === "EMPLOYEE") return values.some(value => value.includes(String(employee.employee_number || "").toLowerCase()));
+      return false;
+    };
+    return specific.find(matchesScope) || generic.find(matchesScope) || null;
+  }
+
+  function additionalWorkStageNeedsManager(setting) {
+    return (setting?.stages || []).some(stage => {
+      const config = (window.iReapNetApprovalStages || []).find(item => item.code === stage.stage_id);
+      return config?.approver_type === "DIRECT_MANAGER";
+    });
+  }
+
+  function additionalWorkValidateEmployee(employee, payload, mode = "submit", ignoreId = null) {
+    const messages = [];
+    if (!payload.type) messages.push("Belum Lengkap");
+    else if (!payload.type.is_active) messages.push("Tipe Tidak Aktif");
+    if (!payload.document_date || !payload.reason || !payload.task_date) messages.push("Belum Lengkap");
+    if (payload.unit === "HOUR") {
+      if (!payload.planned_start_at || !payload.planned_end_at) messages.push("Belum Lengkap");
+      else if (additionalWorkMinutesBetween(payload.planned_start_at, payload.planned_end_at) <= 0) messages.push("Belum Lengkap");
+    }
+    if (Number(payload.planned_quantity) <= 0) messages.push("Belum Lengkap");
+    if (!employee) messages.push("Belum Lengkap");
+    else if (employee.status !== "Aktif") messages.push("Karyawan Tidak Aktif");
+    if (employee && payload.type && additionalWorkDuplicateConflict(payload, employee.id, ignoreId)) messages.push("Duplikat");
+    return [...new Set(messages)];
+  }
+
+  function additionalWorkValidationBadge(messages) {
+    if (!messages.length) return `<span class="badge active additional-work-validation-badge">Valid</span>`;
+    const label = messages[0];
+    const type = label === "Duplikat" || label.includes("Tidak") ? "approval-rejected" : "pending";
+    return `<span class="badge ${type} additional-work-validation-badge">${escapeShiftPlanHtml(label)}</span>`;
+  }
+
+  function additionalWorkShowFormErrors(errors) {
+    const box = document.getElementById("additionalWorkFormErrors");
+    box.innerHTML = errors.map(error => `<div>${escapeShiftPlanHtml(error)}</div>`).join("");
+    box.classList.toggle("show", errors.length > 0);
+  }
+
+  function additionalWorkValidateHeaderForEmployeePicker() {
+    const payload = additionalWorkFormPayload();
+    const errors = [];
+    if (!payload.document_date) errors.push("Tanggal Dokumen wajib diisi.");
+    if (!payload.type) errors.push("Tipe Tugas Tambahan wajib dipilih.");
+    if (!payload.reason) errors.push("Keterangan wajib diisi.");
+    if (payload.unit === "HOUR") {
+      if (!payload.planned_start_at) errors.push("Tanggal dan Jam Mulai wajib diisi.");
+      if (!payload.planned_end_at) errors.push("Tanggal dan Jam Selesai wajib diisi.");
+      if (payload.planned_start_at && payload.planned_end_at && additionalWorkMinutesBetween(payload.planned_start_at, payload.planned_end_at) <= 0) {
+        errors.push("Tanggal dan Jam Selesai harus lebih besar dari Tanggal dan Jam Mulai.");
+      }
+    } else if (payload.unit === "DAY") {
+      if (!payload.task_date) errors.push("Tanggal Tugas wajib diisi.");
+      if (Number(payload.planned_quantity) <= 0) errors.push("Jumlah Hari harus lebih besar dari 0.");
+    } else if (payload.unit === "TIMES") {
+      if (!payload.task_date) errors.push("Tanggal Tugas wajib diisi.");
+      if (Number(payload.planned_quantity) <= 0) errors.push("Jumlah Kali harus lebih besar dari 0.");
+    }
+    additionalWorkShowFormErrors(errors);
+    return errors.length === 0;
+  }
+
+  function additionalWorkEmployeeDefaultDetail(employee, payload = additionalWorkFormPayload()) {
+    return {
+      ...payload,
+      ...additionalWorkSnapshotEmployee(employee),
+      is_overridden: false
+    };
+  }
+
+  function additionalWorkSyncHeaderToEmployeeDetails() {
+    if (additionalWorkEditingId) return;
+    const payload = additionalWorkFormPayload();
+    additionalWorkSelectedEmployees.forEach(id => {
+      const employee = additionalWorkEmployee(id);
+      if (!employee) return;
+      const existing = additionalWorkSelectedEmployeeDetails.get(id);
+      if (existing?.is_overridden) return;
+      additionalWorkSelectedEmployeeDetails.set(id, additionalWorkEmployeeDefaultDetail(employee, payload));
+    });
+  }
+
+  function additionalWorkSelectedDetail(id) {
+    const numericId = Number(id);
+    const existing = additionalWorkSelectedEmployeeDetails.get(numericId);
+    if (existing) return existing;
+    const employee = additionalWorkEmployee(numericId);
+    if (!employee) return null;
+    const detail = additionalWorkEmployeeDefaultDetail(employee);
+    additionalWorkSelectedEmployeeDetails.set(numericId, detail);
+    return detail;
+  }
+
+  function additionalWorkWorkInfoText(value) {
+    return escapeShiftPlanHtml(value || "-");
+  }
+
+  function renderAdditionalWorkSelectedRows() {
+    const tbody = document.getElementById("additionalWorkSelectedRows");
+    if (!tbody) return;
+    additionalWorkSyncHeaderToEmployeeDetails();
+    const rows = [...additionalWorkSelectedEmployees].map(id => additionalWorkSelectedDetail(id)).filter(Boolean);
+    tbody.innerHTML = rows.length ? rows.map(detail => {
+      const employee = additionalWorkEmployee(detail.employee_id);
+      const messages = additionalWorkValidateEmployee(employee, { ...detail, type: additionalWorkTypeByCode(detail.additional_task_type_code) }, "draft");
+      additionalWorkFormState.validation.set(detail.employee_id, messages);
+      return `<tr>
+        <td><div class="additional-work-cell-stack"><span>${escapeShiftPlanHtml(detail.employee_number)}</span><b>${escapeShiftPlanHtml(detail.employee_name)}</b></div></td>
+        <td><div class="additional-work-cell-stack"><span>${additionalWorkWorkInfoText(detail.department_name)}</span><span>${additionalWorkWorkInfoText(detail.employment_type_id)}</span><span>${additionalWorkWorkInfoText(detail.position_name)}</span></div></td>
+        <td><div class="additional-work-cell-stack"><span>${escapeShiftPlanHtml(detail.additional_task_type_name || additionalWorkEmpty)}</span></div></td>
+        <td><div class="additional-work-plan">${additionalWorkPlanText(detail)}</div></td>
+        <td><div class="additional-work-selected-note">${escapeShiftPlanHtml(detail.reason || additionalWorkEmpty)}</div></td>
+        <td><div class="additional-work-actions"><button class="btn orange icon-btn" type="button" title="Ubah" aria-label="Ubah" data-module-action="additional-work-employee-edit" data-module-args="${detail.employee_id}">${window.iconPencil()}</button><button class="btn red icon-btn" type="button" title="Hapus" aria-label="Hapus" data-module-action="additional-work-employee-remove" data-module-args="${detail.employee_id}">${window.iconTrash()}</button></div></td>
+      </tr>`;
+    }).join("") : `<tr><td colspan="6" class="empty-state">Belum ada karyawan yang dipilih.</td></tr>`;
+  }
+
+  function additionalWorkFillForm(row = null) {
+    additionalWorkSyncOptions();
+    document.querySelectorAll(".additional-work-edit-only").forEach(item => {
+      item.classList.toggle("hidden", !row);
+    });
+    document.getElementById("additionalWorkDocumentNumber").value = row?.document_number || "";
+    document.getElementById("additionalWorkApprovalStatus").value = row ? additionalWorkApprovalText(row.approval_status) : "";
+    document.getElementById("additionalWorkDocumentDate").value = row?.document_date || attendanceToday;
+    document.getElementById("additionalWorkType").value = row?.additional_task_type_code || "";
+    document.getElementById("additionalWorkTypeName").value = row?.additional_task_type_code ? row.additional_task_type_name : "";
+    document.getElementById("additionalWorkReason").value = row?.reason || "";
+    if (row?.unit === "HOUR") {
+      document.getElementById("additionalWorkPlannedStart").value = additionalWorkInputDateTime(row.planned_start_at);
+      document.getElementById("additionalWorkPlannedEnd").value = additionalWorkInputDateTime(row.planned_end_at);
+    } else {
+      document.getElementById("additionalWorkPlannedStart").value = "";
+      document.getElementById("additionalWorkPlannedEnd").value = "";
+    }
+    document.getElementById("additionalWorkTaskDateDay").value = row?.unit === "DAY" ? row.task_date : attendanceToday;
+    document.getElementById("additionalWorkQuantityDay").value = row?.unit === "DAY" ? row.planned_quantity : 1;
+    document.getElementById("additionalWorkTaskDateTimes").value = row?.unit === "TIMES" ? row.task_date : attendanceToday;
+    document.getElementById("additionalWorkQuantityTimes").value = row?.unit === "TIMES" ? row.planned_quantity : 1;
+    additionalWorkSelectedEmployees.clear();
+    additionalWorkSelectedEmployeeDetails.clear();
+    if (row) additionalWorkSelectedEmployees.add(Number(row.employee_id));
+    document.getElementById("additionalWorkMassEmployeeSection").classList.toggle("hidden", Boolean(row));
+    document.getElementById("additionalWorkSingleEmployeeSection").classList.toggle("hidden", !row);
+    if (row) {
+      document.getElementById("additionalWorkSingleEmployeeInfo").innerHTML = [
+        ["Nomor Pegawai", row.employee_number],
+        ["Nama Karyawan", row.employee_name],
+        ["Departemen", row.department_name],
+        ["Tipe Karyawan", row.employment_type_id]
+      ].map(([label, value]) => `<div class="form-row"><label>${escapeShiftPlanHtml(label)}</label><input class="form-control" type="text" value="${escapeShiftPlanHtml(value || additionalWorkEmpty)}" readonly></div>`).join("");
+    }
+    additionalWorkSyncTypeFields();
+    additionalWorkMarkClean();
+  }
+
+  function additionalWorkApprovalText(status) {
+    return { DRAFT: "Draft", PENDING: "Menunggu", APPROVED: "Disetujui", REJECTED: "Ditolak", CANCELLED: "Dibatalkan" }[status] || additionalWorkEmpty;
+  }
+
+  function additionalWorkRealizationTextLabel(status) {
+    return { NOT_REALIZED: "Belum Direalisasikan", REALIZED: "Sudah Direalisasikan" }[status] || additionalWorkEmpty;
+  }
+
+  function additionalWorkCreate() {
+    additionalWorkEditingId = null;
+    document.getElementById("additionalWorkFormActions").innerHTML = '<button class="btn" type="button" data-module-action="additional-work-save-draft">Simpan Draft</button><button class="btn employee-requisition-submit" type="button" data-module-action="additional-work-submit-mass">Ajukan</button><button class="btn secondary" type="button" data-module-action="additional-work-back">Kembali</button>';
+    additionalWorkSetScreen("create");
+    additionalWorkFillForm(null);
+  }
+
+  function additionalWorkEdit(id) {
+    const row = additionalWorks.find(item => item.id === Number(id));
+    if (!row || row.approval_status !== "DRAFT" || row.realization_status !== "NOT_REALIZED") return;
+    additionalWorkEditingId = row.id;
+    document.getElementById("additionalWorkFormActions").innerHTML = '<button class="btn" type="button" data-module-action="additional-work-save-draft">Simpan Draft</button><button class="btn employee-requisition-submit" type="button" data-module-action="additional-work-submit-one" data-module-args="' + row.id + '">Ajukan</button><button class="btn employee-requisition-cancel" type="button" data-module-action="additional-work-cancel-open" data-module-args="' + row.id + '">Batal</button><button class="btn secondary" type="button" data-module-action="additional-work-back">Kembali</button>';
+    additionalWorkSetScreen("edit");
+    additionalWorkFillForm(row);
+  }
+
+  function additionalWorkList() {
+    additionalWorkEditingId = null;
+    additionalWorkViewingId = null;
+    additionalWorkSetScreen("list");
+    renderAdditionalWorkList();
+  }
+
+  function additionalWorkBack() {
+    additionalWorkRunAfterGuard(additionalWorkList);
+  }
+
+  function additionalWorkSaveDraft() {
+    additionalWorkSave("DRAFT");
+  }
+
+  function additionalWorkSubmitMass() {
+    additionalWorkOpenSubmitConfirm(null);
+  }
+
+  function additionalWorkOpenSubmitConfirm(id = null) {
+    additionalWorkSubmitId = id === null || id === undefined ? null : Number(id);
+    if (additionalWorkSubmitId) {
+      const row = additionalWorks.find(item => item.id === additionalWorkSubmitId);
+      if (!row || row.approval_status !== "DRAFT") return;
+      if (additionalWorkEditingId !== row.id || additionalWorkMode !== "edit") {
+        additionalWorkEditingId = row.id;
+        additionalWorkFillForm(row);
+      }
+    }
+    const result = additionalWorkBuildRowsForSave("PENDING");
+    additionalWorkShowFormErrors(result.errors);
+    if (result.errors.length) {
+      renderAdditionalWorkSelectedRows();
+      additionalWorkSubmitId = null;
+      return;
+    }
+    document.getElementById("additionalWorkSubmitSummary").innerHTML = `Ajukan <b>${result.rows.length}</b> dokumen Tugas Tambahan ke proses approval?`;
+    document.getElementById("additionalWorkSubmitModal").classList.add("show");
+  }
+
+  function additionalWorkSubmitConfirm() {
+    closeShiftPlanModal("additionalWorkSubmitModal");
+    const id = additionalWorkSubmitId;
+    additionalWorkSubmitId = null;
+    additionalWorkSave("PENDING", id);
+  }
+
+  function additionalWorkLeaveConfirm() {
+    closeShiftPlanModal("additionalWorkLeaveModal");
+    const callback = additionalWorkPendingLeaveCallback;
+    additionalWorkPendingLeaveCallback = null;
+    additionalWorkFormState.original = "";
+    if (callback) callback();
+  }
+
+  function additionalWorkBuildRowsForSave(status) {
+    const payload = additionalWorkFormPayload();
+    const mode = status === "PENDING" ? "submit" : "draft";
+    if (additionalWorkEditingId) {
+      const sourceRow = additionalWorks.find(item => item.id === additionalWorkEditingId);
+      if (!sourceRow) return { errors: ["Dokumen yang akan diubah tidak ditemukan."], rows: [] };
+      const employee = {
+        id: sourceRow.employee_id,
+        employee_number: sourceRow.employee_number,
+        name: sourceRow.employee_name,
+        status: sourceRow.employment_status,
+        department: sourceRow.department_name,
+        employment_type: sourceRow.employment_type_id,
+        manager: sourceRow.manager_employee_name
+      };
+      const row = {
+        ...payload,
+        employee_id: sourceRow.employee_id,
+        employee_number: sourceRow.employee_number,
+        employee_name: sourceRow.employee_name,
+        employment_status: sourceRow.employment_status,
+        employment_type_id: sourceRow.employment_type_id,
+        department_id: sourceRow.department_id,
+        department_name: sourceRow.department_name,
+        job: sourceRow.job,
+        position_id: sourceRow.position_id,
+        position_name: sourceRow.position_name,
+        work_location_id: sourceRow.work_location_id,
+        work_location_name: sourceRow.work_location_name,
+        manager_employee_id: sourceRow.manager_employee_id,
+        manager_employee_name: sourceRow.manager_employee_name
+      };
+      const messages = additionalWorkValidateEmployee(employee, { ...row, type: additionalWorkTypeByCode(row.additional_task_type_code) }, mode, additionalWorkEditingId);
+      return messages.length ? { errors: [`Dokumen belum dapat ${status === "PENDING" ? "diajukan" : "disimpan"}. Periksa data Tugas Tambahan.`], rows: [] } : { errors: [], rows: [row] };
+    }
+    const ids = [...additionalWorkSelectedEmployees];
+    const detailForId = id => additionalWorkEditingId ? { ...payload, ...additionalWorkSnapshotEmployee(additionalWorkEmployee(id)) } : additionalWorkSelectedDetail(id);
+    const invalid = ids.map(id => {
+      const employee = additionalWorkEmployee(id);
+      const detail = detailForId(id);
+      return { employee, messages: additionalWorkValidateEmployee(employee, { ...detail, type: additionalWorkTypeByCode(detail?.additional_task_type_code) }, mode, additionalWorkEditingId) };
+    }).filter(item => item.messages.length);
+    if (!ids.length) return { errors: ["Minimal satu karyawan wajib dipilih."], rows: [] };
+    if (invalid.length) return { errors: [`${invalid.length} dari ${ids.length} karyawan belum dapat ${status === "PENDING" ? "diajukan" : "disimpan"}. Periksa data karyawan yang dipilih.`], rows: [] };
+    const rows = ids.map(id => {
+      const employee = additionalWorkEmployee(id);
+      return additionalWorkEditingId ? { ...payload, ...additionalWorkSnapshotEmployee(employee) } : additionalWorkSelectedDetail(id);
+    });
+    return { errors: [], rows };
+  }
+
+  function additionalWorkCreateApproval(row, timestamp) {
+    const currentUser = additionalWorkCurrentUserName();
+    const employee = {
+      id: row.employee_id,
+      employee_number: row.employee_number,
+      name: row.employee_name,
+      department: row.department_name,
+      employment_type: row.employment_type_id,
+      manager: row.manager_employee_name
+    };
+    const setting = additionalWorkMatchingApprovalSetting({ ...row, type: additionalWorkTypeByCode(row.additional_task_type_code) }, employee);
+    if (!setting) return null;
+    const requestNo = `APR-ADW-${String(row.id).padStart(4, "0")}`;
+    const history = (setting.stages || []).map(stage => {
+      const config = (window.iReapNetApprovalStages || []).find(item => item.code === stage.stage_id);
+      return { stage: config?.name || stage.stage_id, approver: config?.approver_type === "DIRECT_MANAGER" ? (row.manager_employee_name || additionalWorkEmpty) : "Jennie Lou", status: "Menunggu", actionDate: "-", note: "-" };
+    });
+    const request = {
+      id: ++additionalWorkApprovalSeed,
+      approvalRequestNo: requestNo,
+      status: "PENDING",
+      approval_status: "PENDING",
+      submittedAt: timestamp,
+      submittedDate: timestamp.slice(0, 10),
+      requester: currentUser,
+      requested_by: currentUser,
+      documentNo: row.document_number,
+      transactionType: "ADDITIONAL_TASK",
+      transaction_type: "ADDITIONAL_TASK",
+      transactionSubtype: row.additional_task_type_code,
+      transaction_subtype: row.additional_task_type_code,
+      transactionId: row.id,
+      transaction_id: row.id,
+      transactionNo: row.document_number,
+      transaction_no: row.document_number,
+      transaction_date: row.document_date,
+      employee_id: row.employee_id,
+      department_id: row.department_name,
+      employment_type_id: row.employment_type_id,
+      typeLabel: `Tugas Tambahan - ${row.additional_task_type_name}`,
+      approval_object: `${row.employee_number} - ${row.employee_name} (${row.additional_task_type_name})`,
+      approval_period: additionalWorkApprovalPeriod(row),
+      approval_description: row.reason,
+      stage: history[0]?.stage || "",
+      note: "",
+      history
+    };
+    additionalWorkApprovalStore().push(request);
+    row.approval_request_id = requestNo;
+    row.approval_history = history;
+    return request;
+  }
+
+  function additionalWorkFinalizeSubmit(row, timestamp, currentUser) {
+    row.submitted_at = timestamp;
+    row.requested_by = currentUser;
+    row.approval_request_id = null;
+    row.approval_history = [];
+    const request = additionalWorkCreateApproval(row, timestamp);
+    row.approval_status = request ? "PENDING" : "APPROVED";
+    return request;
+  }
+
+  function additionalWorkApprovalPeriod(row) {
+    if (row.unit === "HOUR") return `${additionalWorkFormatDateTime(row.planned_start_at)} s.d. ${additionalWorkFormatDateTime(row.planned_end_at)} (${additionalWorkFormatQuantity(row.planned_quantity, row.unit)})`;
+    return `${additionalWorkFormatDate(row.task_date)} (${additionalWorkFormatQuantity(row.planned_quantity, row.unit)})`;
+  }
+
+  function additionalWorkApprovalStore() {
+    window.iReapNetApprovalRequests = window.iReapNetApprovalRequests || [];
+    return window.iReapNetApprovalRequests;
+  }
+
+  function additionalWorkApprovalRequest(row) {
+    if (!row?.approval_request_id) return null;
+    return additionalWorkApprovalStore().find(item => item.approvalRequestNo === row.approval_request_id || item.approval_request_id === row.approval_request_id) || null;
+  }
+
+  function additionalWorkApprovalHistorySummary(row) {
+    if (!row) return "";
+    const request = additionalWorkApprovalRequest(row);
+    return `
+      <div><b>No Dokumen:</b> ${escapeShiftPlanHtml(request?.documentNo || request?.transactionNo || row.document_number || additionalWorkEmpty)}</div>
+      <div><b>Jenis Transaksi:</b> ${escapeShiftPlanHtml(request?.typeLabel || `Tugas Tambahan - ${row.additional_task_type_name || additionalWorkEmpty}`)}</div>
+      <div><b>Objek Approval:</b> ${escapeShiftPlanHtml(request?.approval_object || `${row.employee_number || additionalWorkEmpty} - ${row.employee_name || additionalWorkEmpty} (${row.additional_task_type_name || additionalWorkEmpty})`)}</div>
+      <div><b>Periode:</b> ${escapeShiftPlanHtml(request?.approval_period || additionalWorkApprovalPeriod(row))}</div>
+      <div><b>Keterangan:</b> ${escapeShiftPlanHtml(request?.approval_description || row.reason || additionalWorkEmpty)}</div>
+    `;
+  }
+
+  function additionalWorkHistoryStatusBadge(status) {
+    const normalized = status === "Dibatalkan" ? "CANCELLED"
+      : status === "Ditolak" ? "REJECTED"
+        : status === "Disetujui" ? "APPROVED"
+          : status === "Menunggu" ? "PENDING"
+            : status || "DRAFT";
+    return additionalWorkApprovalBadge(normalized);
+  }
+
+  function additionalWorkRenderApprovalHistoryRows(timeline) {
+    const target = document.getElementById("additionalWorkApprovalHistoryRows");
+    const empty = document.getElementById("additionalWorkApprovalHistoryEmpty");
+    if (!timeline.length) {
+      target.innerHTML = "";
+      empty.classList.remove("hidden");
+      return;
+    }
+    empty.classList.add("hidden");
+    target.innerHTML = timeline.map(item => `
+      <tr>
+        <td>${escapeShiftPlanHtml(item.stage || additionalWorkEmpty)}</td>
+        <td>${escapeShiftPlanHtml(item.approver || item.by || additionalWorkEmpty)}</td>
+        <td>${additionalWorkHistoryStatusBadge(item.status || item.approval_status)}</td>
+        <td>${escapeShiftPlanHtml(item.actionDate || item.date || additionalWorkEmpty)}</td>
+        <td>${escapeShiftPlanHtml(item.note || additionalWorkEmpty)}</td>
+      </tr>
+    `).join("");
+  }
+
+  function additionalWorkApprovalHistory(id) {
+    const row = additionalWorks.find(item => item.id === id);
+    if (!row) return;
+    const request = additionalWorkApprovalRequest(row);
+    const timeline = request?.history?.length ? request.history : (row.approval_history || []);
+    document.getElementById("additionalWorkApprovalHistorySummary").innerHTML = additionalWorkApprovalHistorySummary(row);
+    document.getElementById("additionalWorkApprovalHistoryWrap").classList.toggle("hidden", !timeline.length);
+    additionalWorkRenderApprovalHistoryRows(timeline);
+    document.getElementById("additionalWorkApprovalHistoryModal").classList.add("show");
+  }
+
+  function additionalWorkSave(status = "DRAFT", id = null) {
+    const currentUser = additionalWorkCurrentUserName();
+    const result = additionalWorkBuildRowsForSave(status);
+    additionalWorkShowFormErrors(result.errors);
+    if (result.errors.length) {
+      renderAdditionalWorkSelectedRows();
+      return;
+    }
+    const timestamp = "2026-07-21 11:20";
+    if (id || additionalWorkEditingId) {
+      const row = additionalWorks.find(item => item.id === Number(id || additionalWorkEditingId));
+      if (!row) return;
+      Object.assign(row, result.rows[0], { updated_at: timestamp, updated_by: currentUser });
+      if (status === "PENDING") {
+        additionalWorkFinalizeSubmit(row, timestamp, currentUser);
+      }
+      additionalWorkMarkClean();
+      additionalWorkList();
+      showShiftPlanToast(status === "PENDING" ? "Dokumen Tugas Tambahan berhasil diajukan." : "Data berhasil diperbarui.");
+      return;
+    }
+    const rows = result.rows.map(data => {
+      const nextId = additionalWorkSeed++;
+      const row = {
+        id: nextId,
+        company_id: 1,
+        document_number: additionalWorkGenerateNo(nextId),
+        requested_by: "",
+        approval_status: status,
+        approval_request_id: null,
+        submitted_at: "",
+        realization_status: "NOT_REALIZED",
+        actual_end_at: "",
+        actual_quantity: "",
+        realization_note: "",
+        realized_at: "",
+        realized_by: "",
+        realized_by_name: "",
+        cancelled_at: "",
+        cancelled_by: "",
+        cancel_reason: "",
+        created_at: timestamp,
+        created_by: currentUser,
+        updated_at: "",
+        updated_by: "",
+        approval_history: [],
+        ...data
+      };
+      if (status === "PENDING") additionalWorkFinalizeSubmit(row, timestamp, currentUser);
+      return row;
+    });
+    additionalWorks.unshift(...rows);
+    additionalWorkMarkClean();
+    additionalWorkList();
+    showShiftPlanToast(`${rows.length} dokumen Tugas Tambahan berhasil ${status === "PENDING" ? "diajukan" : "disimpan sebagai Draft"}.`);
+  }
+
+  function additionalWorkSubmitOne(id) {
+    additionalWorkOpenSubmitConfirm(id);
+  }
+
+  function additionalWorkDelete(id) {
+    const row = additionalWorks.find(item => item.id === Number(id));
+    if (!row || row.approval_status !== "DRAFT" || row.realization_status !== "NOT_REALIZED") return;
+    additionalWorkDeleteId = row.id;
+    document.getElementById("additionalWorkDeleteSummary").innerHTML = `Apakah Anda yakin ingin menghapus Tugas Tambahan <b>${escapeShiftPlanHtml(row.document_number)}</b>?`;
+    document.getElementById("additionalWorkDeleteModal").classList.add("show");
+  }
+
+  function additionalWorkDeleteConfirm() {
+    additionalWorks = additionalWorks.filter(item => item.id !== additionalWorkDeleteId);
+    additionalWorkDeleteId = null;
+    closeShiftPlanModal("additionalWorkDeleteModal");
+    renderAdditionalWorkList();
+    showShiftPlanToast("Data berhasil dihapus.");
+  }
+
+  function additionalWorkCancelOpen(id) {
+    const row = additionalWorks.find(item => item.id === Number(id));
+    if (!additionalWorkCanCancel(row)) {
+      showShiftPlanToast("Dokumen ini tidak dapat dibatalkan.", true);
+      return;
+    }
+    additionalWorkCancelId = row.id;
+    document.getElementById("additionalWorkCancelSummary").innerHTML = [
+      `<tr><td style="width:180px;color:#777"><b>No Dokumen</b></td><td>${escapeShiftPlanHtml(row.document_number)}</td></tr>`,
+      `<tr><td style="width:180px;color:#777"><b>Karyawan</b></td><td>${escapeShiftPlanHtml(row.employee_number)} - ${escapeShiftPlanHtml(row.employee_name)}</td></tr>`,
+      `<tr><td style="width:180px;color:#777"><b>Tipe Tugas Tambahan</b></td><td>${escapeShiftPlanHtml(row.additional_task_type_name)}</td></tr>`,
+      `<tr><td style="width:180px;color:#777"><b>Rencana</b></td><td>${escapeShiftPlanHtml(additionalWorkCancelPlanText(row))}</td></tr>`,
+      `<tr><td style="width:180px;color:#777"><b>Status Approval</b></td><td>${additionalWorkApprovalBadge(row.approval_status)}</td></tr>`
+    ].join("");
+    document.getElementById("additionalWorkCancelReason").value = "";
+    document.getElementById("additionalWorkCancelErrors").innerHTML = "";
+    document.getElementById("additionalWorkCancelErrors").classList.remove("show");
+    document.getElementById("additionalWorkCancelModal").classList.add("show");
+  }
+
+  function additionalWorkCancelConfirm() {
+    const row = additionalWorks.find(item => item.id === additionalWorkCancelId);
+    if (!additionalWorkCanCancel(row)) {
+      closeShiftPlanModal("additionalWorkCancelModal");
+      additionalWorkCancelId = null;
+      showShiftPlanToast("Dokumen ini tidak dapat dibatalkan.", true);
+      return;
+    }
+    const reason = document.getElementById("additionalWorkCancelReason").value.trim();
+    const errorBox = document.getElementById("additionalWorkCancelErrors");
+    if (!reason) {
+      errorBox.innerHTML = "<div>Alasan Pembatalan wajib diisi.</div>";
+      errorBox.classList.add("show");
+      return;
+    }
+    const previousStatus = row.approval_status;
+    row.approval_status = "CANCELLED";
+    row.realization_status = "NOT_REALIZED";
+    row.cancelled_at = "2026-07-21 12:05";
+    row.cancelled_by = additionalWorkCurrentUserName();
+    row.cancel_reason = reason;
+    if (previousStatus === "PENDING" && row.approval_request_id) {
+      const request = additionalWorkApprovalStore().find(item => item.approvalRequestNo === row.approval_request_id || item.approval_request_id === row.approval_request_id);
+      if (request) {
+        request.status = "CANCELLED";
+        request.approval_status = "CANCELLED";
+        request.note = reason;
+      }
+    }
+    closeShiftPlanModal("additionalWorkCancelModal");
+    additionalWorkCancelId = null;
+    renderAdditionalWorkList();
+    showShiftPlanToast("Dokumen Tugas Tambahan berhasil dibatalkan.");
+  }
+
+  function additionalWorkDuplicate(id) {
+    const row = additionalWorks.find(item => item.id === Number(id));
+    if (!additionalWorkCanDuplicate(row)) return;
+    additionalWorkCreate();
+    document.getElementById("additionalWorkType").value = row.additional_task_type_code || "";
+    document.getElementById("additionalWorkTypeName").value = row.additional_task_type_code ? row.additional_task_type_name : "";
+    document.getElementById("additionalWorkReason").value = row.reason || "";
+    if (row.unit === "HOUR") {
+      document.getElementById("additionalWorkPlannedStart").value = additionalWorkInputDateTime(row.planned_start_at);
+      document.getElementById("additionalWorkPlannedEnd").value = additionalWorkInputDateTime(row.planned_end_at);
+    } else if (row.unit === "DAY") {
+      document.getElementById("additionalWorkTaskDateDay").value = row.task_date || "";
+      document.getElementById("additionalWorkQuantityDay").value = row.planned_quantity || "";
+    } else if (row.unit === "TIMES") {
+      document.getElementById("additionalWorkTaskDateTimes").value = row.task_date || "";
+      document.getElementById("additionalWorkQuantityTimes").value = row.planned_quantity || "";
+    }
+    additionalWorkSyncTypeFields();
+    additionalWorkSelectedEmployees.clear();
+    additionalWorkSelectedEmployeeDetails.clear();
+    const employee = additionalWorkEmployee(row.employee_id) || {
+      id: row.employee_id,
+      employee_number: row.employee_number,
+      name: row.employee_name,
+      status: row.employment_status,
+      employment_type: row.employment_type_id,
+      department: row.department_name,
+      job: row.job,
+      position: row.position_name,
+      work_location: row.work_location_name,
+      manager: row.manager_employee_name
+    };
+    additionalWorkSelectedEmployees.add(employee.id);
+    additionalWorkSelectedEmployeeDetails.set(employee.id, additionalWorkEmployeeDefaultDetail(employee, additionalWorkFormPayload()));
+    renderAdditionalWorkSelectedRows();
+    additionalWorkMarkClean();
+  }
+
+  function additionalWorkReadOnlyField(label, value, full = false) {
+    return `<div class="form-row" ${full ? 'style="grid-column:1 / -1"' : ""}><label>${escapeShiftPlanHtml(label)}</label><input class="form-control" type="text" value="${escapeShiftPlanHtml(value || additionalWorkEmpty)}" readonly></div>`;
+  }
+
+  function additionalWorkReadOnlyTextarea(label, value) {
+    return `<div class="form-row" style="grid-column:1 / -1"><label>${escapeShiftPlanHtml(label)}</label><textarea class="form-control" readonly>${escapeShiftPlanHtml(value || additionalWorkEmpty)}</textarea></div>`;
+  }
+
+  function additionalWorkViewPlanFields(row) {
+    if (row.unit === "HOUR") {
+      return [
+        additionalWorkReadOnlyField("Tanggal dan Jam Mulai", additionalWorkFormatDateTime(row.planned_start_at)),
+        additionalWorkReadOnlyField("Tanggal dan Jam Selesai", additionalWorkFormatDateTime(row.planned_end_at)),
+        additionalWorkReadOnlyField("Durasi Rencana", additionalWorkFormatQuantity(row.planned_quantity, row.unit))
+      ].join("");
+    }
+    return [
+      additionalWorkReadOnlyField("Tanggal Tugas", additionalWorkFormatDate(row.task_date)),
+      additionalWorkReadOnlyField(row.unit === "DAY" ? "Jumlah Hari" : "Jumlah Kali", additionalWorkFormatQuantity(row.planned_quantity, row.unit))
+    ].join("");
+  }
+
+  function additionalWorkViewRealizationSection(row) {
+    if (row.approval_status !== "APPROVED") return "";
+    const fields = [additionalWorkReadOnlyField("Status Realisasi", additionalWorkRealizationTextLabel(row.realization_status))];
+    if (row.realization_status !== "REALIZED") {
+      fields.push(`<div class="form-row" style="grid-column:1 / -1"><span>Realisasi belum dicatat.</span></div>`);
+      return `<div class="additional-work-section"><h3 class="additional-work-section-title">Realisasi</h3><div class="additional-work-form-grid">${fields.join("")}</div></div>`;
+    }
+    if (row.unit === "HOUR") fields.push(additionalWorkReadOnlyField("Jam Selesai Aktual", additionalWorkFormatDateTime(row.actual_end_at)));
+    fields.push(additionalWorkReadOnlyField("Kuantitas Aktual", additionalWorkFormatQuantity(row.actual_quantity, row.unit)));
+    fields.push(additionalWorkReadOnlyTextarea("Catatan Realisasi", row.realization_note));
+    fields.push(additionalWorkReadOnlyField("Dicatat Oleh", row.realized_by_name));
+    fields.push(additionalWorkReadOnlyField("Waktu Dicatat", row.realized_at));
+    return `<div class="additional-work-section"><h3 class="additional-work-section-title">Realisasi</h3><div class="additional-work-form-grid">${fields.join("")}</div></div>`;
+  }
+
+  function additionalWorkView(id) {
+    const row = additionalWorks.find(item => item.id === Number(id));
+    if (!row) return;
+    additionalWorkViewingId = row.id;
+    additionalWorkSetScreen("view");
+    const viewActions = [`<button class="btn secondary" type="button" data-module-action="additional-work-list">Kembali</button>`];
+    if (row.approval_status === "DRAFT" && row.realization_status === "NOT_REALIZED") viewActions.push(`<button class="btn employee-requisition-submit" type="button" data-module-action="additional-work-submit-one" data-module-args="${row.id}">Ajukan</button>`);
+    if (row.approval_status === "APPROVED" && row.realization_status === "NOT_REALIZED") viewActions.push(`<button class="btn green" type="button" data-module-action="additional-work-realization-open" data-module-args="${row.id}">Catat Realisasi</button>`);
+    if (additionalWorkCanCancel(row)) viewActions.push(`<button class="btn employee-requisition-cancel" type="button" data-module-action="additional-work-cancel-open" data-module-args="${row.id}">Batal</button>`);
+    if (additionalWorkCanDuplicate(row)) viewActions.push(`<button class="btn employee-requisition-duplicate" type="button" data-module-action="additional-work-duplicate" data-module-args="${row.id}">Duplikat</button>`);
+    document.getElementById("additionalWorkViewActions").innerHTML = viewActions.join("");
+    const documentFields = [
+      additionalWorkReadOnlyField("No Dokumen", row.document_number),
+      additionalWorkReadOnlyField("Tanggal Dokumen", additionalWorkFormatDate(row.document_date)),
+      additionalWorkReadOnlyField("Diajukan Oleh", row.submitted_at ? row.requested_by : additionalWorkEmpty),
+      additionalWorkReadOnlyField("Status Approval", additionalWorkApprovalText(row.approval_status))
+    ];
+    if (row.approval_status === "CANCELLED") documentFields.push(additionalWorkReadOnlyTextarea("Alasan Pembatalan", row.cancel_reason));
+    document.getElementById("additionalWorkViewBody").innerHTML = `
+      <div class="additional-work-section"><h3 class="additional-work-section-title">Informasi Dokumen</h3><div class="additional-work-form-grid">
+        ${documentFields.join("")}
+      </div></div>
+      <div class="additional-work-section"><h3 class="additional-work-section-title">Informasi Karyawan</h3><div class="additional-work-form-grid">
+        ${[
+          additionalWorkReadOnlyField("Nomor Pegawai", row.employee_number),
+          additionalWorkReadOnlyField("Nama Karyawan", row.employee_name),
+          additionalWorkReadOnlyField("Departemen", row.department_name),
+          additionalWorkReadOnlyField("Tipe Karyawan", row.employment_type_id)
+        ].join("")}
+      </div></div>
+      <div class="additional-work-section"><h3 class="additional-work-section-title">Informasi Tugas Tambahan</h3><div class="additional-work-form-grid">
+        ${[
+          additionalWorkReadOnlyField("Tipe Tugas Tambahan", row.additional_task_type_name),
+          additionalWorkReadOnlyField("Satuan", additionalWorkUnitLabel(row.unit)),
+          additionalWorkReadOnlyTextarea("Keterangan", row.reason)
+        ].join("")}
+      </div></div>
+      <div class="additional-work-section"><h3 class="additional-work-section-title">Rencana Pelaksanaan</h3><div class="additional-work-form-grid">
+        ${additionalWorkViewPlanFields(row)}
+      </div></div>
+      ${additionalWorkViewRealizationSection(row)}
+    `;
+  }
+
+  function additionalWorkOpenEmployeeModal() {
+    if (!additionalWorkValidateHeaderForEmployeePicker()) return;
+    additionalWorkEmployeeModalSelected.clear();
+    additionalWorkSelectedEmployees.forEach(id => additionalWorkEmployeeModalSelected.add(id));
+    document.getElementById("additionalWorkEmployeeSearch").value = "";
+    document.getElementById("additionalWorkEmployeeDepartmentFilter").value = "all";
+    document.getElementById("additionalWorkEmployeeTypeFilter").value = "all";
+    renderAdditionalWorkEmployeeRows();
+    document.getElementById("additionalWorkEmployeeModal").classList.add("show");
+  }
+
+  function additionalWorkEmployeeOpen() {
+    additionalWorkOpenEmployeeModal();
+  }
+
+  function additionalWorkEmployeeFilteredRows() {
+    const department = document.getElementById("additionalWorkEmployeeDepartmentFilter").value;
+    const type = document.getElementById("additionalWorkEmployeeTypeFilter").value;
+    const query = document.getElementById("additionalWorkEmployeeSearch").value.trim().toLowerCase();
+    return additionalWorkEmployeeSource()
+      .filter(row => department === "all" || row.department === department)
+      .filter(row => type === "all" || row.employment_type === type)
+      .filter(row => !query || [row.employee_number, row.name, row.department, row.position].join(" ").toLowerCase().includes(query));
+  }
+
+  function renderAdditionalWorkEmployeeRows() {
+    const rows = additionalWorkEmployeeFilteredRows();
+    document.getElementById("additionalWorkEmployeeRows").innerHTML = rows.map(row => `<tr>
+      <td><input class="additional-work-employee-check" type="checkbox" value="${row.id}" ${additionalWorkEmployeeModalSelected.has(row.id) ? "checked" : ""}></td>
+      <td>${escapeShiftPlanHtml(row.employee_number)}</td><td>${escapeShiftPlanHtml(row.name)}</td><td>${escapeShiftPlanHtml(row.department)}</td><td>${escapeShiftPlanHtml(row.employment_type)}</td>
+    </tr>`).join("") || `<tr><td colspan="5" class="empty-state">Karyawan tidak ditemukan.</td></tr>`;
+    const checkAll = document.getElementById("additionalWorkEmployeeCheckAll");
+    checkAll.checked = Boolean(rows.length) && rows.every(row => additionalWorkEmployeeModalSelected.has(row.id));
+    checkAll.indeterminate = rows.some(row => additionalWorkEmployeeModalSelected.has(row.id)) && !checkAll.checked;
+  }
+
+  function additionalWorkEmployeeSelectionChange(event) {
+    if (event.target.id === "additionalWorkEmployeeCheckAll") {
+      const checked = event.target.checked;
+      additionalWorkEmployeeFilteredRows().forEach(row => {
+        if (checked) additionalWorkEmployeeModalSelected.add(row.id);
+        else additionalWorkEmployeeModalSelected.delete(row.id);
+      });
+      renderAdditionalWorkEmployeeRows();
+      return;
+    }
+    if (!event.target.classList.contains("additional-work-employee-check")) return;
+    const id = Number(event.target.value);
+    if (event.target.checked) additionalWorkEmployeeModalSelected.add(id);
+    else additionalWorkEmployeeModalSelected.delete(id);
+    renderAdditionalWorkEmployeeRows();
+  }
+
+  function additionalWorkEmployeeAdd() {
+    const previousDetails = new Map(additionalWorkSelectedEmployeeDetails);
+    additionalWorkSelectedEmployees.clear();
+    additionalWorkSelectedEmployeeDetails.clear();
+    additionalWorkEmployeeModalSelected.forEach(id => {
+      additionalWorkSelectedEmployees.add(id);
+      const existing = previousDetails.get(id);
+      const employee = additionalWorkEmployee(id);
+      if (existing) additionalWorkSelectedEmployeeDetails.set(id, existing);
+      else if (employee) additionalWorkSelectedEmployeeDetails.set(id, additionalWorkEmployeeDefaultDetail(employee));
+    });
+    closeShiftPlanModal("additionalWorkEmployeeModal");
+    renderAdditionalWorkSelectedRows();
+  }
+
+  function additionalWorkEmployeeRemove(id) {
+    additionalWorkSelectedEmployees.delete(Number(id));
+    additionalWorkSelectedEmployeeDetails.delete(Number(id));
+    additionalWorkEmployeeModalSelected.delete(Number(id));
+    renderAdditionalWorkSelectedRows();
+  }
+
+  function additionalWorkEmployeeEdit(id) {
+    const detail = additionalWorkSelectedDetail(id);
+    if (!detail) return;
+    additionalWorkEmployeeEditId = Number(id);
+    document.getElementById("additionalWorkEmployeeEditSummary").innerHTML = [
+      ["Nomor Pegawai", detail.employee_number],
+      ["Nama Karyawan", detail.employee_name],
+      ["Departemen", detail.department_name],
+      ["Tipe Karyawan", detail.employment_type_id],
+      ["Posisi", detail.position_name]
+    ].map(([label, value]) => `<div><span>${escapeShiftPlanHtml(label)}</span><b>${escapeShiftPlanHtml(value || "-")}</b></div>`).join("");
+    document.getElementById("additionalWorkEmployeeEditType").value = detail.additional_task_type_code ? `${detail.additional_task_type_code} - ${detail.additional_task_type_name}` : "";
+    document.getElementById("additionalWorkEmployeeEditUnit").value = additionalWorkUnitLabel(detail.unit);
+    document.getElementById("additionalWorkEmployeeEditHourFields").classList.toggle("hidden", detail.unit !== "HOUR");
+    document.getElementById("additionalWorkEmployeeEditDayFields").classList.toggle("hidden", detail.unit !== "DAY");
+    document.getElementById("additionalWorkEmployeeEditTimesFields").classList.toggle("hidden", detail.unit !== "TIMES");
+    document.getElementById("additionalWorkEmployeeEditStart").value = additionalWorkInputDateTime(detail.planned_start_at);
+    document.getElementById("additionalWorkEmployeeEditEnd").value = additionalWorkInputDateTime(detail.planned_end_at);
+    document.getElementById("additionalWorkEmployeeEditTaskDateDay").value = detail.unit === "DAY" ? detail.task_date : attendanceToday;
+    document.getElementById("additionalWorkEmployeeEditQuantityDay").value = detail.unit === "DAY" ? detail.planned_quantity : 1;
+    document.getElementById("additionalWorkEmployeeEditTaskDateTimes").value = detail.unit === "TIMES" ? detail.task_date : attendanceToday;
+    document.getElementById("additionalWorkEmployeeEditQuantityTimes").value = detail.unit === "TIMES" ? detail.planned_quantity : 1;
+    document.getElementById("additionalWorkEmployeeEditReason").value = detail.reason || "";
+    additionalWorkEmployeeEditSyncDuration();
+    document.getElementById("additionalWorkEmployeeEditModal").classList.add("show");
+  }
+
+  function additionalWorkEmployeeEditRead() {
+    const detail = additionalWorkSelectedDetail(additionalWorkEmployeeEditId);
+    if (!detail) return null;
+    if (detail.unit === "HOUR") {
+      const start = additionalWorkDateTimeInputValue(document.getElementById("additionalWorkEmployeeEditStart").value);
+      const end = additionalWorkDateTimeInputValue(document.getElementById("additionalWorkEmployeeEditEnd").value);
+      const minutes = additionalWorkMinutesBetween(start, end);
+      return { task_date: start.slice(0, 10), planned_start_at: start, planned_end_at: end, planned_quantity: minutes !== null ? minutes / 60 : "" };
+    }
+    if (detail.unit === "DAY") {
+      return { task_date: document.getElementById("additionalWorkEmployeeEditTaskDateDay").value, planned_start_at: "", planned_end_at: "", planned_quantity: Number(document.getElementById("additionalWorkEmployeeEditQuantityDay").value || 0) };
+    }
+    return { task_date: document.getElementById("additionalWorkEmployeeEditTaskDateTimes").value, planned_start_at: "", planned_end_at: "", planned_quantity: Number(document.getElementById("additionalWorkEmployeeEditQuantityTimes").value || 0) };
+  }
+
+  function additionalWorkEmployeeEditSyncDuration() {
+    const start = additionalWorkDateTimeInputValue(document.getElementById("additionalWorkEmployeeEditStart").value);
+    const end = additionalWorkDateTimeInputValue(document.getElementById("additionalWorkEmployeeEditEnd").value);
+    const minutes = additionalWorkMinutesBetween(start, end);
+    document.getElementById("additionalWorkEmployeeEditDuration").value = minutes > 0 ? additionalWorkFormatQuantity(minutes / 60, "HOUR") : "";
+  }
+
+  function additionalWorkEmployeeEditSave() {
+    const detail = additionalWorkSelectedDetail(additionalWorkEmployeeEditId);
+    const changes = additionalWorkEmployeeEditRead();
+    if (!detail || !changes) return;
+    Object.assign(detail, changes, {
+      reason: document.getElementById("additionalWorkEmployeeEditReason").value.trim(),
+      is_overridden: true
+    });
+    additionalWorkSelectedEmployeeDetails.set(additionalWorkEmployeeEditId, detail);
+    closeShiftPlanModal("additionalWorkEmployeeEditModal");
+    additionalWorkEmployeeEditId = null;
+    renderAdditionalWorkSelectedRows();
+  }
+
+  function additionalWorkRealizationOpen(id) {
+    const row = additionalWorks.find(item => item.id === Number(id));
+    if (!row || row.approval_status !== "APPROVED" || row.realization_status !== "NOT_REALIZED") return;
+    additionalWorkRealizationId = row.id;
+    document.getElementById("additionalWorkRealizationSummary").innerHTML = [
+      `<tr><td style="width:180px;color:#777"><b>No Dokumen</b></td><td>${escapeShiftPlanHtml(row.document_number)}</td></tr>`,
+      `<tr><td style="width:180px;color:#777"><b>Karyawan</b></td><td>${escapeShiftPlanHtml(row.employee_number)} - ${escapeShiftPlanHtml(row.employee_name)}</td></tr>`,
+      `<tr><td style="width:180px;color:#777"><b>Tipe</b></td><td>${escapeShiftPlanHtml(row.additional_task_type_name)}</td></tr>`,
+      `<tr><td style="width:180px;color:#777"><b>Rencana</b></td><td>${escapeShiftPlanHtml(additionalWorkCancelPlanText(row))}</td></tr>`,
+      `<tr><td style="width:180px;color:#777"><b>Kuantitas Rencana</b></td><td>${escapeShiftPlanHtml(additionalWorkFormatQuantity(row.planned_quantity, row.unit))}</td></tr>`
+    ].join("");
+    document.getElementById("additionalWorkRealizationHourFields").classList.toggle("hidden", row.unit !== "HOUR");
+    document.getElementById("additionalWorkRealizationQuantityFields").classList.toggle("hidden", row.unit === "HOUR");
+    document.getElementById("additionalWorkActualEnd").value = row.unit === "HOUR" ? additionalWorkInputDateTime(row.planned_end_at) : "";
+    document.getElementById("additionalWorkActualQuantity").value = row.unit === "HOUR" ? "" : row.planned_quantity;
+    document.getElementById("additionalWorkRealizationNote").value = "";
+    document.getElementById("additionalWorkRealizationErrors").classList.remove("show");
+    additionalWorkSyncActualQuantity();
+    document.getElementById("additionalWorkRealizationModal").classList.add("show");
+  }
+
+  function additionalWorkSyncActualQuantity() {
+    const row = additionalWorks.find(item => item.id === additionalWorkRealizationId);
+    if (!row || row.unit !== "HOUR") return;
+    const actualEnd = additionalWorkDateTimeInputValue(document.getElementById("additionalWorkActualEnd").value);
+    const minutes = additionalWorkMinutesBetween(row.planned_start_at, actualEnd);
+    document.getElementById("additionalWorkActualQuantityHour").value = minutes > 0 ? additionalWorkFormatQuantity(minutes / 60, "HOUR") : "";
+  }
+
+  function additionalWorkRealizationSave() {
+    const currentUser = additionalWorkCurrentUserName();
+    const row = additionalWorks.find(item => item.id === additionalWorkRealizationId);
+    if (!row) return;
+    const errors = [];
+    let actualQuantity = 0;
+    let actualEnd = "";
+    if (row.unit === "HOUR") {
+      actualEnd = additionalWorkDateTimeInputValue(document.getElementById("additionalWorkActualEnd").value);
+      const minutes = additionalWorkMinutesBetween(row.planned_start_at, actualEnd);
+      if (!actualEnd) errors.push("Tanggal dan Jam Selesai Aktual wajib diisi.");
+      if (minutes <= 0) errors.push("Jam Selesai Aktual harus lebih besar dari Jam Mulai Rencana.");
+      actualQuantity = minutes / 60;
+    } else {
+      actualQuantity = Number(document.getElementById("additionalWorkActualQuantity").value || 0);
+      if (actualQuantity <= 0) errors.push("Kuantitas Aktual harus lebih besar dari 0.");
+    }
+    const box = document.getElementById("additionalWorkRealizationErrors");
+    box.innerHTML = errors.map(error => `<div>${escapeShiftPlanHtml(error)}</div>`).join("");
+    box.classList.toggle("show", errors.length > 0);
+    if (errors.length) return;
+    row.realization_status = "REALIZED";
+    row.actual_end_at = row.unit === "HOUR" ? actualEnd : "";
+    row.actual_quantity = actualQuantity;
+    row.realization_note = document.getElementById("additionalWorkRealizationNote").value.trim();
+    row.realized_at = "2026-07-21 18:30";
+    row.realized_by = currentUser;
+    row.realized_by_name = currentUser;
+    closeShiftPlanModal("additionalWorkRealizationModal");
+    if (additionalWorkMode === "view") additionalWorkView(row.id);
+    else renderAdditionalWorkList();
+    showShiftPlanToast("Realisasi Tugas Tambahan berhasil disimpan.");
+  }
+
+  function additionalWorkFilter() {
+    Object.assign(additionalWorkFilters, {
+      approval: document.getElementById("additionalWorkApprovalFilter").value,
+      realization: document.getElementById("additionalWorkRealizationFilter").value,
+      type: document.getElementById("additionalWorkTypeFilter").value,
+      dateFrom: document.getElementById("additionalWorkDateFromFilter").value,
+      dateTo: document.getElementById("additionalWorkDateToFilter").value,
+      department: document.getElementById("additionalWorkDepartmentFilter").value,
+      employee: document.getElementById("additionalWorkEmployeeFilter").value
+    });
+    additionalWorkPage = 1;
+    renderAdditionalWorkList();
+  }
+
+  function additionalWorkReset() {
+    Object.assign(additionalWorkFilters, { approval: "all", realization: "all", type: "all", dateFrom: "2026-07-19", dateTo: "2026-07-23", department: "all", employee: "all" });
+    additionalWorkSearch = "";
+    additionalWorkPage = 1;
+    renderAdditionalWorkList();
+  }
+
+  function renderAdditionalWorkScreen() {
+    document.getElementById("shiftPlanPage").classList.add("hidden");
+    document.getElementById("attendanceLogPage").classList.add("hidden");
+    document.getElementById("attendanceDailyPage").classList.add("hidden");
+    document.getElementById("attendanceCorrectionPage").classList.add("hidden");
+    document.getElementById("additionalWorkPage").classList.remove("hidden");
+    document.getElementById("crumbMenu").textContent = "Tugas Tambahan";
+    document.getElementById("crumbTitle").textContent = "Daftar Tugas Tambahan";
+    renderAdditionalWorkList();
+  }
+
   function renderAttendanceCorrectionScreen() {
     document.getElementById("shiftPlanPage").classList.add("hidden");
     document.getElementById("attendanceLogPage").classList.add("hidden");
     document.getElementById("attendanceDailyPage").classList.add("hidden");
     document.getElementById("attendanceCorrectionPage").classList.remove("hidden");
+    document.getElementById("additionalWorkPage").classList.add("hidden");
     document.getElementById("crumbMenu").textContent = "Koreksi Absensi";
     document.getElementById("crumbTitle").textContent = "Koreksi Absensi";
     attendanceCorrectionInitFilters();
@@ -28675,6 +30613,7 @@
     document.getElementById("attendanceLogPage").classList.add("hidden");
     document.getElementById("attendanceDailyPage").classList.add("hidden");
     document.getElementById("attendanceCorrectionPage").classList.add("hidden");
+    document.getElementById("additionalWorkPage").classList.add("hidden");
     document.getElementById("shiftPlanPage").classList.remove("hidden");
     renderShiftPlanCategoryOptions();
     setShiftPlanQuickPeriod("thisWeek");
@@ -28868,10 +30807,76 @@
       attendanceProcessHistoryPage = Number(button.dataset.page) || 1;
       renderAttendanceProcessHistory();
     });
-    ["shiftPlanCancelModal", "shiftPlanLockModal", "shiftPlanUnlockModal", "shiftPlanCopyModal", "attendanceImportModal", "attendanceImportHistoryModal", "attendanceDailyViewModal", "attendanceDailyProcessModal", "attendanceProcessHistoryModal", "attendanceCorrectionSwitchEditModal", "attendanceCorrectionDeleteModal", "attendanceCorrectionDraftModal", "attendanceCorrectionResultModal", "attendanceCorrectionApplyModal", "attendanceCorrectionDetailModal", "attendanceCorrectionBulkApplyModal", "attendanceCorrectionApplyResultModal", "attendanceCorrectionApprovalHistoryModal"].forEach(id => {
+    document.getElementById("additionalWorkSearchBox").addEventListener("input", event => {
+      additionalWorkSearch = event.target.value;
+      additionalWorkPage = 1;
+      renderAdditionalWorkList();
+    });
+    document.getElementById("additionalWorkPageSize").addEventListener("change", event => {
+      additionalWorkPageSize = Number(event.target.value) || 10;
+      additionalWorkPage = 1;
+      renderAdditionalWorkList();
+    });
+    document.getElementById("additionalWorkPages").addEventListener("click", event => {
+      const button = event.target.closest("button[data-page]");
+      if (!button || button.disabled) return;
+      additionalWorkPage = Number(button.dataset.page) || 1;
+      renderAdditionalWorkList();
+    });
+    ["additionalWorkDocumentDate", "additionalWorkReason"].forEach(id => {
+      document.getElementById(id).addEventListener(id === "additionalWorkReason" ? "input" : "change", () => {
+        renderAdditionalWorkSelectedRows();
+      });
+    });
+    document.getElementById("additionalWorkTypeSearch").addEventListener("input", renderAdditionalWorkTypeRows);
+    document.getElementById("additionalWorkTypeCancelBtn").addEventListener("click", () => closeShiftPlanModal("additionalWorkTypeModal"));
+    ["additionalWorkPlannedStart", "additionalWorkPlannedEnd", "additionalWorkTaskDateDay", "additionalWorkQuantityDay", "additionalWorkTaskDateTimes", "additionalWorkQuantityTimes"].forEach(id => {
+      document.getElementById(id).addEventListener("input", additionalWorkSyncPlanPreview);
+      document.getElementById(id).addEventListener("change", additionalWorkSyncPlanPreview);
+    });
+    ["additionalWorkEmployeeSearch", "additionalWorkEmployeeDepartmentFilter", "additionalWorkEmployeeTypeFilter"].forEach(id => {
+      document.getElementById(id).addEventListener(id === "additionalWorkEmployeeSearch" ? "input" : "change", renderAdditionalWorkEmployeeRows);
+    });
+    document.getElementById("additionalWorkEmployeeRows").addEventListener("change", additionalWorkEmployeeSelectionChange);
+    document.getElementById("additionalWorkEmployeeCheckAll").addEventListener("change", additionalWorkEmployeeSelectionChange);
+    document.getElementById("additionalWorkEmployeeCancelBtn").addEventListener("click", () => closeShiftPlanModal("additionalWorkEmployeeModal"));
+    document.getElementById("additionalWorkEmployeeEditCancelBtn").addEventListener("click", () => {
+      additionalWorkEmployeeEditId = null;
+      closeShiftPlanModal("additionalWorkEmployeeEditModal");
+    });
+    ["additionalWorkEmployeeEditStart", "additionalWorkEmployeeEditEnd"].forEach(id => {
+      document.getElementById(id).addEventListener("input", additionalWorkEmployeeEditSyncDuration);
+      document.getElementById(id).addEventListener("change", additionalWorkEmployeeEditSyncDuration);
+    });
+    document.getElementById("additionalWorkRealizationCancelBtn").addEventListener("click", () => closeShiftPlanModal("additionalWorkRealizationModal"));
+    document.getElementById("additionalWorkDeleteCancelBtn").addEventListener("click", () => closeShiftPlanModal("additionalWorkDeleteModal"));
+    document.getElementById("additionalWorkApprovalHistoryCancelBtn").addEventListener("click", () => closeShiftPlanModal("additionalWorkApprovalHistoryModal"));
+    document.getElementById("additionalWorkCancelNoBtn").addEventListener("click", () => {
+      additionalWorkCancelId = null;
+      closeShiftPlanModal("additionalWorkCancelModal");
+    });
+    document.getElementById("additionalWorkCancelCloseBtn").addEventListener("click", () => {
+      additionalWorkCancelId = null;
+      closeShiftPlanModal("additionalWorkCancelModal");
+    });
+    document.getElementById("additionalWorkSubmitCancelBtn").addEventListener("click", () => {
+      additionalWorkSubmitId = null;
+      closeShiftPlanModal("additionalWorkSubmitModal");
+    });
+    document.getElementById("additionalWorkLeaveStayBtn").addEventListener("click", () => {
+      additionalWorkPendingLeaveCallback = null;
+      closeShiftPlanModal("additionalWorkLeaveModal");
+    });
+    document.getElementById("additionalWorkActualEnd").addEventListener("input", additionalWorkSyncActualQuantity);
+    document.getElementById("additionalWorkActualEnd").addEventListener("change", additionalWorkSyncActualQuantity);
+    ["shiftPlanCancelModal", "shiftPlanLockModal", "shiftPlanUnlockModal", "shiftPlanCopyModal", "attendanceImportModal", "attendanceImportHistoryModal", "attendanceDailyViewModal", "attendanceDailyProcessModal", "attendanceProcessHistoryModal", "attendanceCorrectionSwitchEditModal", "attendanceCorrectionDeleteModal", "attendanceCorrectionDraftModal", "attendanceCorrectionResultModal", "attendanceCorrectionApplyModal", "attendanceCorrectionDetailModal", "attendanceCorrectionBulkApplyModal", "attendanceCorrectionApplyResultModal", "attendanceCorrectionApprovalHistoryModal", "additionalWorkEmployeeModal", "additionalWorkTypeModal", "additionalWorkEmployeeEditModal", "additionalWorkRealizationModal", "additionalWorkDeleteModal", "additionalWorkSubmitModal", "additionalWorkApprovalHistoryModal", "additionalWorkCancelModal"].forEach(id => {
       document.getElementById(id).addEventListener("click", event => {
         if (id === "attendanceCorrectionSwitchEditModal") return;
-        if (event.target === document.getElementById(id)) closeShiftPlanModal(id);
+        if (event.target === document.getElementById(id)) {
+          if (id === "additionalWorkSubmitModal") additionalWorkSubmitId = null;
+          if (id === "additionalWorkCancelModal") additionalWorkCancelId = null;
+          closeShiftPlanModal(id);
+        }
       });
     });
   }
@@ -28974,7 +30979,8 @@
           { label: 'Jadwal Shift', route: 'attendance.shiftPlan' },
           { label: 'Log Absensi', route: 'attendance.attendanceLog' },
           { label: 'Detail Absensi', route: 'attendance.attendanceDaily' },
-          { label: 'Koreksi Absensi', route: 'attendance.attendanceCorrection' }
+          { label: 'Koreksi Absensi', route: 'attendance.attendanceCorrection' },
+          { label: 'Tugas Tambahan', route: 'attendance.additionalWork' }
         ]
       },
       {
@@ -29073,6 +31079,7 @@
       ['attendance.attendanceLog', 'attendance', 'Absensi', 'Log Absensi', 'Daftar Log Absensi', 'renderAttendanceLogScreen'],
       ['attendance.attendanceDaily', 'attendance', 'Absensi', 'Detail Absensi', 'Daftar Detail Absensi', 'renderAttendanceDailyScreen'],
       ['attendance.attendanceCorrection', 'attendance', 'Absensi', 'Koreksi Absensi', 'Daftar Koreksi Absensi', 'renderAttendanceCorrectionScreen'],
+      ['attendance.additionalWork', 'attendance', 'Absensi', 'Tugas Tambahan', 'Daftar Tugas Tambahan', 'renderAdditionalWorkScreen'],
       ['administrasi.employee', 'administrasi', 'Administrasi', 'Karyawan', 'Daftar Karyawan', 'renderEmployeeList'],
       ['administrasi.employeeContract', 'administrasi', 'Administrasi', 'Kontrak Karyawan', 'Daftar Kontrak Karyawan', 'renderEmployeeContractList'],
       ['administrasi.employeeSchedule', 'administrasi', 'Administrasi', 'Pengaturan Jadwal Karyawan', 'Daftar', 'renderEmployeeScheduleList'],
