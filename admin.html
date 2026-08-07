@@ -4180,7 +4180,7 @@
                   <th style="width:18%">Nama Tipe Pengajuan</th>
                   <th style="width:18%">Aturan Durasi</th>
                   <th style="width:18%">Perlakuan Absensi</th>
-                  <th style="width:15%">Tipe Work Entry</th>
+                  <th style="width:15%">Tipe Waktu Kerja</th>
                   <th style="width:10%">Status</th>
                   <th style="width:118px">Aksi</th>
                 </tr>
@@ -4248,12 +4248,13 @@
               <div class="helper-text" id="employeeRequestTypeAttendanceTreatmentHelper">Menentukan bagaimana pengajuan diperlakukan saat Proses Absensi.</div>
             </div>
             <div class="form-row">
-              <label for="employeeRequestTypeWorkEntryTypeInput">Tipe Work Entry:</label>
+              <label for="employeeRequestTypeWorkEntryTypeInput">Tipe Waktu Kerja:</label>
               <div class="position-lookup-field employee-request-work-entry-field">
                 <input class="form-control" id="employeeRequestTypeWorkEntryTypeInput" type="text" readonly>
-                <button class="position-lookup-btn" id="employeeRequestTypeWorkEntryTypeBrowseBtn" type="button" title="Pilih Tipe Work Entry" aria-label="Pilih Tipe Work Entry">&#128269;</button>
-                <button class="position-lookup-btn employee-request-work-entry-clear-btn" id="employeeRequestTypeWorkEntryTypeClearBtn" type="button" title="Kosongkan Tipe Work Entry" aria-label="Kosongkan Tipe Work Entry">x</button>
+                <button class="position-lookup-btn" id="employeeRequestTypeWorkEntryTypeBrowseBtn" type="button" title="Pilih Tipe Waktu Kerja" aria-label="Pilih Tipe Waktu Kerja">&#128269;</button>
+                <button class="position-lookup-btn employee-request-work-entry-clear-btn" id="employeeRequestTypeWorkEntryTypeClearBtn" type="button" title="Kosongkan Tipe Waktu Kerja" aria-label="Kosongkan Tipe Waktu Kerja">x</button>
               </div>
+              <small class="helper-text">Tipe Waktu Kerja menentukan dampak pengajuan terhadap Work Entry untuk kebutuhan Payroll. Kosongkan jika pengajuan tidak perlu menghasilkan Work Entry.</small>
             </div>
             <div class="form-row">
               <label>Status Aktif:</label>
@@ -4282,7 +4283,7 @@
           <div class="form-grid">
             <div class="form-row"><label for="employeeRequestTypeViewRequiresAllocation">Membutuhkan Alokasi:</label><input class="form-control" id="employeeRequestTypeViewRequiresAllocation" type="text" readonly></div>
             <div class="form-row"><label for="employeeRequestTypeViewAttendanceTreatment">Perlakuan Absensi:</label><input class="form-control" id="employeeRequestTypeViewAttendanceTreatment" type="text" readonly></div>
-            <div class="form-row"><label for="employeeRequestTypeViewWorkEntryType">Tipe Work Entry:</label><input class="form-control" id="employeeRequestTypeViewWorkEntryType" type="text" readonly></div>
+            <div class="form-row"><label for="employeeRequestTypeViewWorkEntryType">Tipe Waktu Kerja:</label><input class="form-control" id="employeeRequestTypeViewWorkEntryType" type="text" readonly></div>
           </div>
         </div>
 
@@ -4368,11 +4369,13 @@
               <div class="helper-text">Menentukan bagaimana Tugas Tambahan diperlakukan saat Proses Absensi.</div>
             </div>
             <div class="form-row">
-              <label for="additionalTaskTypeWorkEntryTypeInput">Tipe Waktu Kerja: <span style="color:#ef4f63">*</span></label>
+              <label for="additionalTaskTypeWorkEntryTypeInput">Tipe Waktu Kerja:</label>
               <div class="position-lookup-field">
                 <input class="form-control" id="additionalTaskTypeWorkEntryTypeInput" type="text" readonly>
                 <button class="position-lookup-btn" id="additionalTaskTypeWorkEntryTypeBrowseBtn" type="button" title="Pilih Tipe Waktu Kerja" aria-label="Pilih Tipe Waktu Kerja">&#128269;</button>
+                <button class="position-lookup-btn" id="additionalTaskTypeWorkEntryTypeClearBtn" type="button" title="Kosongkan Tipe Waktu Kerja" aria-label="Kosongkan Tipe Waktu Kerja">x</button>
               </div>
+              <small class="helper-text">Tipe Waktu Kerja menentukan dampak Tugas Tambahan terhadap Work Entry untuk kebutuhan Payroll. Kosongkan jika Tugas Tambahan tidak perlu menghasilkan Work Entry.</small>
             </div>
             <div class="form-row">
               <label>Menghasilkan Alokasi:</label>
@@ -5009,8 +5012,9 @@
             <table class="parameter-table">
               <thead>
                 <tr>
-                  <th style="width:36%">Kode</th>
+                  <th style="width:28%">Kode</th>
                   <th>Nama</th>
+                  <th style="width:150px">Peran Sistem</th>
                   <th style="width:110px">Aksi</th>
                 </tr>
               </thead>
@@ -5038,6 +5042,16 @@
             <div class="form-row">
               <label for="workTypeName">Nama:</label>
               <input class="form-control" id="workTypeName" type="text" placeholder="Nama">
+            </div>
+            <div class="form-row">
+              <label for="workTypeSystemRole">Peran Sistem:</label>
+              <select class="form-control" id="workTypeSystemRole">
+                <option value="">Tidak Ada</option>
+                <option value="ABSENT">Alpa</option>
+                <option value="LATE">Terlambat</option>
+                <option value="EARLY_LEAVE">Pulang Cepat</option>
+              </select>
+              <small class="helper-text">Digunakan sistem untuk membentuk Work Entry otomatis dari hasil Proses Absensi.</small>
             </div>
           </div>
         </div>
@@ -5273,8 +5287,9 @@
               <label for="structurePeriod">Tipe Periode:</label>
               <select class="form-control" id="structurePeriod">
                 <option value="">Pilih Tipe Periode</option>
-                <option>Mingguan</option>
-                <option>Bulanan</option>
+                <option value="WEEKLY">Mingguan</option>
+                <option value="MONTHLY">Bulanan</option>
+                <option value="CUSTOM">Khusus</option>
               </select>
             </div>
             <div class="form-row">
@@ -6523,8 +6538,10 @@
         { value: "OTHER", label: "Lainnya" }
       ],
       PAYROLL_PROCESS: [
+        { value: "ALL", label: "Semua" },
         { value: "WEEKLY", label: "Mingguan" },
-        { value: "MONTHLY", label: "Bulanan" }
+        { value: "MONTHLY", label: "Bulanan" },
+        { value: "CUSTOM", label: "Khusus" }
       ],
       PAYROLL_PARAMETER_ADJUSTMENT: [
         { value: "-", label: "-" }
@@ -6665,8 +6682,8 @@
     let workTypes = [
       { code: "HADIR", name: "Hadir" },
       { code: "LEMBUR", name: "Lembur" },
-      { code: "TERLAMBAT", name: "Terlambat" },
-      { code: "ALPA", name: "Alpa" },
+      { code: "TERLAMBAT", name: "Terlambat", system_role: "LATE" },
+      { code: "ALPA", name: "Alpa", system_role: "ABSENT" },
       { code: "SAKIT", name: "Sakit" },
       { code: "IZIN", name: "Izin" },
       { code: "CUTI", name: "Cuti" },
@@ -6676,6 +6693,7 @@
       { code: "MASUK_LIBUR", name: "Masuk Hari Libur" },
       { code: "PIKET", name: "Piket" }
     ];
+    workTypes.forEach(item => { if (!item.system_role) item.system_role = ""; });
 
     let workTypeEditingCode = null;
 
@@ -6788,7 +6806,7 @@
       {
         title: "Karyawan",
         items: [
-          { field: "NIK", variable: "employee.nik" },
+          { field: "Nomor Karyawan", variable: "employee.nik" },
           { field: "Tanggal Bergabung", variable: "employee.joinDate" },
           { field: "PTKP", variable: "employee.ptkp" }
         ]
@@ -6809,7 +6827,7 @@
         ]
       },
       {
-        title: "Work Entries",
+        title: "Ringkasan Waktu Kerja",
         items: [
           { field: "Hari Hadir", variable: "workEntries[\"HADIR\"].days" },
           { field: "Jam Lembur", variable: "workEntries[\"LEMBUR\"].hours" },
@@ -10505,7 +10523,7 @@
         name: document.getElementById("additionalTaskTypeName").value.trim(),
         unit: document.getElementById("additionalTaskTypeUnit").value,
         attendance_treatment: document.getElementById("additionalTaskTypeAttendanceTreatment").value,
-        work_entry_type_id: additionalTaskTypeWorkEntryTypeId,
+        work_entry_type_id: additionalTaskTypeWorkEntryTypeId || null,
         generates_allocation: document.getElementById("additionalTaskTypeGeneratesAllocation").checked,
         generated_allocation_type_id: document.getElementById("additionalTaskTypeGeneratesAllocation").checked ? document.getElementById("additionalTaskTypeGeneratedAllocationType").value : "",
         is_active: document.getElementById("additionalTaskTypeActive").checked
@@ -10519,7 +10537,6 @@
       if (!data.unit) errors.push("Satuan wajib dipilih.");
       if (!data.attendance_treatment) errors.push("Perlakuan Absensi wajib dipilih.");
       if (data.attendance_treatment === "OVERTIME" && data.unit !== "HOUR") errors.push("Tipe Tugas Tambahan dengan Perlakuan Absensi Lembur wajib menggunakan Satuan Jam.");
-      if (!data.work_entry_type_id) errors.push("Tipe Waktu Kerja wajib dipilih.");
       if (data.generates_allocation && !data.generated_allocation_type_id) errors.push("Tipe Alokasi yang Dihasilkan wajib dipilih.");
       if (data.code && additionalTaskTypes.some(item => item.code.toLowerCase() === data.code.toLowerCase() && item.id !== additionalTaskTypeEditingId)) {
         errors.push("Kode Tipe Tugas Tambahan sudah digunakan. Gunakan kode lain.");
@@ -10602,6 +10619,11 @@
       additionalTaskTypeWorkEntryTypeId = item.code;
       document.getElementById("additionalTaskTypeWorkEntryTypeInput").value = item.name;
       closeAdditionalTaskTypeWorkEntryTypeModal();
+    }
+
+    function clearAdditionalTaskTypeWorkEntryType() {
+      additionalTaskTypeWorkEntryTypeId = "";
+      document.getElementById("additionalTaskTypeWorkEntryTypeInput").value = "";
     }
 
     function bankActiveBadge(active) {
@@ -11884,9 +11906,22 @@
       const type = document.getElementById("approvalSettingTransactionType").value;
       const options = approvalSettingSubtypeOptionsFor(type);
       const normalizedSelected = iReapNetNormalizeApprovalSubtype(selected);
-      document.getElementById("approvalSettingTransactionSubtype").innerHTML = `<option value="ALL" ${normalizedSelected === "ALL" ? "selected" : ""}>Semua Tipe</option>` + options.map(item => (
+      const hasAll = options.some(item => item.value === "ALL");
+      const allOption = hasAll ? "" : `<option value="ALL" ${normalizedSelected === "ALL" ? "selected" : ""}>Semua Tipe</option>`;
+      document.getElementById("approvalSettingTransactionSubtype").innerHTML = allOption + options.map(item => (
         `<option value="${escapeHtml(item.value)}" ${item.value === normalizedSelected ? "selected" : ""}>${escapeHtml(item.label)}</option>`
       )).join("");
+    }
+
+    function syncApprovalSettingPayrollProcessScope() {
+      const isPayrollProcess = document.getElementById("approvalSettingTransactionType").value === "PAYROLL_PROCESS";
+      const appliesToInput = document.getElementById("approvalSettingAppliesTo");
+      if (isPayrollProcess) {
+        appliesToInput.value = "ALL";
+        approvalSettingScopeRows = [];
+      }
+      appliesToInput.disabled = approvalSettingReadonly || isPayrollProcess;
+      document.getElementById("approvalSettingAddScopeBtn").classList.toggle("hidden", approvalSettingReadonly || isPayrollProcess);
     }
 
     function setApprovalSettingReadonly(readonly) {
@@ -11910,11 +11945,13 @@
       document.getElementById("approvalSettingAddStageBtn").classList.toggle("hidden", readonly);
       document.getElementById("approvalSettingScopeActionHead").classList.toggle("hidden", readonly);
       document.getElementById("approvalSettingStageActionHead").classList.toggle("hidden", readonly);
+      syncApprovalSettingPayrollProcessScope();
     }
 
     function renderApprovalSettingScopeRows() {
       const type = document.getElementById("approvalSettingAppliesTo").value;
-      const isAll = type === "ALL" || !type;
+      const isPayrollProcess = document.getElementById("approvalSettingTransactionType").value === "PAYROLL_PROCESS";
+      const isAll = type === "ALL" || !type || isPayrollProcess;
       const scopeLabel = type === "DEPARTMENT"
         ? "Departemen"
         : type === "EMPLOYMENT_TYPE"
@@ -11967,6 +12004,7 @@
 
     function refreshApprovalSettingFormDetails() {
       renderApprovalSettingSubtypeOptions(document.getElementById("approvalSettingTransactionSubtype").value);
+      syncApprovalSettingPayrollProcessScope();
       if (document.getElementById("approvalSettingAppliesTo").value === "ALL") approvalSettingScopeRows = [];
       renderApprovalSettingScopeRows();
       renderApprovalSettingStageRows();
@@ -12045,11 +12083,12 @@
     }
 
     function readApprovalSettingForm() {
-      const appliesTo = document.getElementById("approvalSettingAppliesTo").value;
+      const transactionType = document.getElementById("approvalSettingTransactionType").value;
+      const appliesTo = transactionType === "PAYROLL_PROCESS" ? "ALL" : document.getElementById("approvalSettingAppliesTo").value;
       const data = {
         setting_code: document.getElementById("approvalSettingCode").value.trim().toUpperCase(),
         setting_name: document.getElementById("approvalSettingName").value.trim(),
-        transaction_type: document.getElementById("approvalSettingTransactionType").value,
+        transaction_type: transactionType,
         transaction_subtype: iReapNetNormalizeApprovalSubtype(document.getElementById("approvalSettingTransactionSubtype").value),
         applies_to_type: appliesTo,
         description: document.getElementById("approvalSettingDescription").value.trim(),
@@ -12069,6 +12108,7 @@
       if (!data.setting_name) errors.push("Nama Pengaturan wajib diisi.");
       if (!data.transaction_type) errors.push("Jenis Transaksi wajib dipilih.");
       if (!data.applies_to_type) errors.push("Berlaku Untuk wajib dipilih.");
+      if (data.transaction_type === "PAYROLL_PROCESS" && data.applies_to_type !== "ALL") errors.push("Proses Penggajian wajib berlaku untuk Semua.");
       if (data.setting_code && approvalSettings.some(item => item.setting_code.toLowerCase() === data.setting_code.toLowerCase() && item.setting_code !== approvalSettingEditingCode)) {
         errors.push("Kode Pengaturan tidak boleh duplikat.");
       }
@@ -12268,6 +12308,14 @@
       return value.trim().toUpperCase().replace(/\s+/g, "_");
     }
 
+    function workTypeSystemRoleLabel(value) {
+      return {
+        ABSENT: "Alpa",
+        LATE: "Terlambat",
+        EARLY_LEAVE: "Pulang Cepat"
+      }[value] || "Tidak Ada";
+    }
+
     function normalizeInputTypeCode(value) {
       return value.trim().toUpperCase().replace(/\s+/g, "_");
     }
@@ -12283,6 +12331,7 @@
         <tr>
           <td>${escapeHtml(item.code)}</td>
           <td>${escapeHtml(item.name)}</td>
+          <td>${escapeHtml(workTypeSystemRoleLabel(item.system_role))}</td>
           <td>
             <div class="actions inline-actions">
               <button class="btn teal small icon-btn" type="button" title="Lihat" aria-label="Lihat" data-module-action="workTypeOpenView" data-module-args="${escapeHtml(item.code)}">${window.iconEye()}</button>
@@ -12300,6 +12349,7 @@
     function setWorkTypeFormReadonly(readonly) {
       document.getElementById("workTypeCode").readOnly = readonly;
       document.getElementById("workTypeName").readOnly = readonly;
+      document.getElementById("workTypeSystemRole").disabled = readonly;
       document.getElementById("workTypeSaveBtn").classList.toggle("hidden", readonly);
       document.getElementById("workTypeEditBtn").classList.add("hidden");
     }
@@ -12308,6 +12358,7 @@
       workTypeEditingCode = null;
       document.getElementById("workTypeCode").value = "";
       document.getElementById("workTypeName").value = "";
+      document.getElementById("workTypeSystemRole").value = "";
       setWorkTypeFormReadonly(false);
       setWorkTypeView("work-type-create", "Tambah Tipe Waktu Kerja");
     }
@@ -12318,6 +12369,7 @@
       workTypeEditingCode = item.code;
       document.getElementById("workTypeCode").value = item.code;
       document.getElementById("workTypeName").value = item.name;
+      document.getElementById("workTypeSystemRole").value = item.system_role || "";
       setWorkTypeFormReadonly(false);
       setWorkTypeView("work-type-edit", "Ubah Tipe Waktu Kerja");
     }
@@ -12328,6 +12380,7 @@
       workTypeEditingCode = item.code;
       document.getElementById("workTypeCode").value = item.code;
       document.getElementById("workTypeName").value = item.name;
+      document.getElementById("workTypeSystemRole").value = item.system_role || "";
       setWorkTypeFormReadonly(true);
       setWorkTypeView("work-type-view", "Lihat Tipe Waktu Kerja");
     }
@@ -12335,6 +12388,7 @@
     function validateWorkTypeForm() {
       const code = normalizeWorkTypeCode(document.getElementById("workTypeCode").value);
       const name = document.getElementById("workTypeName").value.trim();
+      const systemRole = document.getElementById("workTypeSystemRole").value;
       document.getElementById("workTypeCode").value = code;
       const errors = [];
       if (!code) errors.push("Kode wajib diisi.");
@@ -12345,8 +12399,11 @@
       if (workTypes.some(item => item.name.toLowerCase() === name.toLowerCase() && item.code !== workTypeEditingCode)) {
         errors.push("Nama tidak boleh duplikat.");
       }
+      if (systemRole && workTypes.some(item => item.system_role === systemRole && item.code !== workTypeEditingCode)) {
+        errors.push(`Peran Sistem ${workTypeSystemRoleLabel(systemRole)} sudah digunakan oleh Tipe Waktu Kerja lain dalam company yang sama.`);
+      }
       showErrors(workTypeFormErrors, errors);
-      return { valid: !errors.length, code, name };
+      return { valid: !errors.length, code, name, system_role: systemRole };
     }
 
     function saveWorkTypeForm() {
@@ -12362,11 +12419,12 @@
         }
         item.code = result.code;
         item.name = result.name;
+        item.system_role = result.system_role;
         components.forEach(component => {
           component.formula = component.formula.replaceAll(`workEntries["${workTypeEditingCode}"]`, `workEntries["${result.code}"]`);
         });
       } else {
-        workTypes.push({ code: result.code, name: result.name });
+        workTypes.push({ code: result.code, name: result.name, system_role: result.system_role });
       }
 
       workTypeEditingCode = null;
@@ -12509,13 +12567,25 @@
       structureInputs = item.inputs.slice();
     }
 
+    function structurePeriodValue(value) {
+      if (value === "Mingguan") return "WEEKLY";
+      if (value === "Bulanan") return "MONTHLY";
+      if (value === "Khusus") return "CUSTOM";
+      return value || "";
+    }
+
+    function structurePeriodLabel(value) {
+      const normalized = structurePeriodValue(value);
+      return { WEEKLY: "Mingguan", MONTHLY: "Bulanan", CUSTOM: "Khusus" }[normalized] || value || "-";
+    }
+
     function renderStructureList() {
       setStructureView("structure-list", "Daftar Struktur Gaji");
       const query = document.getElementById("structureSearchBox").value.trim().toLowerCase();
       const rows = structures.filter(item =>
         item.code.toLowerCase().includes(query) ||
         item.name.toLowerCase().includes(query) ||
-        item.period.toLowerCase().includes(query) ||
+        structurePeriodLabel(item.period).toLowerCase().includes(query) ||
         (item.active ? "aktif" : "nonaktif").includes(query)
       );
 
@@ -12523,7 +12593,7 @@
         <tr>
           <td>${escapeHtml(item.code)}</td>
           <td>${escapeHtml(item.name)}</td>
-          <td>${escapeHtml(item.period)}</td>
+          <td>${escapeHtml(structurePeriodLabel(item.period))}</td>
           <td>${item.components.length}</td>
           <td>${item.inputs.length}</td>
           <td>${item.active ? "Aktif" : "Nonaktif"}</td>
@@ -12605,7 +12675,7 @@
       cloneStructureDetails(item);
       document.getElementById("structureCode").value = item.code;
       document.getElementById("structureName").value = item.name;
-      document.getElementById("structurePeriod").value = item.period;
+      document.getElementById("structurePeriod").value = structurePeriodValue(item.period);
       document.getElementById("structureActive").checked = item.active;
       setStructureReadonly(false);
       setStructureView("structure-edit", "Ubah Struktur Gaji");
@@ -12619,7 +12689,7 @@
       cloneStructureDetails(item);
       document.getElementById("structureCode").value = item.code;
       document.getElementById("structureName").value = item.name;
-      document.getElementById("structurePeriod").value = item.period;
+      document.getElementById("structurePeriod").value = structurePeriodValue(item.period);
       document.getElementById("structureActive").checked = item.active;
       setStructureReadonly(true);
       setStructureView("structure-view", "Lihat Struktur Gaji");
@@ -13029,7 +13099,7 @@
       const readonly = mode === "component-view";
       const sourceIndex = Number(document.getElementById("formulaSource").value || 0);
       const group = formulaGroups[sourceIndex] || formulaGroups[0];
-      const items = group.title === "Work Entries"
+      const items = group.title === "Ringkasan Waktu Kerja"
         ? workTypes.map(item => ({
           field: item.name,
           variable: `workEntries["${item.code}"].${workEntryMeasure(item.code)}`
@@ -13394,6 +13464,7 @@
       event.target.value = event.target.value.toUpperCase().replace(/\s+/g, "");
     });
     document.getElementById("additionalTaskTypeWorkEntryTypeBrowseBtn").addEventListener("click", openAdditionalTaskTypeWorkEntryTypeModal);
+    document.getElementById("additionalTaskTypeWorkEntryTypeClearBtn").addEventListener("click", clearAdditionalTaskTypeWorkEntryType);
     document.getElementById("additionalTaskTypeWorkEntryTypeSearch").addEventListener("input", renderAdditionalTaskTypeWorkEntryTypeRows);
     document.getElementById("additionalTaskTypeWorkEntryTypeRows").addEventListener("click", event => {
       const row = event.target.closest(".work-schedule-select-row");
@@ -13482,7 +13553,7 @@
     });
     document.getElementById("approvalSettingTransactionType").addEventListener("change", () => {
       document.getElementById("approvalSettingTransactionSubtype").value = "ALL";
-      renderApprovalSettingSubtypeOptions();
+      refreshApprovalSettingFormDetails();
     });
     document.getElementById("approvalSettingAppliesTo").addEventListener("change", () => {
       approvalSettingScopeRows = [];
@@ -13697,6 +13768,121 @@
       text-align: right;
       white-space: nowrap;
     }
+    .payroll-slip-list-wrap {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      overflow-x: auto;
+    }
+    .payroll-slip-table {
+      min-width: 1360px;
+      table-layout: fixed;
+    }
+    .payroll-process-list-wrap {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+    .payroll-top-scroll {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      height: 16px;
+      margin: 4px 0 6px;
+    }
+    .payroll-top-scroll-inner {
+      height: 1px;
+    }
+    .payroll-process-list-table {
+      width: 100%;
+      min-width: 1450px;
+      table-layout: fixed;
+    }
+    .payroll-process-list-table th,
+    .payroll-process-list-table td {
+      overflow-wrap: normal;
+      word-break: normal;
+    }
+    .payroll-process-list-table .col-doc { width: 120px; }
+    .payroll-process-list-table .col-date { width: 110px; }
+    .payroll-process-list-table .col-name { width: 210px; }
+    .payroll-process-list-table .col-structure { width: 180px; }
+    .payroll-process-list-table .col-period { width: 190px; }
+    .payroll-process-list-table .col-employee { width: 90px; }
+    .payroll-process-list-table .col-calculation { width: 150px; }
+    .payroll-process-list-table .col-approval { width: 170px; }
+    .payroll-process-list-table .col-payment { width: 145px; }
+    .payroll-process-list-table .col-action { width: 70px; }
+    .payroll-process-list-table .text-wrap {
+      overflow-wrap: break-word;
+      word-break: normal;
+      line-height: 1.35;
+    }
+    .payroll-process-list-table .nowrap {
+      white-space: nowrap;
+    }
+    .payroll-process-list-table .badge {
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 92px;
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    .payroll-process-list-table .col-approval .badge,
+    .payroll-process-list-table td:nth-child(8) .badge {
+      min-width: 145px;
+    }
+    .payroll-process-list-table .col-calculation .badge,
+    .payroll-process-list-table td:nth-child(7) .badge {
+      min-width: 125px;
+    }
+    #payrollApprovalHistoryModal .approval-summary {
+      border: 1px solid #e5e5e5;
+      background: #fbfbfb;
+      padding: 12px;
+      margin: 12px 0 16px;
+      line-height: 1.65;
+      text-align: left;
+    }
+    #payrollApprovalHistoryModal .approval-summary b {
+      color: #3f4d5c;
+    }
+    #payrollApprovalHistoryModal .approval-history-table {
+      width: 100%;
+      table-layout: fixed;
+    }
+    #payrollApprovalHistoryModal .approval-history-table th,
+    #payrollApprovalHistoryModal .approval-history-table td {
+      overflow-wrap: anywhere;
+    }
+    .payroll-approval-status-wrap .approval-info-icon {
+      width: 22px;
+      height: 22px;
+      min-width: 22px;
+      min-height: 22px;
+      padding: 0;
+      border: 1px solid #cbd5e1;
+      border-radius: 50%;
+      background: #fff;
+      color: #475569;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      cursor: pointer;
+      flex: 0 0 22px;
+    }
+    .payroll-approval-status-wrap .approval-info-icon:hover {
+      background: #f3f6fb;
+      color: #1f4e79;
+      border-color: #9fb7d8;
+    }
     .payroll-process-detail .table-wrap {
       max-width: 100%;
       overflow-x: auto;
@@ -13726,19 +13912,59 @@
     }
     .payroll-process-detail-table {
       width: max-content;
-      min-width: 100%;
+      min-width: var(--payroll-detail-min-width, 1420px);
       table-layout: fixed;
     }
     .payroll-process-detail-table th,
     .payroll-process-detail-table td {
-      overflow-wrap: anywhere;
+      overflow-wrap: break-word;
+      word-break: normal;
     }
     .payroll-process-detail-table .money-cell {
       text-align: right;
       white-space: nowrap;
     }
+    .payroll-process-detail-table .run-slip-col { width: 128px; }
+    .payroll-process-detail-table .run-employee-no-col { width: 112px; }
+    .payroll-process-detail-table .run-employee-name-col { width: 170px; }
+    .payroll-process-detail-table .run-dept-col { width: 120px; }
+    .payroll-process-detail-table .run-position-col { width: 135px; }
+    .payroll-process-detail-table .run-component-col { width: 140px; }
+    .payroll-process-detail-table .run-net-col { width: 130px; }
+    .payroll-process-detail-table .run-action-col { width: 135px; }
+    .payroll-slip-error-note {
+      display: block;
+      margin-top: 4px;
+      color: #ef4f63;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .take-home-pay-row td {
+      font-weight: 700;
+      background: #f8fafc;
+    }
+    .number-cell {
+      text-align: right;
+      white-space: nowrap;
+    }
+    .payroll-approval-status-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .payroll-money-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .payroll-selection-info {
+      color: #667085;
+      font-size: 13px;
+      white-space: nowrap;
+    }
     .payroll-process-detail-table td:has(.actions) {
-      min-width: 112px;
+      min-width: 135px;
     }
 </style>
 <div class="module-screen-root">
@@ -13755,7 +13981,7 @@
 </div>
 <div class="modal-backdrop" id="workEntriesModal">
     <div class="modal">
-      <div class="modal-head"><span id="workEntriesTitle">Work Entries</span><button class="modal-close" data-close="workEntriesModal" type="button">x</button></div>
+      <div class="modal-head"><span id="workEntriesTitle">Ringkasan Waktu Kerja</span><button class="modal-close" data-close="workEntriesModal" type="button">x</button></div>
       <div class="modal-body">
         <div class="summary-grid" id="workEntriesSummary"></div>
         <div class="table-wrap">
@@ -13791,7 +14017,7 @@
       <div class="modal-body">
         <div class="table-wrap">
           <table>
-            <thead><tr><th style="width:110px">NIK</th><th>Nama Karyawan</th><th>Departemen</th><th>Posisi</th><th>Alasan</th></tr></thead>
+            <thead><tr><th style="width:110px">Nomor Karyawan</th><th>Nama Karyawan</th><th>Departemen</th><th>Posisi</th><th>Alasan</th></tr></thead>
             <tbody id="ineligibleRows"></tbody>
           </table>
         </div>
@@ -13843,6 +14069,48 @@
     </div>
   </div>
 
+  <div class="modal-backdrop" id="paymentModal">
+    <div class="modal small-modal">
+      <div class="modal-head">Catat Pembayaran</div>
+      <div class="modal-body">
+        <div id="paymentErrors" class="error-box"></div>
+        <div class="summary-grid" id="paymentSummary" style="grid-template-columns:1fr"></div>
+        <div class="form-row">
+          <label for="paymentDate">Tanggal Pembayaran <span class="required">*</span></label>
+          <input class="form-control" id="paymentDate" type="date">
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn" id="savePaymentBtn" type="button">Simpan</button><button class="btn secondary" data-close="paymentModal" type="button">Batal</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="payrollApprovalHistoryModal">
+    <div class="modal wide">
+      <div class="modal-head">Riwayat Approval<button class="modal-close" data-close="payrollApprovalHistoryModal" type="button">x</button></div>
+      <div class="modal-body">
+        <div class="approval-summary" id="payrollApprovalHistorySummary"></div>
+        <div class="table-wrap">
+          <table class="approval-history-table">
+            <thead><tr><th>Tahap</th><th>Approver</th><th>Status</th><th>Tanggal</th><th>Catatan</th></tr></thead>
+            <tbody id="payrollApprovalHistoryRows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn secondary" data-close="payrollApprovalHistoryModal" type="button">Kembali</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="processNameModal">
+    <div class="modal small-modal">
+      <div class="modal-head">Ubah Nama Proses<button class="modal-close" data-close="processNameModal" type="button">x</button></div>
+      <div class="modal-body">
+        <div id="processNameErrors" class="error-box"></div>
+        <div class="form-row"><label>Nama Proses <span class="required">*</span></label><input class="form-control" id="processNameInput" type="text" maxlength="120"></div>
+      </div>
+      <div class="modal-foot"><button class="btn" id="saveProcessNameBtn" type="button">Simpan</button><button class="btn secondary" data-close="processNameModal" type="button">Batal</button></div>
+    </div>
+  </div>
+
   <div class="modal-backdrop" id="slipModal">
     <div class="modal wide">
       <div class="modal-head">Lihat Slip Gaji<button class="modal-close" data-close="slipModal" type="button">x</button></div>
@@ -13850,7 +14118,7 @@
         <div class="summary-grid" id="slipSummary"></div>
         <div class="tabs">
           <button class="tab-btn active" type="button" data-tab="component">Komponen Gaji</button>
-          <button class="tab-btn" type="button" data-tab="work">Work Entries</button>
+          <button class="tab-btn" type="button" data-tab="work">Ringkasan Waktu Kerja</button>
           <button class="tab-btn" type="button" data-tab="input">Input Lain</button>
         </div>
         <div id="slipComponentTab" class="section"></div>
@@ -13866,7 +14134,7 @@
 
   <div class="toast" id="toast">Data berhasil disimpan.</div>
 <script type="text/plain">
-    const companyName = "PT Sango Ceramics Indonesia";
+    const companyName = "PT STERLING TULUS CEMERLANG";
     const userApproverGaji = true;
     const listView = document.getElementById("listView");
     const createView = document.getElementById("createView");
@@ -13878,18 +14146,20 @@
     const toast = document.getElementById("toast");
 
     const structures = {
-      STAFF_MONTHLY: { name: "Staff Bulanan", periodType: "Bulanan", inputs: ["BONUS", "POTONGAN_KOPERASI", "PINJAMAN"] },
-      HARIAN_WEEKLY: { name: "Harian Mingguan", periodType: "Mingguan", inputs: ["BONUS", "KOREKSI_POTONGAN"] },
-      BORONGAN_WEEKLY: { name: "Borongan Mingguan", periodType: "Mingguan", inputs: ["BONUS", "KOREKSI_POTONGAN"] }
+      STAFF_MONTHLY: { name: "Staff Bulanan", periodType: "MONTHLY", inputs: ["BONUS", "POTONGAN_KOPERASI", "PINJAMAN"] },
+      HARIAN_WEEKLY: { name: "Harian Mingguan", periodType: "WEEKLY", inputs: ["BONUS", "KOREKSI_POTONGAN"] },
+      BORONGAN_WEEKLY: { name: "Borongan Mingguan", periodType: "WEEKLY", inputs: ["BONUS", "KOREKSI_POTONGAN"] },
+      KHUSUS_CUSTOM: { name: "Struktur Gaji Khusus", periodType: "CUSTOM", inputs: ["BONUS", "KOREKSI_POTONGAN"] }
     };
     const inputNames = { BONUS: "Bonus", POTONGAN_KOPERASI: "Potongan Koperasi", PINJAMAN: "Pinjaman", KOREKSI_POTONGAN: "Koreksi Potongan" };
     const componentColumns = [
       "Gaji Pokok", "Tunjangan Tetap", "Lembur", "Bonus", "Potongan Terlambat", "BPJS Kesehatan", "Take Home Pay"
     ];
     const employees = [
-      { nik: "EMP001", name: "Andi Wijaya", dept: "Finance", position: "Staff Finance", contractType: "Bulanan", religion: "Islam", contract: "KONTRAK Andi Wijaya" },
-      { nik: "EMP002", name: "Budi Santoso", dept: "Produksi", position: "Operator", contractType: "Bulanan", religion: "Kristen", contract: "KONTRAK Budi Santoso" },
-      { nik: "EMP003", name: "Citra Lestari", dept: "HRD", position: "HR Staff", contractType: "Bulanan", religion: "Katolik", contract: "KONTRAK Citra Lestari" }
+      { nik: "EMP001", name: "Andi Wijaya", dept: "Finance", position: "Staff Finance", contractType: "Bulanan", religion: "Islam", contract: "KONTRAK Andi Wijaya", structure: "STAFF_MONTHLY" },
+      { nik: "EMP002", name: "Budi Santoso", dept: "Produksi", position: "Operator", contractType: "Bulanan", religion: "Kristen", contract: "KONTRAK Budi Santoso", structure: "STAFF_MONTHLY" },
+      { nik: "EMP003", name: "Citra Lestari", dept: "HRD", position: "HR Staff", contractType: "Bulanan", religion: "Katolik", contract: "KONTRAK Citra Lestari", structure: "STAFF_MONTHLY" },
+      { nik: "EMP004", name: "Dedi Hartono", dept: "Produksi", position: "Operator", contractType: "Harian", religion: "Islam", contract: "KONTRAK Dedi Hartono", structure: "HARIAN_WEEKLY" }
     ];
     const ineligibleEmployees = [
       { nik: "EMP004", name: "Dedi Hartono", dept: "Produksi", position: "Operator", reason: "Tidak memiliki struktur gaji ini pada kontrak" },
@@ -13910,24 +14180,35 @@
       KOREKSI_POTONGAN: { amount: 50000, note: "Koreksi potongan" }
     };
     const slipTemplates = [
-      { no: "SLIP/2026/07/0001", nik: "EMP001", values: [5000000, 1000000, 300000, 500000, -30000, -60000, 6710000] },
-      { no: "SLIP/2026/07/0002", nik: "EMP002", values: [4500000, 750000, 450000, 0, -50000, -52500, 5597500] },
-      { no: "SLIP/2026/07/0003", nik: "EMP003", values: [5500000, 1200000, 0, 300000, 0, -67000, 6933000] }
+      { no: "PSL260000001", nik: "EMP001", values: [5000000, 1000000, 300000, 500000, -30000, -60000, 6710000] },
+      { no: "PSL260000002", nik: "EMP002", values: [4500000, 750000, 450000, 0, -50000, -52500, 5597500] },
+      { no: "PSL260000003", nik: "EMP003", values: [5500000, 1200000, 0, 300000, 0, -67000, 6933000] }
     ];
 
     let selectedEmployees = new Set();
     let employeeInputs = {};
-    let currentRunId = "RUN001";
+    let currentRunId = 1001;
     let currentSlipNo = null;
     let currentInputNik = null;
     let currentBatchDraft = null;
     let detailPageSize = "10";
+    let payrollRunSearch = "";
     let detailSearch = "";
     let slipListPageSize = "10";
     let slipListSearch = "";
     let slipListFilters = { status: "", structure: "", department: "", position: "" };
+    let payrollRunPage = 1;
+    let payrollRunPageSize = "10";
+    let payrollDetailPage = 1;
+    let slipListPage = 1;
+    let processNameEditRunId = null;
     let currentSlipPageNo = null;
     let currentSlipPageKey = null;
+    let currentPaymentSlipNo = null;
+    let currentPaymentSlipId = null;
+    let paymentMode = "single";
+    let paymentSlipIds = [];
+    let selectedPayrollSlipIds = new Set();
     let activeLookupType = null;
     let visibleEligibleNiks = employees.map(emp => emp.nik);
     let filterSelections = { department: "", position: "", employee: "" };
@@ -13949,79 +14230,151 @@
       ]
     };
     let payrollRuns = [
-      makeRun("RUN001", "STAFF_MONTHLY - Juli 2026", "STAFF_MONTHLY", "2026-07-01", "2026-07-31", "Terkonfirmasi", 3),
-      makeRun("RUN002", "HARIAN_WEEKLY - 03 Jul 2026", "HARIAN_WEEKLY", "2026-07-03", "2026-07-09", "Selesai", 5),
-      makeRun("RUN003", "STAFF_MONTHLY - Juni 2026", "STAFF_MONTHLY", "2026-06-01", "2026-06-30", "Terbayar", 3)
-    ];
-    payrollRuns[0].slips[2].status = "Selesai";
-    const standaloneSlipRows = [
-      makeStandaloneSlip("SLIP/2026/07/W001", { nik: "EMP004", name: "Dedi Hartono", dept: "Produksi", position: "Operator" }, "HARIAN_WEEKLY", "HARIAN_WEEKLY - 03 Jul 2026", "2026-07-03", "2026-07-09", "Selesai", [1200000, 0, 250000, 0, -50000, 0, 1400000])
+      makeRun(1001, "STAFF_MONTHLY - Juli 2026", "STAFF_MONTHLY", "2026-07-01", "2026-07-31", "DRAFT", 3, { document_number: "PPR260000001", calculation_status: null }),
+      makeRun(1002, "STAFF_MONTHLY - Preview Juli 2026", "STAFF_MONTHLY", "2026-07-01", "2026-07-31", "DRAFT", 3, { document_number: "PPR260000002", calculation_status: "SUCCESS" }),
+      makeRun(1003, "STAFF_MONTHLY - Koreksi Juli 2026", "STAFF_MONTHLY", "2026-07-01", "2026-07-31", "DRAFT", 3, { document_number: "PPR260000003", calculation_status: "PARTIAL_SUCCESS", errorIndexes: [1] }),
+      makeRun(1004, "STAFF_MONTHLY - Approval Juli 2026", "STAFF_MONTHLY", "2026-07-01", "2026-07-31", "PENDING", 3, { document_number: "PPR260000004", calculation_status: "SUCCESS", submitted_at: "2026-07-31 16:00", approval_request_id: "APR-PPR-0004" }),
+      makeRun(1005, "HARIAN_WEEKLY - Langsung Disetujui", "HARIAN_WEEKLY", "2026-06-20", "2026-06-26", "APPROVED", 1, { document_number: "PPR260000005", calculation_status: "SUCCESS", employeePool: [employees[3]], paidIndexes: [0] }),
+      makeRun(1006, "STAFF_MONTHLY - Ditolak Approval", "STAFF_MONTHLY", "2026-07-01", "2026-07-31", "REJECTED", 3, { document_number: "PPR260000006", calculation_status: "SUCCESS", submitted_at: "2026-07-31 10:00", approval_request_id: "APR-PPR-0006", reject_note: "Parameter payroll bulanan perlu diverifikasi ulang." }),
+      makeRun(1007, "KHUSUS_CUSTOM - Disetujui Belum Dibayar", "KHUSUS_CUSTOM", "2026-07-10", "2026-07-20", "APPROVED", 3, { document_number: "PPR260000007", calculation_status: "SUCCESS" }),
+      makeRun(1008, "KHUSUS_CUSTOM - Disetujui Lunas", "KHUSUS_CUSTOM", "2026-07-10", "2026-07-20", "APPROVED", 3, { document_number: "PPR260000008", calculation_status: "SUCCESS", paidIndexes: [0, 1, 2] }),
+      makeRun(1011, "HARIAN_WEEKLY - 03 Jul 2026", "HARIAN_WEEKLY", "2026-07-03", "2026-07-09", "APPROVED", 1, { document_number: "PPR260000009", calculation_status: "SUCCESS", employeePool: [employees[3]], slipNumbers: ["PSL260000030"], valuesPool: [[1200000, 0, 250000, 0, -50000, 0, 1400000]] }),
+      makeRun(1009, "STAFF_MONTHLY - Partial Draft", "STAFF_MONTHLY", "2026-07-01", "2026-07-31", "DRAFT", 3, { document_number: "PPR260000010", calculation_status: "PARTIAL_SUCCESS", errorIndexes: [1, 2], fixableErrorIndexes: [1] }),
+      makeRun(1010, "STAFF_MONTHLY - Disetujui via Approval", "STAFF_MONTHLY", "2026-07-01", "2026-07-31", "APPROVED", 3, { document_number: "PPR260000011", calculation_status: "SUCCESS", submitted_at: "2026-07-31 17:00", approval_request_id: "APR-PPR-0010" })
     ];
 
-    function makeRun(id, batch, structure, start, end, status, count) {
+    function periodTypeLabel(value) {
+      return { WEEKLY: "Mingguan", MONTHLY: "Bulanan", CUSTOM: "Khusus" }[value] || value || "-";
+    }
+
+    function todayDate() {
+      return "2026-08-06";
+    }
+
+    function payrollYearSuffix(dateValue) {
+      return String(new Date(`${dateValue || todayDate()}T00:00:00`).getFullYear()).slice(-2);
+    }
+
+    function payrollSequence(prefix, dateValue) {
+      const year = payrollYearSuffix(dateValue);
+      const existing = [];
+      payrollRuns.forEach(run => {
+        if (run.document_number?.startsWith(`${prefix}${year}`)) existing.push(Number(run.document_number.slice(5)) || 0);
+        (run.slips || []).forEach(slip => {
+          if (slip.no?.startsWith(`${prefix}${year}`)) existing.push(Number(slip.no.slice(5)) || 0);
+        });
+      });
+      return Math.max(0, ...existing) + 1;
+    }
+
+    function nextPayrollNumber(prefix, dateValue) {
+      return `${prefix}${payrollYearSuffix(dateValue)}${String(payrollSequence(prefix, dateValue)).padStart(7, "0")}`;
+    }
+
+    function ensureRunDocumentNumber(run) {
+      if (!run.document_number) run.document_number = nextPayrollNumber("PPR", run.document_date || run.period_start_date || run.start);
+      return run.document_number;
+    }
+
+    function ensureSlipId(slip, runId = 0) {
+      if (!slip.id) slip.id = `${runId}-SLIP-${slip.employee_no || slip.nik || Math.random().toString(36).slice(2)}`;
+      return slip.id;
+    }
+
+    function ensureSlipNumber(run, slip) {
+      if (!slip.no && slip.calculation_status === "SUCCESS") slip.no = nextPayrollNumber("PSL", run.document_date || run.period_start_date || run.start);
+      return slip.no;
+    }
+
+    function makeRun(id, batch, structure, start, end, approvalStatus, count, options = {}) {
+      const pool = options.employeePool || employees;
       const slips = Array.from({ length: count }).map((_, index) => {
-        const tpl = slipTemplates[index % slipTemplates.length];
-        const emp = employees[index] || employees[index % employees.length];
-        return makeSlip(tpl.no.replace("/07/", start.slice(5,7) === "06" ? "/06/" : "/07/"), emp, tpl.values, status);
+        const tpl = options.valuesPool?.[index] ? { values: options.valuesPool[index] } : slipTemplates[index % slipTemplates.length];
+        const emp = pool[index] || pool[index % pool.length];
+        const isError = (options.errorIndexes || []).includes(index);
+        const isPaid = (options.paidIndexes || []).includes(index);
+        const runNumber = Number(String(options.document_number || "").replace(/\D/g, "").slice(-7)) || Number(id) || 1;
+        const slipNo = options.slipNumbers?.[index] || (!isError && options.calculation_status ? `PSL${payrollYearSuffix(start)}${String(((runNumber - 1) * 3) + index + 1).padStart(7, "0")}` : "");
+        return makeSlip(slipNo, emp, tpl.values, approvalStatus, {
+          id: `${id}-SLIP-${emp.nik}`,
+          calculation_status: isError ? "ERROR" : (options.calculation_status ? "SUCCESS" : null),
+          calculation_error_message: isError ? "Parameter gaji karyawan belum lengkap." : "",
+          error_can_be_fixed: (options.fixableErrorIndexes || []).includes(index),
+          payment_status: isPaid ? "PAID" : "UNPAID",
+          payment_date: isPaid ? "2026-07-30" : ""
+        });
       });
       return {
         id,
+        document_number: options.document_number || nextPayrollNumber("PPR", start),
+        document_date: start,
+        company_id: 1,
         company: companyName,
+        requested_by: options.requested_by || "HR STERLING",
+        note: options.note || options.description || "-",
+        description: options.description || options.note || "-",
+        reject_note: options.reject_note || "",
         batch,
+        batch_name: batch,
         structure,
+        payroll_structure_id: structure,
         structureName: structures[structure].name,
-        periodType: structures[structure].periodType,
+        period_type: structures[structure].periodType,
+        periodType: periodTypeLabel(structures[structure].periodType),
         start,
+        period_start_date: start,
         end,
+        period_end_date: end,
         employeeCount: count,
-        status,
+        calculation_status: options.calculation_status || null,
+        calculation_error_message: "",
+        approval_status: approvalStatus,
+        approval_request_id: options.approval_request_id || null,
+        approval_history: options.approval_history || [],
+        submitted_at: options.submitted_at || "",
+        last_calculated_at: options.calculation_status ? "2026-07-31 15:00" : "",
+        status: approvalStatus,
         slips
       };
     }
 
-    function makeStandaloneSlip(no, emp, structure, batch, start, end, status, values) {
+    function makeSlip(no, emp, values, status, options = {}) {
+      const calcStatus = options.calculation_status || null;
+      const safeValues = calcStatus === "ERROR" ? [0, 0, 0, 0, 0, 0, 0] : values.slice();
       return {
-        run: {
-          id: "STANDALONE",
-          company: companyName,
-          batch,
-          structure,
-          structureName: structures[structure].name,
-          periodType: structures[structure].periodType,
-          start,
-          end,
-          status,
-          slips: []
-        },
-        slip: makeSlip(no, emp, values, status)
-      };
-    }
-
-    function makeSlip(no, emp, values, status) {
-      return {
+        id: options.id || `SLIP-${emp.nik}-${Math.random().toString(36).slice(2, 8)}`,
         no,
         nik: emp.nik,
+        employee_no: emp.nik,
         employee: emp.name,
+        employee_name: emp.name,
         dept: emp.dept,
         position: emp.position,
         status,
-        values: values.slice(),
+        calculation_status: calcStatus,
+        calculation_error_message: options.calculation_error_message || "",
+        error_can_be_fixed: options.error_can_be_fixed || false,
+        original_system_values: values.slice(),
+        base_values: values.slice(),
+        payment_status: options.payment_status || "UNPAID",
+        payment_date: options.payment_date || "",
+        values: safeValues.slice(),
         lines: [
-          line(10, "GAJI_POKOK", "Gaji Pokok", values[0], false),
-          line(20, "TUNJANGAN_TETAP", "Tunjangan Tetap", values[1], true),
-          line(30, "LEMBUR", "Lembur", values[2], true),
-          line(40, "BONUS", "Bonus", values[3], true),
-          line(50, "POT_TERLAMBAT", "Potongan Terlambat", values[4], true),
-          line(60, "BPJS_KES_KARYAWAN", "BPJS Kesehatan", values[5], false),
-          line(90, "NET", "Take Home Pay", values[6], false)
+          line(10, "GAJI_POKOK", "Gaji Pokok", safeValues[0], false, "BASIC"),
+          line(20, "TUNJANGAN_TETAP", "Tunjangan Tetap", safeValues[1], true, "ALW"),
+          line(30, "LEMBUR", "Lembur", safeValues[2], true, "ALW"),
+          line(40, "BONUS", "Bonus", safeValues[3], true, "ALW"),
+          line(50, "POT_TERLAMBAT", "Potongan Terlambat", safeValues[4], true, "DED"),
+          line(60, "BPJS_KES_KARYAWAN", "BPJS Kesehatan", safeValues[5], false, "DED"),
+          line(90, "NET", "Take Home Pay", safeValues[6], false, "NET")
         ],
-        workEntries: baseWorkEntries.slice(0, 4).map(w => ({ code: w[0], name: w[1], qty: w[2], unit: w[3] })),
+        workEntries: baseWorkEntries.slice(0, 4).map(w => ({ code: w[0], name: w[1], days: w[3] === "Hari" ? w[2] : 0, minutes: w[3] === "Jam" ? w[2] * 60 : 0, times: w[3] === "Kali" ? w[2] : 0, qty: w[2], unit: w[3] })),
         inputs: cloneDefaultInputs(["BONUS", "POTONGAN_KOPERASI", "PINJAMAN"])
       };
     }
 
-    function line(order, code, label, amount, adjustable) {
-      return { order, code, label, system: amount, adjustment: amount, final: amount, adjustable };
+    function line(order, code, label, amount, adjustable, categoryCode) {
+      return { order, code, label, system: amount, adjustment: "", final: amount, adjustable, category_code: categoryCode };
     }
 
     function cloneDefaultInputs(codes) {
@@ -14032,13 +14385,328 @@
       return Number(value || 0).toLocaleString("id-ID");
     }
 
+    function hasSuccessfulSlipCalculation(slip) {
+      return slip?.calculation_status === "SUCCESS";
+    }
+
+    function displaySlipAmount(slip, value) {
+      return hasSuccessfulSlipCalculation(slip) ? fmtMoney(value) : "-";
+    }
+
     function fmtPeriod(run) {
-      return `${run.start} s/d ${run.end}`;
+      return `${run.period_start_date || run.start} s/d ${run.period_end_date || run.end}`;
     }
 
     function badge(status) {
       const cls = status === "Baru" ? "draft" : status === "Terkonfirmasi" ? "pending" : status === "Selesai" ? "done" : status === "Terbayar" ? "paid" : "cancel";
       return `<span class="badge ${cls}">${status}</span>`;
+    }
+
+    function calculationStatusLabel(status) {
+      return {
+        SUCCESS: "Berhasil",
+        PARTIAL_SUCCESS: "Berhasil Sebagian",
+        FAILED: "Gagal",
+        ERROR: "Gagal"
+      }[status] || "Belum Dihitung";
+    }
+
+    function approvalStatusLabel(status) {
+      return {
+        DRAFT: "Draft",
+        PENDING: "Menunggu",
+        APPROVED: "Disetujui",
+        REJECTED: "Ditolak",
+        CANCELLED: "Dibatalkan"
+      }[status] || status || "-";
+    }
+
+    function paymentStatusLabel(status) {
+      return { UNPAID: "Belum Dibayar", PAID: "Sudah Dibayar" }[status] || status || "-";
+    }
+
+    function statusBadge(status, type = "") {
+      const label = type === "calculation"
+        ? calculationStatusLabel(status)
+        : type === "payment"
+          ? paymentStatusLabel(status)
+          : approvalStatusLabel(status);
+      const cls = ["SUCCESS", "APPROVED", "PAID"].includes(status) ? "done"
+        : ["PARTIAL_SUCCESS", "PENDING"].includes(status) ? "pending"
+          : ["FAILED", "ERROR", "REJECTED", "CANCELLED"].includes(status) ? "cancel"
+            : "draft";
+      return `<span class="badge ${cls}">${label}</span>`;
+    }
+
+    function isRunDraft(run) {
+      return (run.approval_status || run.status) === "DRAFT";
+    }
+
+    function isRunLocked(run) {
+      return !isRunDraft(run);
+    }
+
+    function paymentSummary(run) {
+      if ((run.approval_status || run.status) !== "APPROVED") return "-";
+      const slips = (run.slips || []).filter(slip => slip.calculation_status === "SUCCESS");
+      if (!slips.length) return "-";
+      const paid = slips.filter(slip => slip.payment_status === "PAID").length;
+      if (paid === 0) return "Belum Dibayar";
+      if (paid === slips.length) return "Sudah Dibayar";
+      return "Dibayar Sebagian";
+    }
+
+    function paymentSummaryBadge(run) {
+      const summary = paymentSummary(run);
+      if (summary === "-") return "-";
+      return `<span class="badge ${summary === "Sudah Dibayar" ? "paid" : summary === "Dibayar Sebagian" ? "pending" : "draft"}">${summary}</span>`;
+    }
+
+    function payrollSlipPaymentDisplay(run, slip) {
+      if ((run.approval_status || run.status) !== "APPROVED") return "-";
+      return statusBadge(slip.payment_status, "payment");
+    }
+
+    function payrollSlipPaymentDateDisplay(run, slip) {
+      if ((run.approval_status || run.status) !== "APPROVED" || slip.payment_status !== "PAID") return "-";
+      return slip.payment_date || "-";
+    }
+
+    function payrollApprovalHasHistory(run) {
+      return Boolean(run?.approval_request_id) || Boolean((run?.approval_history || []).length);
+    }
+
+    function payrollApprovalStatusDisplay(run) {
+      const historyButton = payrollApprovalHasHistory(run)
+        ? `<button class="approval-info-icon" type="button" title="Riwayat Approval" aria-label="Riwayat Approval" data-module-action="openPayrollApprovalHistory" data-module-args="${run.id}">${payrollInfoIcon()}</button>`
+        : "";
+      return `<span class="payroll-approval-status-wrap">${statusBadge(run.approval_status)}${historyButton}</span>`;
+    }
+
+    function payrollInfoIcon() {
+      return window.iconInfo ? window.iconInfo() : `<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+    }
+
+    function payrollPageSizeNumber(value) {
+      return value === "All" ? Infinity : Number(value || 10);
+    }
+
+    function payrollPagedRows(rows, page, pageSize) {
+      const size = payrollPageSizeNumber(pageSize);
+      if (!Number.isFinite(size)) return rows;
+      return rows.slice((page - 1) * size, page * size);
+    }
+
+    function payrollTotalPages(total, pageSize) {
+      const size = payrollPageSizeNumber(pageSize);
+      return Number.isFinite(size) ? Math.max(1, Math.ceil(total / size)) : 1;
+    }
+
+    function payrollPagerRange(total, page, pageSize) {
+      if (!total) return "0 - 0";
+      const size = payrollPageSizeNumber(pageSize);
+      if (!Number.isFinite(size)) return `1 - ${total}`;
+      const start = ((page - 1) * size) + 1;
+      const end = Math.min(page * size, total);
+      return `${start} - ${end}`;
+    }
+
+    function payrollPagerHtml(page, totalPages, action) {
+      const pages = Array.from({ length: totalPages }).map((_, index) => index + 1);
+      return `<span class="pages"><button type="button" data-module-action="${action}" data-module-args="${Math.max(1, page - 1)}" ${page <= 1 ? "disabled" : ""}>&lt;</button>${pages.map(item => `<button type="button" data-module-action="${action}" data-module-args="${item}" ${item === page ? "disabled" : ""}>${item}</button>`).join("")}<button type="button" data-module-action="${action}" data-module-args="${Math.min(totalPages, page + 1)}" ${page >= totalPages ? "disabled" : ""}>&gt;</button></span>`;
+    }
+
+    function payrollMoneyIcon() {
+      return `<svg class="payroll-money-icon" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="6" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 9h2M16 15h2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+    }
+
+    function takeHomePay(slip) {
+      const netLine = slip.lines?.find(line => line.category_code === "NET" || line.code === "NET");
+      return netLine ? Number(netLine.final || 0) : Number(slip.values?.[slip.values.length - 1] || 0);
+    }
+
+    function isNetLine(line) {
+      return line?.category_code === "NET" || line?.code === "NET";
+    }
+
+    function renderSalaryLineRow(line, index, slip, locked, targetPrefix = "lineFinal", adjustAttr = "data-adjust") {
+      if (isNetLine(line)) {
+        return `<tr class="take-home-pay-row"><td colspan="3">Take Home Pay</td><td class="number-cell" id="${targetPrefix}${index}">${displaySlipAmount(slip, line.final)}</td></tr>`;
+      }
+      return `<tr><td>${line.label}</td><td class="number-cell">${displaySlipAmount(slip, line.system)}</td><td>${line.adjustable ? `<input class="form-control" type="number" value="${line.adjustment ?? ""}" ${adjustAttr}="${index}" ${locked || !hasSuccessfulSlipCalculation(slip) ? "readonly" : ""}>` : `<input class="form-control" type="number" value="" readonly>`}</td><td class="number-cell" id="${targetPrefix}${index}">${displaySlipAmount(slip, line.final)}</td></tr>`;
+    }
+
+    function syncPayrollTopScroll(topId, wrapId, tableSelector) {
+      const top = document.getElementById(topId);
+      const wrap = document.getElementById(wrapId);
+      const table = wrap?.querySelector(tableSelector);
+      if (!top || !wrap || !table) return;
+      const inner = top.querySelector(".payroll-top-scroll-inner");
+      if (inner) inner.style.width = `${table.scrollWidth}px`;
+      let syncing = false;
+      const sync = (from, to) => {
+        if (syncing) return;
+        syncing = true;
+        to.scrollLeft = from.scrollLeft;
+        syncing = false;
+      };
+      top.addEventListener("scroll", () => sync(top, wrap));
+      wrap.addEventListener("scroll", () => sync(wrap, top));
+    }
+
+    function payrollDetailMinWidth(componentCount) {
+      const baseWidth = 44 + 128 + 112 + 170 + 120 + 135 + 130 + 135;
+      return baseWidth + (componentCount * 140);
+    }
+
+    function currentRunSelectedSlips() {
+      const run = currentRun();
+      return (run.slips || []).filter(slip => selectedPayrollSlipIds.has(slip.id));
+    }
+
+    function clearPayrollSlipSelection() {
+      selectedPayrollSlipIds.clear();
+    }
+
+    function selectedPaymentEligibility(run, ids = [...selectedPayrollSlipIds]) {
+      const selected = (run.slips || []).filter(slip => ids.includes(slip.id));
+      const eligible = selected.filter(slip => run.approval_status === "APPROVED" && slip.calculation_status === "SUCCESS" && slip.payment_status === "UNPAID");
+      const alreadyPaid = selected.filter(slip => slip.payment_status === "PAID").length;
+      const notCalculated = selected.filter(slip => slip.calculation_status !== "SUCCESS").length;
+      const otherIneligible = selected.length - eligible.length - alreadyPaid - notCalculated;
+      return { selected, eligible, skipped: selected.length - eligible.length, alreadyPaid, notCalculated, otherIneligible };
+    }
+
+    function togglePayrollSlipSelection(id, checked) {
+      if (checked) selectedPayrollSlipIds.add(id); else selectedPayrollSlipIds.delete(id);
+      updatePayrollSelectionUi();
+    }
+
+    function toggleVisiblePayrollSlips(checked) {
+      getVisibleSlips(currentRun()).forEach(slip => {
+        if (checked) selectedPayrollSlipIds.add(slip.id); else selectedPayrollSlipIds.delete(slip.id);
+      });
+      renderRunDetail();
+    }
+
+    function updatePayrollSelectionUi() {
+      const visible = getVisibleSlips(currentRun());
+      const selectedVisible = visible.filter(
+        slip => selectedPayrollSlipIds.has(slip.id)
+      ).length;
+
+      document.querySelectorAll("[data-print-slip]").forEach(box => {
+        box.checked = selectedPayrollSlipIds.has(box.dataset.printSlip);
+      });
+
+      const header = document.querySelector("#payrollSelectAllVisible");
+      if (header) {
+        header.checked =
+          visible.length > 0 &&
+          selectedVisible === visible.length;
+
+        header.indeterminate =
+          selectedVisible > 0 &&
+          selectedVisible < visible.length;
+      }
+
+      const selectedCount = currentRunSelectedSlips().length;
+
+      const info = document.querySelector("#payrollSelectionInfo");
+      if (info) {
+        info.textContent = `${selectedCount} slip dipilih`;
+      }
+
+      const printBtn = document.querySelector("#payrollPrintSelectedBtn");
+      if (printBtn) {
+        printBtn.disabled = selectedCount === 0;
+      }
+
+      const bulkBtn = document.querySelector("#payrollBulkPaymentBtn");
+      if (bulkBtn) {
+        bulkBtn.disabled = selectedCount === 0;
+      }
+
+      const recomputeSelectedBtn = document.querySelector(
+        "#payrollRecomputeSelectedBtn"
+      );
+
+      if (recomputeSelectedBtn) {
+        recomputeSelectedBtn.disabled = selectedCount === 0;
+      }
+    }
+
+    function openProcessNameEdit(id) {
+      const run = payrollRuns.find(item => String(item.id) === String(id));
+      if (!run || !isRunDraft(run)) return;
+      processNameEditRunId = run.id;
+      document.getElementById("processNameErrors").classList.remove("show");
+      document.getElementById("processNameErrors").innerHTML = "";
+      document.getElementById("processNameInput").value = run.batch_name || run.batch || "";
+      showModal("processNameModal");
+    }
+
+    function saveProcessNameEdit() {
+      const run = payrollRuns.find(item => String(item.id) === String(processNameEditRunId));
+      if (!run || !isRunDraft(run)) return;
+      const value = document.getElementById("processNameInput").value.trim();
+      if (!value) {
+        showErrors("processNameErrors", ["Nama Proses wajib diisi."]);
+        return;
+      }
+      run.batch_name = value;
+      run.batch = value;
+      closeModal("processNameModal");
+      renderRunDetail();
+      showToast("Nama Proses berhasil diperbarui.");
+    }
+
+    function payrollDisplayComponentLines(slip) {
+      return (slip?.lines || [])
+        .filter(line => line && line.code !== "NET" && line.category_code !== "NET")
+        .sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+    }
+
+    function payrollRunComponentColumns(run) {
+      const sourceSlip = (run.slips || []).find(slip => payrollDisplayComponentLines(slip).length) || run.slips?.[0];
+      return payrollDisplayComponentLines(sourceSlip).map(line => ({ code: line.code, label: line.label }));
+    }
+
+    function payrollSlipComponentValue(slip, code) {
+      if (!hasSuccessfulSlipCalculation(slip)) return "-";
+      const line = payrollDisplayComponentLines(slip).find(item => item.code === code);
+      return line ? displaySlipAmount(slip, line.final) : "-";
+    }
+
+    function syncRunCalculationStatus(run) {
+      const slips = run.slips || [];
+      if (!slips.length) {
+        run.calculation_status = null;
+        run.calculation_error_message = "";
+        return;
+      }
+      const success = slips.filter(slip => slip.calculation_status === "SUCCESS").length;
+      const error = slips.filter(slip => slip.calculation_status === "ERROR").length;
+      const pending = slips.length - success - error;
+      slips.forEach(slip => {
+        ensureSlipId(slip, run.id);
+        ensureSlipNumber(run, slip);
+      });
+      if (success === slips.length) run.calculation_status = "SUCCESS";
+      else if (success > 0) run.calculation_status = "PARTIAL_SUCCESS";
+      else if (error > 0 && pending >= 0) run.calculation_status = "FAILED";
+      else run.calculation_status = null;
+      run.calculation_error_message = payrollCalculationMessage(success, error, pending);
+    }
+
+    function payrollCalculationMessage(success, error, pending) {
+      if (!success && !error && pending) return "";
+      if (error && !success && !pending) return "Seluruh slip gaji gagal dihitung.";
+      const parts = [];
+      if (success) parts.push(`${success} slip berhasil`);
+      if (error) parts.push(`${error} slip gagal dihitung`);
+      if (pending) parts.push(`${pending} slip belum dihitung`);
+      return parts.join(" dan ") + (parts.length ? "." : "");
     }
 
     function showToast(message) {
@@ -14059,6 +14727,19 @@
       box.classList.add("show");
     }
 
+    function escapePayrollHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+    }
+
+    function restoreSearchFocus(inputId, value) {
+      setTimeout(() => {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        input.focus();
+        if (typeof input.setSelectionRange === "function") input.setSelectionRange(value.length, value.length);
+      }, 0);
+    }
+
     function setView(view, title) {
       const isSlip = view === "slipList" || view === "slipDetail";
       crumbSection.textContent = isSlip ? "Slip Gaji" : "Proses Penggajian";
@@ -14073,39 +14754,80 @@
     }
 
     function renderList() {
+      clearPayrollSlipSelection();
+      seedPayrollApprovalRequests();
+      syncPayrollRunsFromApprovalRequests();
       setView("list", "Daftar Proses Penggajian");
-      const status = document.querySelector("#statusFilter")?.value || "";
-      const query = (document.querySelector("#searchBox")?.value || "").trim().toLowerCase();
+      const calculationStatus = document.querySelector("#calculationStatusFilter")?.value || "all";
+      const approvalStatus = document.querySelector("#approvalStatusFilter")?.value || "all";
+      const paymentStatus = document.querySelector("#paymentStatusFilter")?.value || "all";
+      const query = payrollRunSearch.trim().toLowerCase();
       const rows = payrollRuns.filter(run =>
-        (!status || run.status === status) &&
-        [run.company, run.batch, run.structureName, run.periodType, run.status].join(" ").toLowerCase().includes(query)
+        (calculationStatus === "all" || (calculationStatus === "NOT_CALCULATED" ? !run.calculation_status : run.calculation_status === calculationStatus)) &&
+        (approvalStatus === "all" || run.approval_status === approvalStatus) &&
+        (paymentStatus === "all" || (run.approval_status === "APPROVED" && paymentSummary(run) === paymentStatus)) &&
+        [run.document_number, run.document_date, run.batch_name || run.batch, run.structureName, run.periodType, run.approval_status, run.calculation_status, paymentSummary(run)].join(" ").toLowerCase().includes(query)
       );
+      const totalPages = payrollTotalPages(rows.length, payrollRunPageSize);
+      payrollRunPage = Math.min(Math.max(1, payrollRunPage), totalPages);
+      const pagedRows = payrollPagedRows(rows, payrollRunPage, payrollRunPageSize);
       listView.innerHTML = `
         <div class="toolbar"><button class="btn" type="button" onclick="openCreate()">Tambah</button></div>
         <div class="filter-row">
           <div class="filter-controls">
-            <label>
-              <span>Status</span>
-              <select id="statusFilter" style="width:160px" onchange="renderList()">
-                <option value="">Semua</option><option>Baru</option><option>Terkonfirmasi</option><option>Selesai</option><option>Terbayar</option><option>Dibatalkan</option>
+            <label><span>Status Perhitungan</span>
+              <select id="calculationStatusFilter" style="width:180px" onchange="payrollRunPage=1;renderList()">
+                <option value="all">Semua</option><option value="NOT_CALCULATED">Belum Dihitung</option><option value="SUCCESS">Berhasil</option><option value="PARTIAL_SUCCESS">Berhasil Sebagian</option><option value="FAILED">Gagal</option>
+              </select>
+            </label>
+            <label><span>Status Approval</span>
+              <select id="approvalStatusFilter" style="width:190px" onchange="payrollRunPage=1;renderList()">
+                <option value="all">Semua</option><option value="DRAFT">Draft</option><option value="PENDING">Menunggu</option><option value="APPROVED">Disetujui</option><option value="REJECTED">Ditolak</option><option value="CANCELLED">Dibatalkan</option>
+              </select>
+            </label>
+            <label><span>Status Pembayaran</span>
+              <select id="paymentStatusFilter" style="width:175px" onchange="payrollRunPage=1;renderList()">
+                <option value="all">Semua</option><option value="Belum Dibayar">Belum Dibayar</option><option value="Dibayar Sebagian">Dibayar Sebagian</option><option value="Sudah Dibayar">Sudah Dibayar</option>
               </select>
             </label>
           </div>
         </div>
         <div class="table-tools table-utility-row">
-          <span>Menampilkan <select><option>10</option><option>25</option></select> data</span>
-          <label class="table-search"><span>Cari</span><input id="searchBox" type="text" style="width:180px" oninput="renderList()"></label>
+          <span>Menampilkan <select onchange="setPayrollRunPageSize(this.value)"><option value="10" ${payrollRunPageSize === "10" ? "selected" : ""}>10</option><option value="25" ${payrollRunPageSize === "25" ? "selected" : ""}>25</option><option value="50" ${payrollRunPageSize === "50" ? "selected" : ""}>50</option><option value="100" ${payrollRunPageSize === "100" ? "selected" : ""}>100</option><option value="All" ${payrollRunPageSize === "All" ? "selected" : ""}>Semua</option></select> data</span>
+          <label class="table-search"><span>Cari</span><input id="payrollProcessSearchBox" type="text" value="${payrollRunSearch}" style="width:180px" oninput="setPayrollRunSearch(this.value)"></label>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Perusahaan</th><th>Batch</th><th>Struktur Gaji</th><th style="width:85px">Tipe Periode</th><th>Periode</th><th style="width:85px">Jumlah Karyawan</th><th style="width:120px">Status</th><th style="width:100px">Aksi</th></tr></thead>
-            <tbody>${rows.map(run => `<tr><td>${run.company}</td><td>${run.batch}</td><td>${run.structureName}</td><td>${run.periodType}</td><td>${fmtPeriod(run)}</td><td>${run.employeeCount}</td><td>${badge(run.status)}</td><td><div class="actions inline-actions"><button class="btn teal small icon-btn" type="button" title="Lihat" aria-label="Lihat" data-module-action="openRunDetail" data-module-args="${run.id}">${window.iconEye()}</button></div></td></tr>`).join("")}</tbody>
+        <div class="payroll-top-scroll" id="payrollProcessListTopScroll"><div class="payroll-top-scroll-inner"></div></div>
+        <div class="table-wrap payroll-process-list-wrap" id="payrollProcessListWrap">
+          <table class="payroll-process-list-table">
+            <thead><tr><th class="col-doc">Nomor Dokumen</th><th class="col-date">Tanggal Dokumen</th><th class="col-name">Nama Proses</th><th class="col-structure">Struktur Gaji</th><th class="col-period">Periode</th><th class="col-employee">Jumlah Karyawan</th><th class="col-calculation">Status Perhitungan</th><th class="col-approval">Status Approval</th><th class="col-payment">Status Pembayaran</th><th class="col-action">Aksi</th></tr></thead>
+            <tbody>${pagedRows.map(run => `<tr><td class="nowrap">${run.document_number || "-"}</td><td class="nowrap">${run.document_date || "-"}</td><td class="text-wrap">${run.batch_name || run.batch}</td><td class="text-wrap">${run.structureName}</td><td>${fmtPeriod(run)}</td><td class="nowrap">${run.slips.length}</td><td class="nowrap">${statusBadge(run.calculation_status, "calculation")}</td><td class="nowrap">${payrollApprovalStatusDisplay(run)}</td><td class="nowrap">${paymentSummaryBadge(run)}</td><td class="nowrap"><div class="actions inline-actions"><button class="btn teal small icon-btn" type="button" title="Lihat" aria-label="Lihat" data-module-action="openRunDetail" data-module-args="${run.id}">${window.iconEye()}</button></div></td></tr>`).join("")}</tbody>
           </table>
         </div>
-        <div class="pager"><span>Menampilkan ${rows.length ? "1 - " + rows.length : "0 - 0"} dari ${rows.length} data</span><span class="pages"><button>&lt;</button><button>1</button><button>&gt;</button></span></div>
+        <div class="pager"><span>Menampilkan ${payrollPagerRange(rows.length, payrollRunPage, payrollRunPageSize)} dari ${rows.length} data</span>${payrollPagerHtml(payrollRunPage, totalPages, "setPayrollRunPage")}</div>
       `;
-      if (document.getElementById("statusFilter")) document.getElementById("statusFilter").value = status;
-      if (document.getElementById("searchBox")) document.getElementById("searchBox").value = query;
+      if (document.getElementById("calculationStatusFilter")) document.getElementById("calculationStatusFilter").value = calculationStatus;
+      if (document.getElementById("approvalStatusFilter")) document.getElementById("approvalStatusFilter").value = approvalStatus;
+      if (document.getElementById("paymentStatusFilter")) document.getElementById("paymentStatusFilter").value = paymentStatus;
+      if (document.getElementById("payrollProcessSearchBox")) document.getElementById("payrollProcessSearchBox").value = payrollRunSearch;
+      syncPayrollTopScroll("payrollProcessListTopScroll", "payrollProcessListWrap", ".payroll-process-list-table");
+    }
+
+    function setPayrollRunPageSize(value) {
+      payrollRunPageSize = value;
+      payrollRunPage = 1;
+      renderList();
+    }
+
+    function setPayrollRunPage(page) {
+      payrollRunPage = Number(page) || 1;
+      renderList();
+    }
+
+    function setPayrollRunSearch(value) {
+      payrollRunSearch = value;
+      payrollRunPage = 1;
+      renderList();
+      restoreSearchFocus("payrollProcessSearchBox", value);
     }
 
     function openCreate() {
@@ -14114,15 +14836,17 @@
       currentBatchDraft = null;
       setView("create", "Tambah Proses Penggajian");
       createView.innerHTML = `
-        <div class="toolbar" style="justify-content:flex-start"><button class="btn green" type="button" onclick="processPayroll()">Proses Gaji</button><button class="btn secondary" type="button" onclick="renderList()">Kembali</button></div>
+        <div class="toolbar" style="justify-content:flex-start"><button class="btn" type="button" onclick="saveDraftRun()">Simpan Draft</button><button class="btn green" type="button" onclick="processPayroll()">Hitung Gaji</button><button class="btn secondary" type="button" onclick="renderList()">Kembali</button></div>
         <div id="createErrors" class="error-box"></div>
         <div class="section"><h2 class="section-title">Header Proses Penggajian</h2>
           <div class="form-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));max-width:760px">
-            <div class="form-row"><label>Struktur Gaji</label><select class="form-control" id="structureSelect" onchange="onStructureChange()"><option value="">Pilih Struktur Gaji</option><option value="STAFF_MONTHLY">STAFF_MONTHLY - Staff Bulanan</option><option value="HARIAN_WEEKLY">HARIAN_WEEKLY - Harian Mingguan</option><option value="BORONGAN_WEEKLY">BORONGAN_WEEKLY - Borongan Mingguan</option></select></div>
+            <div class="form-row"><label>Nomor Dokumen</label><input class="form-control" id="documentNumber" type="text" value="Otomatis" readonly></div>
+            <div class="form-row"><label>Tanggal Dokumen</label><input class="form-control" id="documentDate" type="date" value="${todayDate()}"></div>
+            <div class="form-row"><label>Struktur Gaji</label><select class="form-control" id="structureSelect" onchange="onStructureChange()"><option value="">Pilih Struktur Gaji</option><option value="STAFF_MONTHLY">STAFF_MONTHLY - Staff Bulanan</option><option value="HARIAN_WEEKLY">HARIAN_WEEKLY - Harian Mingguan</option><option value="BORONGAN_WEEKLY">BORONGAN_WEEKLY - Borongan Mingguan</option><option value="KHUSUS_CUSTOM">KHUSUS_CUSTOM - Struktur Gaji Khusus</option></select></div>
             <div class="form-row"><label>Tipe Periode</label><input class="form-control" id="periodType" readonly></div>
             <div class="form-row"><label>Periode Mulai</label><input class="form-control" id="periodStart" type="date" onchange="generateBatch()"></div>
             <div class="form-row"><label>Periode Selesai</label><input class="form-control" id="periodEnd" type="date" onchange="generateBatch()"></div>
-            <div class="form-row"><label>Batch</label><input class="form-control" id="batchName" type="text"></div>
+            <div class="form-row"><label>Nama Proses</label><input class="form-control" id="batchName" type="text" maxlength="120"></div>
           </div>
         </div>
         <div class="section"><h2 class="section-title">Filter Karyawan</h2>
@@ -14141,8 +14865,9 @@
 
     function onStructureChange() {
       const code = document.getElementById("structureSelect").value;
-      document.getElementById("periodType").value = code ? structures[code].periodType : "";
+      document.getElementById("periodType").value = code ? periodTypeLabel(structures[code].periodType) : "";
       generateBatch();
+      document.getElementById("eligibleArea")?.classList.add("hidden");
     }
 
     function generateBatch() {
@@ -14154,9 +14879,9 @@
     }
 
     function periodDays(start, end) {
-      const a = new Date(start + "T00:00:00");
-      const b = new Date(end + "T00:00:00");
-      return Math.round((b - a) / 86400000) + 1;
+      const [ay, am, ad] = start.split("-").map(Number);
+      const [by, bm, bd] = end.split("-").map(Number);
+      return Math.round((Date.UTC(by, bm - 1, bd) - Date.UTC(ay, am - 1, ad)) / 86400000) + 1;
     }
 
     function validateCreateHeader() {
@@ -14166,16 +14891,19 @@
       const batch = document.getElementById("batchName").value.trim();
       const errors = [];
       if (!structure) errors.push("Struktur Gaji wajib dipilih.");
+      if (!document.getElementById("documentDate").value) errors.push("Tanggal Dokumen wajib diisi.");
       if (!start) errors.push("Periode Mulai wajib diisi.");
       if (!end) errors.push("Periode Selesai wajib diisi.");
-      if (!batch) errors.push("Batch wajib diisi.");
-      if (structure && start && end) {
+      if (!batch) errors.push("Nama Proses wajib diisi.");
+      if (start && end && new Date(end + "T00:00:00") < new Date(start + "T00:00:00")) errors.push("Periode Selesai tidak boleh sebelum Periode Mulai.");
+      if (structure && start && end && !errors.length) {
         const days = periodDays(start, end);
-        if (structures[structure].periodType === "Mingguan" && days !== 7) errors.push("Periode Mingguan harus 7 hari.");
-        if (structures[structure].periodType === "Bulanan" && (days < 28 || days > 31)) errors.push("Periode Bulanan harus 28 sampai 31 hari.");
+        const periodType = structures[structure].periodType;
+        if (periodType === "WEEKLY" && days !== 7) errors.push("Periode Mingguan harus tepat 7 hari.");
+        if (periodType === "MONTHLY" && (days < 28 || days > 31)) errors.push("Periode Bulanan harus antara 28 sampai 31 hari.");
       }
       showErrors("createErrors", errors);
-      return { valid: !errors.length, structure, start, end, batch };
+      return { valid: !errors.length, document_date: document.getElementById("documentDate").value, structure, start, end, batch };
     }
 
     function applyFilter() {
@@ -14189,6 +14917,7 @@
       const position = document.getElementById("filterPosition").value;
       const employee = document.getElementById("filterEmployee").value;
       const filteredEmployees = employees.filter(emp =>
+        emp.structure === result.structure &&
         (contractType === "Semua" || emp.contractType === contractType) &&
         (religion === "Semua" || emp.religion === religion) &&
         (department === "Semua" || emp.dept === department) &&
@@ -14202,8 +14931,8 @@
         <div class="info-bar"><span>Eligible: <b>${filteredEmployees.length}</b></span><span class="info-link" onclick="openIneligible()">Tidak Eligible: ${ineligibleEmployees.length}</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th style="width:44px"><input type="checkbox" onchange="toggleAllEmployees(this.checked)"></th><th style="width:90px">NIK</th><th>Nama Karyawan</th><th>Departemen</th><th>Posisi</th><th style="width:105px">Tipe Kontrak</th><th>Kontrak</th><th style="width:165px">Aksi</th></tr></thead>
-            <tbody>${filteredEmployees.length ? filteredEmployees.map(emp => `<tr><td><input type="checkbox" data-nik="${emp.nik}" onchange="toggleEmployee('${emp.nik}', this.checked)"></td><td>${emp.nik}</td><td>${emp.name}</td><td>${emp.dept}</td><td>${emp.position}</td><td>${emp.contractType}</td><td>${emp.contract}</td><td><div class="action-row"><button class="btn teal small" type="button" data-module-action="openWorkEntries" data-module-args="${emp.nik}">Work Entries</button><button class="btn small" type="button" data-module-action="openInputs" data-module-args="${emp.nik}">Input Lain</button></div></td></tr>`).join("") : `<tr><td colspan="8" style="text-align:center;color:#777">Tidak ada karyawan eligible sesuai filter.</td></tr>`}</tbody>
+            <thead><tr><th style="width:44px"><input type="checkbox" onchange="toggleAllEmployees(this.checked)"></th><th style="width:120px">Nomor Karyawan</th><th>Nama Karyawan</th><th>Departemen</th><th>Posisi</th><th style="width:105px">Tipe Kontrak</th><th>Kontrak</th><th style="width:190px">Aksi</th></tr></thead>
+            <tbody>${filteredEmployees.length ? filteredEmployees.map(emp => `<tr><td><input type="checkbox" data-nik="${emp.nik}" onchange="toggleEmployee('${emp.nik}', this.checked)"></td><td>${emp.nik}</td><td>${emp.name}</td><td>${emp.dept}</td><td>${emp.position}</td><td>${emp.contractType}</td><td>${emp.contract}</td><td><div class="action-row"><button class="btn teal small" type="button" data-module-action="openWorkEntries" data-module-args="${emp.nik}">Ringkasan Waktu Kerja</button><button class="btn small" type="button" data-module-action="openInputs" data-module-args="${emp.nik}">Input Lain</button></div></td></tr>`).join("") : `<tr><td colspan="8" style="text-align:center;color:#777">Tidak ada karyawan eligible sesuai filter.</td></tr>`}</tbody>
           </table>
         </div>
       `;
@@ -14237,9 +14966,9 @@
 
     function openWorkEntries(nik, slipNo = null) {
       const emp = employeeByNik(nik);
-      const period = currentBatchDraft ? `${currentBatchDraft.start} s/d ${currentBatchDraft.end}` : fmtPeriod(payrollRuns.find(r => r.id === currentRunId));
-      document.getElementById("workEntriesTitle").textContent = `Work Entries - ${emp.name}`;
-      document.getElementById("workEntriesSummary").innerHTML = `<div><span>NIK</span><b>${emp.nik}</b></div><div><span>Nama Karyawan</span><b>${emp.name}</b></div><div><span>Periode</span><b>${period}</b></div>`;
+      const period = currentBatchDraft ? `${currentBatchDraft.start} s/d ${currentBatchDraft.end}` : fmtPeriod(payrollRuns.find(r => String(r.id) === String(currentRunId)));
+      document.getElementById("workEntriesTitle").textContent = `Ringkasan Waktu Kerja - ${emp.name}`;
+      document.getElementById("workEntriesSummary").innerHTML = `<div><span>Nomor Karyawan</span><b>${emp.nik}</b></div><div><span>Nama Karyawan</span><b>${emp.name}</b></div><div><span>Periode</span><b>${period}</b></div>`;
       const data = slipNo ? currentRun().slips.find(s => s.no === slipNo).workEntries.map(w => [w.code, w.name, w.qty, w.unit]) : baseWorkEntries;
       document.getElementById("workEntriesRows").innerHTML = data.map(row => `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td></tr>`).join("");
       showModal("workEntriesModal");
@@ -14256,7 +14985,7 @@
       const emp = employeeByNik(nik);
       const period = currentBatchDraft ? `${currentBatchDraft.start} s/d ${currentBatchDraft.end}` : fmtPeriod(currentRun());
       document.getElementById("inputTitle").textContent = `Input Lain - ${emp.name}`;
-      document.getElementById("inputSummary").innerHTML = `<div><span>NIK</span><b>${emp.nik}</b></div><div><span>Nama Karyawan</span><b>${emp.name}</b></div><div><span>Struktur Gaji</span><b>${structures[currentBatchDraft?.structure || "STAFF_MONTHLY"].name}</b></div><div><span>Periode</span><b>${period}</b></div>`;
+      document.getElementById("inputSummary").innerHTML = `<div><span>Nomor Karyawan</span><b>${emp.nik}</b></div><div><span>Nama Karyawan</span><b>${emp.name}</b></div><div><span>Struktur Gaji</span><b>${structures[currentBatchDraft?.structure || "STAFF_MONTHLY"].name}</b></div><div><span>Periode</span><b>${period}</b></div>`;
       document.getElementById("inputRows").innerHTML = getEmployeeInputs(nik).map((item, index) => `<tr><td>${item.code}</td><td>${item.name}</td><td><input class="form-control" type="number" value="${item.amount}" data-input-amount="${index}"></td><td><input class="form-control" type="text" value="${item.note}" data-input-note="${index}"></td></tr>`).join("");
       showModal("inputModal");
     }
@@ -14335,6 +15064,19 @@
       startProgress([...selectedEmployees]);
     }
 
+    function saveDraftRun() {
+      const result = validateCreateHeader();
+      if (!result.valid) return;
+      if (!selectedEmployees.size) {
+        showErrors("createErrors", ["Pilih minimal satu karyawan untuk disimpan ke draft."]);
+        return;
+      }
+      currentBatchDraft = result;
+      createDraftRun([...selectedEmployees], false);
+      renderRunDetail();
+      showToast("Draft Proses Penggajian berhasil disimpan.");
+    }
+
     function startProgress(niks) {
       document.getElementById("progressTotal").textContent = niks.length;
       document.getElementById("progressDone").textContent = "0";
@@ -14343,133 +15085,187 @@
       document.getElementById("progressBar").style.width = "0%";
       showModal("progressModal");
       let done = 0;
+      let success = 0;
+      let failed = 0;
       const timer = setInterval(() => {
+        const nik = niks[done];
+        const isFailed = nik === "EMP002" && niks.length > 2 && String(currentBatchDraft.batch).toLowerCase().includes("koreksi");
         done += 1;
+        if (isFailed) failed += 1; else success += 1;
         document.getElementById("progressDone").textContent = done;
-        document.getElementById("progressSuccess").textContent = done;
+        document.getElementById("progressSuccess").textContent = success;
+        document.getElementById("progressFailed").textContent = failed;
         document.getElementById("progressBar").style.width = `${Math.round(done / niks.length * 100)}%`;
         if (done >= niks.length) {
           clearInterval(timer);
-          createProcessedRun(niks);
+          createDraftRun(niks, true);
           setTimeout(() => {
             closeModal("progressModal");
             renderRunDetail();
-            showToast("Proses penggajian berhasil dibuat.");
+            showToast("Hitung gaji selesai diproses.");
           }, 500);
         }
       }, 450);
     }
 
-    function createProcessedRun(niks) {
-      const id = `RUN${String(payrollRuns.length + 1).padStart(3, "0")}`;
+    function createDraftRun(niks, calculate = false) {
+      const id = Math.max(...payrollRuns.map(run => Number(run.id) || 0), 0) + 1;
+      const documentNumber = nextPayrollNumber("PPR", currentBatchDraft.document_date);
       const slips = niks.map((nik, index) => {
         const emp = employeeByNik(nik);
         const tpl = slipTemplates[index % slipTemplates.length];
-        return makeSlip(`SLIP/2026/07/${String(index + 1).padStart(4, "0")}`, emp, tpl.values, "Terkonfirmasi");
+        const shouldError = calculate && nik === "EMP002" && niks.length > 2 && String(currentBatchDraft.batch).toLowerCase().includes("koreksi");
+        const slip = makeSlip("", emp, tpl.values, "DRAFT", {
+          id: `${id}-SLIP-${emp.nik}`,
+          calculation_status: calculate ? "SUCCESS" : null,
+          payment_status: "UNPAID"
+        });
+        if (shouldError) {
+          slip.calculation_status = "ERROR";
+          slip.calculation_error_message = "Parameter gaji karyawan belum lengkap.";
+        }
+        return slip;
       });
       const run = {
         id,
+        document_number: documentNumber,
+        document_date: currentBatchDraft.document_date,
+        company_id: 1,
         company: companyName,
+        requested_by: "HR STERLING",
         batch: currentBatchDraft.batch,
+        batch_name: currentBatchDraft.batch,
         structure: currentBatchDraft.structure,
+        payroll_structure_id: currentBatchDraft.structure,
         structureName: structures[currentBatchDraft.structure].name,
-        periodType: structures[currentBatchDraft.structure].periodType,
+        period_type: structures[currentBatchDraft.structure].periodType,
+        periodType: periodTypeLabel(structures[currentBatchDraft.structure].periodType),
         start: currentBatchDraft.start,
+        period_start_date: currentBatchDraft.start,
         end: currentBatchDraft.end,
+        period_end_date: currentBatchDraft.end,
         employeeCount: slips.length,
-        status: "Terkonfirmasi",
+        calculation_status: calculate ? "SUCCESS" : null,
+        calculation_error_message: "",
+        approval_status: "DRAFT",
+        approval_request_id: null,
+        approval_history: [],
+        submitted_at: "",
+        last_calculated_at: calculate ? "2026-08-06 09:00" : "",
+        status: "DRAFT",
         slips
       };
+      if (calculate) syncRunCalculationStatus(run);
       payrollRuns.unshift(run);
       currentRunId = id;
     }
 
     function openRunDetail(id) {
       currentRunId = id;
+      payrollDetailPage = 1;
+      clearPayrollSlipSelection();
       renderRunDetail();
     }
 
     function currentRun() {
-      return payrollRuns.find(run => run.id === currentRunId) || payrollRuns[0];
+      return payrollRuns.find(run => String(run.id) === String(currentRunId)) || payrollRuns[0];
+    }
+
+    function getFilteredRunSlips(run) {
+      const query = detailSearch.trim().toLowerCase();
+      return run.slips.filter(slip =>
+        (slip.no || "").toLowerCase().includes(query) ||
+        (slip.id || "").toLowerCase().includes(query) ||
+        (slip.nik || "").toLowerCase().includes(query) ||
+        (slip.employee || "").toLowerCase().includes(query) ||
+        (slip.dept || "").toLowerCase().includes(query) ||
+        (slip.position || "").toLowerCase().includes(query)
+      );
     }
 
     function getVisibleSlips(run) {
-      const query = detailSearch.trim().toLowerCase();
-
-      let rows = run.slips.filter(slip =>
-        slip.no.toLowerCase().includes(query) ||
-        slip.nik.toLowerCase().includes(query) ||
-        slip.employee.toLowerCase().includes(query) ||
-        slip.dept.toLowerCase().includes(query) ||
-        slip.position.toLowerCase().includes(query)
-      );
-
-      if (detailPageSize !== "All") {
-        rows = rows.slice(0, Number(detailPageSize));
-      }
-
-      return rows;
+      return payrollPagedRows(getFilteredRunSlips(run), payrollDetailPage, detailPageSize);
     }
 
     function setDetailPageSize(value) {
       detailPageSize = value;
+      payrollDetailPage = 1;
       renderRunDetail();
     }
 
     function setDetailSearch(value) {
       detailSearch = value;
+      payrollDetailPage = 1;
+      renderRunDetail();
+      restoreSearchFocus("payrollDetailSearchBox", value);
+    }
+
+    function setPayrollDetailPage(page) {
+      payrollDetailPage = Number(page) || 1;
       renderRunDetail();
     }
 
     function getSlipRecords() {
+      syncPayrollRunsFromApprovalRequests();
       const runRecords = payrollRuns.flatMap(run => run.slips.map(slip => ({ run, slip })));
-      return [...runRecords, ...standaloneSlipRows];
+      return runRecords;
     }
 
-    function findSlipRecord(no) {
-      if (String(no).includes("|")) {
-        const [runId, slipNo] = String(no).split("|");
-        return getSlipRecords().find(record => record.run.id === runId && record.slip.no === slipNo);
+    function findSlipRecord(key) {
+      const normalized = decodeURIComponent(String(key || ""));
+      if (normalized.includes("|")) {
+        const [runId, slipKey] = normalized.split("|");
+        return getSlipRecords().find(record => String(record.run.id) === String(runId) && (record.slip.id === slipKey || record.slip.no === slipKey));
       }
-      return getSlipRecords().find(record => record.slip.no === no);
+      return getSlipRecords().find(record => record.slip.id === normalized || record.slip.no === normalized);
     }
 
     function getFilteredSlipRecords() {
       const query = slipListSearch.trim().toLowerCase();
-      let rows = getSlipRecords().filter(({ run, slip }) =>
-        (!slipListFilters.status || slip.status === slipListFilters.status) &&
+      return getSlipRecords().filter(({ run, slip }) =>
+        (!slipListFilters.status || run.approval_status === slipListFilters.status) &&
         (!slipListFilters.structure || run.structure === slipListFilters.structure) &&
         (!slipListFilters.department || slip.dept === slipListFilters.department) &&
         (!slipListFilters.position || slip.position === slipListFilters.position) &&
-        [slip.no, slip.nik, slip.employee, slip.dept, slip.position, run.batch, run.structureName, slip.status].join(" ").toLowerCase().includes(query)
+        [slip.no || "", slip.id || "", slip.nik, slip.employee, slip.dept, slip.position, run.batch, run.structureName, run.approval_status, slip.payment_status].join(" ").toLowerCase().includes(query)
       );
-      if (slipListPageSize !== "All") rows = rows.slice(0, Number(slipListPageSize));
-      return rows;
     }
 
     function setSlipListFilter(key, value) {
       slipListFilters[key] = value;
+      slipListPage = 1;
       renderSlipList();
     }
 
     function setSlipListPageSize(value) {
       slipListPageSize = value;
+      slipListPage = 1;
       renderSlipList();
     }
 
     function setSlipListSearch(value) {
       slipListSearch = value;
+      slipListPage = 1;
+      renderSlipList();
+      restoreSearchFocus("payrollSlipListSearchBox", value);
+    }
+
+    function setSlipListPage(page) {
+      slipListPage = Number(page) || 1;
       renderSlipList();
     }
 
     function renderSlipList() {
       setView("slipList", "Daftar Slip Gaji");
-      const rows = getFilteredSlipRecords();
+      const filteredRows = getFilteredSlipRecords();
+      const totalPages = payrollTotalPages(filteredRows.length, slipListPageSize);
+      slipListPage = Math.min(Math.max(1, slipListPage), totalPages);
+      const rows = payrollPagedRows(filteredRows, slipListPage, slipListPageSize);
       slipListView.innerHTML = `
         <div class="filter-row" style="margin-top:42px">
           <div class="filter-controls">
-            <label><span>Status</span><select class="form-control" onchange="setSlipListFilter('status', this.value)"><option value="">Semua</option><option ${slipListFilters.status === "Baru" ? "selected" : ""}>Baru</option><option ${slipListFilters.status === "Terkonfirmasi" ? "selected" : ""}>Terkonfirmasi</option><option ${slipListFilters.status === "Selesai" ? "selected" : ""}>Selesai</option><option ${slipListFilters.status === "Terbayar" ? "selected" : ""}>Terbayar</option><option ${slipListFilters.status === "Dibatalkan" ? "selected" : ""}>Dibatalkan</option></select></label>
-            <label><span>Struktur Gaji</span><select class="form-control" onchange="setSlipListFilter('structure', this.value)"><option value="">Semua</option><option value="STAFF_MONTHLY" ${slipListFilters.structure === "STAFF_MONTHLY" ? "selected" : ""}>Staff Bulanan</option><option value="HARIAN_WEEKLY" ${slipListFilters.structure === "HARIAN_WEEKLY" ? "selected" : ""}>Harian Mingguan</option></select></label>
+            <label><span>Status Approval</span><select class="form-control" onchange="setSlipListFilter('status', this.value)"><option value="">Semua</option><option value="DRAFT" ${slipListFilters.status === "DRAFT" ? "selected" : ""}>Draft</option><option value="PENDING" ${slipListFilters.status === "PENDING" ? "selected" : ""}>Menunggu</option><option value="APPROVED" ${slipListFilters.status === "APPROVED" ? "selected" : ""}>Disetujui</option><option value="REJECTED" ${slipListFilters.status === "REJECTED" ? "selected" : ""}>Ditolak</option><option value="CANCELLED" ${slipListFilters.status === "CANCELLED" ? "selected" : ""}>Dibatalkan</option></select></label>
+            <label><span>Struktur Gaji</span><select class="form-control" onchange="setSlipListFilter('structure', this.value)"><option value="">Semua</option><option value="STAFF_MONTHLY" ${slipListFilters.structure === "STAFF_MONTHLY" ? "selected" : ""}>Staff Bulanan</option><option value="HARIAN_WEEKLY" ${slipListFilters.structure === "HARIAN_WEEKLY" ? "selected" : ""}>Harian Mingguan</option><option value="KHUSUS_CUSTOM" ${slipListFilters.structure === "KHUSUS_CUSTOM" ? "selected" : ""}>Struktur Gaji Khusus</option></select></label>
             <label><span>Departemen</span><select class="form-control" onchange="setSlipListFilter('department', this.value)"><option value="">Semua</option><option ${slipListFilters.department === "Finance" ? "selected" : ""}>Finance</option><option ${slipListFilters.department === "Produksi" ? "selected" : ""}>Produksi</option><option ${slipListFilters.department === "HRD" ? "selected" : ""}>HRD</option></select></label>
             <label><span>Posisi</span><select class="form-control" onchange="setSlipListFilter('position', this.value)"><option value="">Semua</option><option ${slipListFilters.position === "Staff Finance" ? "selected" : ""}>Staff Finance</option><option ${slipListFilters.position === "Operator" ? "selected" : ""}>Operator</option><option ${slipListFilters.position === "HR Staff" ? "selected" : ""}>HR Staff</option></select></label>
           </div>
@@ -14477,24 +15273,24 @@
         <div class="table-tools table-utility-row">
           <label style="font-weight:400;margin:0">Menampilkan
             <select onchange="setSlipListPageSize(this.value)" style="width:88px;margin:0 6px">
-              <option value="10" ${slipListPageSize === "10" ? "selected" : ""}>10</option><option value="25" ${slipListPageSize === "25" ? "selected" : ""}>25</option><option value="50" ${slipListPageSize === "50" ? "selected" : ""}>50</option><option value="100" ${slipListPageSize === "100" ? "selected" : ""}>100</option><option value="All" ${slipListPageSize === "All" ? "selected" : ""}>All</option>
+              <option value="10" ${slipListPageSize === "10" ? "selected" : ""}>10</option><option value="25" ${slipListPageSize === "25" ? "selected" : ""}>25</option><option value="50" ${slipListPageSize === "50" ? "selected" : ""}>50</option><option value="100" ${slipListPageSize === "100" ? "selected" : ""}>100</option><option value="All" ${slipListPageSize === "All" ? "selected" : ""}>Semua</option>
             </select>Data
           </label>
-          <label class="table-search"><span>Cari :</span><input type="text" value="${slipListSearch}" oninput="setSlipListSearch(this.value)" style="width:225px"></label>
+          <label class="table-search"><span>Cari :</span><input id="payrollSlipListSearchBox" type="text" value="${slipListSearch}" oninput="setSlipListSearch(this.value)" style="width:225px"></label>
         </div>
-        <div class="table-wrap">
+        <div class="table-wrap payroll-slip-list-wrap">
           <table class="payroll-slip-table">
-            <thead><tr><th style="width:15%">No. Slip Gaji</th><th style="width:18%">Batch</th><th style="width:16%">Periode</th><th style="width:9%">NIK</th><th style="width:12%">Nama</th><th style="width:10%">Upah Bersih</th><th style="width:15%">Status</th><th style="width:70px">Aksi</th></tr></thead>
-            <tbody>${rows.length ? rows.map(({ run, slip }) => `<tr><td>${slip.no}</td><td>${run.batch}</td><td>${fmtPeriod(run)}</td><td>${slip.nik}</td><td>${slip.employee}</td><td class="money-cell">${fmtMoney(slip.values[slip.values.length - 1])}</td><td>${badge(slip.status)}</td><td><div class="actions inline-actions"><button class="btn teal small icon-btn" type="button" title="Lihat" aria-label="Lihat" data-module-action="openSlipDetailPage" data-module-args="${encodeURIComponent(`${run.id}|${slip.no}`)}">${window.iconEye()}</button></div></td></tr>`).join("") : `<tr><td colspan="11" style="text-align:center;color:#777">Tidak ada data slip gaji.</td></tr>`}</tbody>
+            <thead><tr><th style="width:135px">Nomor Slip Gaji</th><th style="width:180px">Nama Proses</th><th style="width:170px">Periode</th><th style="width:120px">Nomor Karyawan</th><th style="width:140px">Nama Karyawan</th><th style="width:125px">Take Home Pay</th><th style="width:145px">Status Approval</th><th style="width:145px">Status Pembayaran</th><th style="width:130px">Tanggal Pembayaran</th><th style="width:70px">Aksi</th></tr></thead>
+            <tbody>${rows.length ? rows.map(({ run, slip }) => `<tr><td>${slip.no || "-"}</td><td>${run.batch_name || run.batch}</td><td>${fmtPeriod(run)}</td><td>${slip.employee_no || slip.nik}</td><td>${slip.employee_name || slip.employee}</td><td class="money-cell">${displaySlipAmount(slip, takeHomePay(slip))}</td><td>${statusBadge(run.approval_status || slip.status)}</td><td>${payrollSlipPaymentDisplay(run, slip)}</td><td>${payrollSlipPaymentDateDisplay(run, slip)}</td><td><div class="actions inline-actions"><button class="btn teal small icon-btn" type="button" title="Lihat" aria-label="Lihat" data-module-action="openSlipDetailPage" data-module-args="${encodeURIComponent(`${run.id}|${slip.id}`)}">${window.iconEye()}</button></div></td></tr>`).join("") : `<tr><td colspan="10" style="text-align:center;color:#777">Tidak ada data slip gaji.</td></tr>`}</tbody>
           </table>
         </div>
-        <div class="pager"><span>Menampilkan ${rows.length ? "1 - " + rows.length : "0 - 0"} dari ${getFilteredSlipRecords().length} Data</span><span class="pages"><button>&lt;</button><button>1</button><button>2</button><button>3</button><button>&gt;</button></span></div>
+        <div class="pager"><span>Menampilkan ${payrollPagerRange(filteredRows.length, slipListPage, slipListPageSize)} dari ${filteredRows.length} Data</span>${payrollPagerHtml(slipListPage, totalPages, "setSlipListPage")}</div>
       `;
     }
 
     function openSlipDetailPage(key) {
       currentSlipPageKey = key;
-      currentSlipPageNo = String(key).includes("|") ? String(key).split("|")[1] : key;
+      currentSlipPageNo = decodeURIComponent(String(key)).includes("|") ? decodeURIComponent(String(key)).split("|")[1] : key;
       renderSlipDetailPage("component");
     }
 
@@ -14502,22 +15298,23 @@
       const record = findSlipRecord(currentSlipPageKey || currentSlipPageNo);
       if (!record) return renderSlipList();
       const { run, slip } = record;
-      const locked = ["Selesai", "Terbayar"].includes(slip.status);
+      const locked = isRunLocked(run);
       setView("slipDetail", "Lihat Slip Gaji");
       slipDetailView.innerHTML = `
         <div class="toolbar" style="justify-content:flex-start">
-          <button class="btn orange" type="button" onclick="recomputeSlipPage()">Hitung Ulang</button>
-          <button class="btn" type="button" onclick="showToast('Slip gaji siap dicetak.')">Print</button>
+          <button class="btn orange" type="button" onclick="recomputeSlipPage()" ${locked ? "disabled" : ""}>Hitung Ulang</button>
+          <button class="btn" type="button" data-module-action="printSlipPage" ${slip.calculation_status === "SUCCESS" ? "" : "disabled"}>Cetak</button>
           <button class="btn secondary" type="button" onclick="renderSlipList()">Kembali</button>
         </div>
         <div class="summary-grid">
-          <div><span>Status Slip Gaji</span><b>${badge(slip.status)}</b></div><div><span>No Slip Gaji</span><b>${slip.no}</b></div><div><span>Batch</span><b>${run.batch}</b></div>
+          <div><span>Status Perhitungan</span><b>${statusBadge(slip.calculation_status, "calculation")}</b></div><div><span>Status Approval</span><b>${statusBadge(run.approval_status)}</b></div><div><span>Status Pembayaran</span><b>${payrollSlipPaymentDisplay(run, slip)}</b></div><div><span>Tanggal Pembayaran</span><b>${payrollSlipPaymentDateDisplay(run, slip)}</b></div>
+          <div><span>Nomor Slip Gaji</span><b>${slip.no || "-"}</b></div><div><span>Nama Proses</span><b>${run.batch_name || run.batch}</b></div><div><span>Take Home Pay</span><b>${displaySlipAmount(slip, takeHomePay(slip))}</b></div>
           <div><span>Struktur Gaji</span><b>${run.structureName}</b></div><div><span>Tipe Periode</span><b>${run.periodType}</b></div><div><span>Periode</span><b>${fmtPeriod(run)}</b></div>
-          <div><span>NIK</span><b>${slip.nik}</b></div><div><span>Nama Karyawan</span><b>${slip.employee}</b></div><div><span>Departemen</span><b>${slip.dept}</b></div><div><span>Posisi</span><b>${slip.position}</b></div>
+          <div><span>Nomor Karyawan</span><b>${slip.employee_no || slip.nik}</b></div><div><span>Nama Karyawan</span><b>${slip.employee_name || slip.employee}</b></div><div><span>Departemen</span><b>${slip.dept}</b></div><div><span>Posisi</span><b>${slip.position}</b></div>
         </div>
         <div class="tabs">
           <button class="tab-btn ${tab === "component" ? "active" : ""}" type="button" onclick="renderSlipDetailPage('component')">Komponen Gaji</button>
-          <button class="tab-btn ${tab === "work" ? "active" : ""}" type="button" onclick="renderSlipDetailPage('work')">Work Entries</button>
+          <button class="tab-btn ${tab === "work" ? "active" : ""}" type="button" onclick="renderSlipDetailPage('work')">Ringkasan Waktu Kerja</button>
           <button class="tab-btn ${tab === "input" ? "active" : ""}" type="button" onclick="renderSlipDetailPage('input')">Input Lain</button>
         </div>
         <div class="section">${renderSlipPageTabContent(slip, tab, locked)}</div>
@@ -14526,24 +15323,24 @@
 
     function renderSlipPageTabContent(slip, tab, locked) {
       if (tab === "work") {
-        return `<div class="table-wrap"><table><thead><tr><th>Kode</th><th>Nama</th><th style="width:130px">Jumlah</th><th style="width:130px">Satuan</th></tr></thead><tbody>${slip.workEntries.map(item => `<tr><td>${item.code}</td><td>${item.name}</td><td>${item.qty}</td><td>${item.unit}</td></tr>`).join("")}</tbody></table></div>`;
+        return `<div class="table-wrap"><table><thead><tr><th>Tipe Waktu Kerja</th><th style="width:130px">Jumlah Hari</th><th style="width:130px">Jumlah Menit</th><th style="width:130px">Jumlah Kali</th></tr></thead><tbody>${slip.workEntries.map(item => `<tr><td>${item.name || item.code}</td><td>${item.days || 0}</td><td>${item.minutes || 0}</td><td>${item.times || 0}</td></tr>`).join("")}</tbody></table></div>`;
       }
       if (tab === "input") {
         return `<div class="table-wrap"><table><thead><tr><th style="width:180px">Kode Input</th><th>Nama Input</th><th style="width:180px">Nominal</th><th>Keterangan</th></tr></thead><tbody>${slip.inputs.map((item, index) => `<tr><td>${item.code}</td><td>${item.name}</td><td><input class="form-control" type="number" value="${item.amount}" data-page-input-amount="${index}" ${locked ? "readonly" : ""}></td><td><input class="form-control" type="text" value="${item.note}" data-page-input-note="${index}" ${locked ? "readonly" : ""}></td></tr>`).join("")}</tbody></table></div>`;
       }
-      return `<div class="table-wrap"><table><thead><tr><th>Nama Tampilan</th><th style="width:140px">Hasil Sistem</th><th style="width:160px">Adjustment</th><th style="width:140px">Nominal Final</th></tr></thead><tbody>${slip.lines.map((line, index) => line.code === "NET" ? `<tr><td>${line.label}</td><td style="text-align:center;color:#999">-</td><td style="text-align:center;color:#999">-</td><td style="text-align:right">${fmtMoney(line.final)}</td></tr>` : `<tr><td>${line.label}</td><td style="text-align:right">${fmtMoney(line.system)}</td><td><input class="form-control" type="number" value="${line.adjustment}" data-page-adjust="${index}" oninput="updateSlipPageAdjustment(${index}, this.value)" ${locked || !line.adjustable ? "readonly" : ""}></td><td style="text-align:right" id="pageLineFinal${index}">${fmtMoney(line.final)}</td></tr>`).join("")}</tbody></table></div>`;
+      return `<div class="table-wrap"><table><thead><tr><th>Komponen Gaji</th><th style="width:140px">Nilai Sistem</th><th style="width:160px">Penyesuaian</th><th style="width:140px">Nilai Digunakan</th></tr></thead><tbody>${slip.lines.map((line, index) => renderSalaryLineRow(line, index, slip, locked, "pageLineFinal", "data-page-adjust")).join("")}</tbody></table></div>`;
     }
 
     function updateSlipPageAdjustment(index, value) {
       const record = findSlipRecord(currentSlipPageKey || currentSlipPageNo);
       if (!record) return;
       const line = record.slip.lines[index];
-      if (!line || !line.adjustable) return;
-      line.adjustment = Number(value || 0);
-      line.final = line.adjustment;
+      if (!line || !line.adjustable || isNetLine(line)) return;
+      line.adjustment = value === "" ? "" : Number(value || 0);
+      line.final = line.adjustment === "" ? line.system : line.adjustment;
       record.slip.values[index] = line.final;
       const finalCell = document.getElementById(`pageLineFinal${index}`);
-      if (finalCell) finalCell.textContent = fmtMoney(line.final);
+      if (finalCell) finalCell.textContent = displaySlipAmount(record.slip, line.final);
     }
 
     function saveSlipPageAdjustment() {
@@ -14551,9 +15348,9 @@
       if (!record) return;
       record.slip.lines.forEach((line, index) => {
         const input = document.querySelector(`[data-page-adjust="${index}"]`);
-        if (input && line.adjustable) {
-          line.adjustment = Number(input.value || 0);
-          line.final = line.adjustment;
+        if (input && line.adjustable && !isNetLine(line)) {
+          line.adjustment = input.value === "" ? "" : Number(input.value || 0);
+          line.final = line.adjustment === "" ? line.system : line.adjustment;
           record.slip.values[index] = line.final;
         }
       });
@@ -14563,7 +15360,7 @@
 
     function saveSlipPageInput() {
       const record = findSlipRecord(currentSlipPageKey || currentSlipPageNo);
-      if (!record || ["Selesai", "Terbayar"].includes(record.slip.status)) return;
+      if (!record || isRunLocked(record.run)) return;
       record.slip.inputs.forEach((item, index) => {
         const amount = document.querySelector(`[data-page-input-amount="${index}"]`);
         const note = document.querySelector(`[data-page-input-note="${index}"]`);
@@ -14573,16 +15370,26 @@
       showToast("Input lain berhasil disimpan.");
     }
 
+    function printSlipPage() {
+      const record = findSlipRecord(currentSlipPageKey || currentSlipPageNo);
+      if (!record || record.slip.calculation_status !== "SUCCESS") {
+        showToast("Slip gaji hanya dapat dicetak setelah berhasil dihitung.");
+        return;
+      }
+      showToast("Slip gaji siap dicetak.");
+    }
+
     function recomputeSlipPage() {
       const record = findSlipRecord(currentSlipPageKey || currentSlipPageNo);
       if (!record) return;
       const slip = record.slip;
-      const locked = ["Selesai", "Terbayar"].includes(slip.status);
+      const locked = isRunLocked(record.run);
+      if (locked) return;
       slip.lines.forEach((line, index) => {
         const input = document.querySelector(`[data-page-adjust="${index}"]`);
         if (input && line.adjustable && !locked) {
-          line.adjustment = Number(input.value || 0);
-          line.final = line.adjustment;
+          line.adjustment = input.value === "" ? "" : Number(input.value || 0);
+          line.final = line.adjustment === "" ? line.system : line.adjustment;
           slip.values[index] = line.final;
         }
       });
@@ -14594,59 +15401,55 @@
           if (note) item.note = note.value;
         });
       }
-      const inputTotal = code => slip.inputs
-        .filter(item => item.code === code)
-        .reduce((sum, item) => sum + Number(item.amount || 0), 0);
-      const bonusLine = slip.lines.find(line => line.code === "BONUS");
-      if (bonusLine) {
-        bonusLine.system = inputTotal("BONUS");
-        bonusLine.adjustment = bonusLine.system;
-        bonusLine.final = bonusLine.system;
-        slip.values[3] = bonusLine.final;
-      }
-      const potonganInput = inputTotal("POTONGAN_KOPERASI") + inputTotal("PINJAMAN") + inputTotal("KOREKSI_POTONGAN");
-      const potonganLine = slip.lines.find(line => line.code === "POT_TERLAMBAT");
-      if (potonganLine && potonganInput) {
-        potonganLine.system = -potonganInput;
-        potonganLine.adjustment = potonganLine.system;
-        potonganLine.final = potonganLine.system;
-        slip.values[4] = potonganLine.final;
-      }
-      const totalNonNet = slip.values.slice(0, -1).reduce((sum, value) => sum + Number(value || 0), 0);
-      slip.values[slip.values.length - 1] = totalNonNet;
-      const netLine = slip.lines[slip.lines.length - 1];
-      netLine.system = totalNonNet;
-      netLine.adjustment = totalNonNet;
-      netLine.final = totalNonNet;
-      showToast("Slip gaji berhasil dihitung ulang.");
+      recomputeSlipData(slip);
+      syncRunCalculationStatus(record.run);
+      record.run.last_calculated_at = "2026-08-06 09:15";
+      if (slip.calculation_status === "SUCCESS") ensureSlipNumber(record.run, slip);
+      showToast(slip.calculation_status === "SUCCESS" ? "Slip gaji berhasil dihitung ulang." : "Slip masih gagal dihitung. Periksa pesan error.");
       renderSlipDetailPage("component");
     }
 
     function renderRunDetail() {
       const run = currentRun();
+      syncPayrollRunFromApprovalRequest(run);
+      const filteredSlips = getFilteredRunSlips(run);
+      const totalPages = payrollTotalPages(filteredSlips.length, detailPageSize);
+      payrollDetailPage = Math.min(Math.max(1, payrollDetailPage), totalPages);
       const visibleSlips = getVisibleSlips(run);
+      const locked = isRunLocked(run);
+      const canSubmit = canSubmitPayrollRun(run);
+      const componentCols = payrollRunComponentColumns(run);
+      const detailMinWidth = payrollDetailMinWidth(componentCols.length);
+      const selectedCount = currentRunSelectedSlips().length;
       setView("detail", "Lihat Proses Penggajian");
       detailView.innerHTML = `
         <div class="payroll-process-detail">
         <div class="toolbar" style="justify-content:flex-start">
           <button class="btn secondary" type="button" onclick="renderList()">Kembali</button>
-          ${userApproverGaji ? `<button class="btn green" type="button" onclick="setRunStatus('Selesai')" ${run.status !== "Terkonfirmasi" ? "disabled" : ""}>Selesai</button>` : ""}
-          <button class="btn green" type="button" onclick="setRunStatus('Terbayar')" ${run.status !== "Selesai" ? "disabled" : ""}>Terbayar</button>
-          <button class="btn red" type="button" onclick="openCancel()" ${!["Terkonfirmasi","Selesai"].includes(run.status) ? "disabled" : ""}>Batal</button>
+          <button class="btn green" type="button" onclick="recomputeAll()" ${locked ? "disabled" : ""}>Hitung Ulang Semua</button>
+          ${isRunDraft(run) ? `<button class="btn orange" id="payrollRecomputeSelectedBtn" type="button" data-module-action="recomputeSelectedSlips" ${selectedCount ? "" : "disabled"}>Hitung Ulang Terpilih</button>` : ""}
+          <button class="btn" type="button" onclick="submitRun()" ${canSubmit && !locked ? "" : "disabled title=\"Proses Penggajian hanya dapat diajukan setelah seluruh karyawan berhasil dihitung.\""}>Ajukan</button>
+          <button class="btn red" type="button" onclick="openCancel()" ${!isRunDraft(run) ? "disabled" : ""}>Batal</button>
 
           <span style="flex:1"></span>
 
-          <button class="btn orange" type="button" onclick="recomputeAll()">Hitung Ulang Semua</button>
-          <button class="btn green" type="button" onclick="showToast('Export Excel berhasil dibuat.')">Export Excel</button>
-          <button class="btn" type="button" onclick="printSelected()">Print Selected</button>
+          ${run.approval_status === "APPROVED" ? `<button class="btn green" id="payrollBulkPaymentBtn" type="button" onclick="openBulkPayment()" ${selectedCount ? "" : "disabled"}>${payrollMoneyIcon()} Catat Pembayaran</button>` : ""}
+          <button class="btn green" type="button" onclick="showToast('Ekspor Excel berhasil dibuat.')">Ekspor Excel</button>
+          <button class="btn" id="payrollPrintSelectedBtn" type="button" onclick="printSelected()" ${selectedCount ? "" : "disabled"}>Cetak Terpilih</button>
+          <span class="payroll-selection-info" id="payrollSelectionInfo">${selectedCount} slip dipilih</span>
         </div>
+        ${!canSubmit && !locked ? `<div class="helper-text">Proses Penggajian hanya dapat diajukan setelah seluruh karyawan berhasil dihitung.</div>` : ""}
         <div class="summary-grid">
-          <div><span>Status</span><b>${badge(run.status)}</b></div>
-          <div><span>Perusahaan</span><b>${run.company}</b></div>
-          <div><span>Batch</span><b>${run.batch}</b></div>
+          <div><span>Nomor Dokumen</span><b>${run.document_number || "-"}</b></div>
+          <div><span>Tanggal Dokumen</span><b>${run.document_date || "-"}</b></div>
+          <div><span>Nama Proses</span><b>${run.batch_name || run.batch}${isRunDraft(run) ? ` <button class="btn small icon-btn" type="button" title="Ubah Nama Proses" aria-label="Ubah Nama Proses" data-module-action="openProcessNameEdit" data-module-args="${run.id}">${window.iconPencil ? window.iconPencil() : "Edit"}</button>` : ""}</b></div>
           <div><span>Struktur Gaji</span><b>${run.structureName}</b></div>
           <div><span>Tipe Periode</span><b>${run.periodType}</b></div>
           <div><span>Periode</span><b>${fmtPeriod(run)}</b></div>
+          <div><span>Status Perhitungan</span><b>${statusBadge(run.calculation_status, "calculation")}</b></div>
+          <div><span>Status Approval</span><b>${payrollApprovalStatusDisplay(run)}</b></div>
+          <div><span>Status Pembayaran</span><b>${paymentSummaryBadge(run)}</b></div>
+          <div><span>Waktu Hitung Terakhir</span><b>${run.last_calculated_at || "-"}</b></div>
         </div>
         <div class="table-tools table-utility-row">
           <label style="font-weight:400;margin:0">
@@ -14656,91 +15459,138 @@
               <option value="25" ${detailPageSize === "25" ? "selected" : ""}>25</option>
               <option value="50" ${detailPageSize === "50" ? "selected" : ""}>50</option>
               <option value="100" ${detailPageSize === "100" ? "selected" : ""}>100</option>
-              <option value="All" ${detailPageSize === "All" ? "selected" : ""}>All</option>
+              <option value="All" ${detailPageSize === "All" ? "selected" : ""}>Semua</option>
             </select>
             Data
           </label>
           <label class="table-search">
             <span>Cari :</span>
-            <input type="text" value="${detailSearch}" oninput="setDetailSearch(this.value)" style="width:265px">
+            <input id="payrollDetailSearchBox" type="text" value="${detailSearch}" oninput="setDetailSearch(this.value)" style="width:265px">
           </label>
         </div>
-        <div class="table-wrap payroll-process-detail-table-wrap">
-          <table class="payroll-process-detail-table">
-            <thead><tr><th style="width:44px"><input type="checkbox"></th><th style="width:120px">No Slip Gaji</th><th style="width:76px">NIK</th><th style="width:135px">Nama Karyawan</th><th style="width:105px">Departemen</th><th style="width:112px">Posisi</th>${componentColumns.map(c => `<th style="width:105px">${c}</th>`).join("")}<th style="width:105px">Status</th><th style="width:112px">Aksi</th></tr></thead>
-            <tbody>${visibleSlips.map(slip => `<tr><td><input type="checkbox" data-print-slip="${slip.no}"></td><td>${slip.no}</td><td>${slip.nik}</td><td>${slip.employee}</td><td>${slip.dept}</td><td>${slip.position}</td>${slip.values.map(v => `<td class="money-cell">${fmtMoney(v)}</td>`).join("")}<td>${badge(slip.status)}</td><td><div class="actions"><button class="btn teal small" type="button" data-module-action="openSlip" data-module-args="${slip.no}">Lihat</button><button class="btn small" type="button" data-module-action="recomputeSlip" data-module-args="${slip.no}">Hitung Ulang</button></div></td></tr>`).join("")}</tbody>
+        <div class="payroll-top-scroll" id="payrollProcessDetailTopScroll"><div class="payroll-top-scroll-inner"></div></div>
+        <div class="table-wrap payroll-process-detail-table-wrap" id="payrollProcessDetailWrap">
+          <table class="payroll-process-detail-table" style="--payroll-detail-min-width:${detailMinWidth}px">
+            <thead><tr><th style="width:44px"><input id="payrollSelectAllVisible" type="checkbox" onchange="toggleVisiblePayrollSlips(this.checked)"></th><th class="run-slip-col">Nomor Slip Gaji</th><th class="run-employee-no-col">Nomor Karyawan</th><th class="run-employee-name-col">Nama Karyawan</th><th class="run-dept-col">Departemen</th><th class="run-position-col">Posisi</th>${componentCols.map(col => `<th class="run-component-col">${col.label}</th>`).join("")}<th class="run-net-col">Take Home Pay</th><th class="run-action-col">Aksi</th></tr></thead>
+            <tbody>${visibleSlips.map(slip => `<tr><td><input type="checkbox" data-print-slip="${slip.id}" onchange="togglePayrollSlipSelection('${slip.id}', this.checked)" ${selectedPayrollSlipIds.has(slip.id) ? "checked" : ""}></td><td>${slip.no || "-"}</td><td>${slip.employee_no || slip.nik}</td><td>${slip.employee_name || slip.employee}${slip.calculation_status === "ERROR" ? ` ${statusBadge("ERROR", "calculation")}<span class="payroll-slip-error-note" title="${slip.calculation_error_message || ""}">${slip.calculation_error_message || "Gagal dihitung."}</span>` : ""}</td><td>${slip.dept || "-"}</td><td>${slip.position || "-"}</td>${componentCols.map(col => `<td class="money-cell">${payrollSlipComponentValue(slip, col.code)}</td>`).join("")}<td class="money-cell">${displaySlipAmount(slip, takeHomePay(slip))}</td><td><div class="actions"><button class="btn teal small icon-btn" type="button" title="Lihat" aria-label="Lihat" data-module-action="openSlip" data-module-args="${slip.id}">${window.iconEye()}</button><button class="btn small icon-btn" type="button" title="Hitung Ulang" aria-label="Hitung Ulang" data-module-action="recomputeSlip" data-module-args="${slip.id}" ${locked ? "disabled" : ""}>${window.iconRefresh ? window.iconRefresh() : "R"}</button>${run.approval_status === "APPROVED" && slip.calculation_status === "SUCCESS" && slip.payment_status === "UNPAID" ? `<button class="btn green small icon-btn" type="button" title="Catat Pembayaran" aria-label="Catat Pembayaran" data-module-action="openPayment" data-module-args="${slip.id}">${payrollMoneyIcon()}</button>` : ""}</div></td></tr>`).join("")}</tbody>
           </table>
         </div>
+        <div class="pager"><span>Menampilkan ${payrollPagerRange(filteredSlips.length, payrollDetailPage, detailPageSize)} dari ${filteredSlips.length} Data</span>${payrollPagerHtml(payrollDetailPage, totalPages, "setPayrollDetailPage")}</div>
         </div>
       `;
+      syncPayrollTopScroll("payrollProcessDetailTopScroll", "payrollProcessDetailWrap", ".payroll-process-detail-table");
+      updatePayrollSelectionUi();
     }
 
     function recomputeAll() {
-      showToast("Semua slip gaji berhasil dihitung ulang.");
+      const run = currentRun();
+      if (isRunLocked(run)) return;
+      run.slips.forEach(slip => recomputeSlipData(slip));
+      syncRunCalculationStatus(run);
+      run.last_calculated_at = "2026-08-06 09:15";
+      const result = payrollRecomputeResult(run.slips);
+      renderRunDetail();
+      showToast(payrollRecomputeMessage(result, "all"));
     }
 
-    function recomputeSlip(no) {
-      const run = currentRun();
-      const slip = run.slips.find(item => item.no === no);
-      if (!slip) return;
-
-      currentSlipNo = no;
-
-      slip.lines.forEach((line, index) => {
-        const input = document.querySelector(`[data-adjust="${index}"]`);
-        if (input && line.adjustable) {
-          line.adjustment = Number(input.value || 0);
-          line.final = line.adjustment;
-          slip.values[index] = line.final;
-        }
-      });
-
-      if (!["Selesai", "Terbayar"].includes(run.status)) {
-        slip.inputs.forEach((item, index) => {
-          const amountInput = document.querySelector(`[data-slip-input-amount="${index}"]`);
-          const noteInput = document.querySelector(`[data-slip-input-note="${index}"]`);
-          if (amountInput) item.amount = Number(amountInput.value || 0);
-          if (noteInput) item.note = noteInput.value;
+    function recomputeSlipData(slip) {
+      if (slip.calculation_error_message && slip.error_can_be_fixed) {
+        slip.calculation_error_message = "";
+        slip.error_can_be_fixed = false;
+        const original = slip.original_system_values || slip.base_values || slip.values || [];
+        slip.values = original.slice();
+        slip.lines.forEach((line, index) => {
+          line.system = Number(original[index] || 0);
+          line.final = line.adjustment === "" || line.adjustment == null ? line.system : Number(line.adjustment || 0);
         });
       }
-
+      slip.calculation_status = slip.calculation_error_message ? "ERROR" : "SUCCESS";
+      if (slip.calculation_status === "ERROR") return;
+      slip.calculation_error_message = "";
       const inputTotal = code => slip.inputs
         .filter(item => item.code === code)
         .reduce((sum, item) => sum + Number(item.amount || 0), 0);
-
-      const bonusLine = slip.lines.find(line => line.code === "BONUS");
-      if (bonusLine) {
-        bonusLine.system = inputTotal("BONUS");
-        bonusLine.adjustment = bonusLine.system;
-        bonusLine.final = bonusLine.system;
-        slip.values[3] = bonusLine.final;
+      slip.lines.forEach((line, index) => {
+        if (line.code === "BONUS") line.system = inputTotal("BONUS");
+        if (line.code === "POT_TERLAMBAT") {
+          const potonganInput = inputTotal("POTONGAN_KOPERASI") + inputTotal("PINJAMAN") + inputTotal("KOREKSI_POTONGAN");
+          if (potonganInput) line.system = -potonganInput;
+        }
+        line.final = line.adjustment === "" || line.adjustment == null ? line.system : Number(line.adjustment || 0);
+        slip.values[index] = line.final;
+      });
+      const totalNonNet = slip.lines.filter(line => line.category_code !== "NET").reduce((sum, line) => sum + Number(line.final || 0), 0);
+      const netLine = slip.lines.find(line => line.category_code === "NET" || line.code === "NET");
+      if (netLine) {
+        netLine.system = totalNonNet;
+        netLine.adjustment = "";
+        netLine.final = totalNonNet;
+        slip.values[slip.lines.indexOf(netLine)] = netLine.final;
       }
+    }
 
-      const potonganInput = inputTotal("POTONGAN_KOPERASI") + inputTotal("PINJAMAN") + inputTotal("KOREKSI_POTONGAN");
-      const potonganLine = slip.lines.find(line => line.code === "POT_TERLAMBAT");
-      if (potonganLine && potonganInput) {
-        potonganLine.system = -potonganInput;
-        potonganLine.adjustment = potonganLine.system;
-        potonganLine.final = potonganLine.system;
-        slip.values[4] = potonganLine.final;
-      }
+    function payrollRecomputeResult(slips) {
+      const rows = slips || [];
+      const success = rows.filter(slip => slip.calculation_status === "SUCCESS").length;
+      const failed = rows.filter(slip => slip.calculation_status === "ERROR").length;
+      const pending = rows.length - success - failed;
+      return { total: rows.length, success, failed, pending };
+    }
 
-      const totalNonNet = slip.values.slice(0, -1).reduce((sum, value) => sum + Number(value || 0), 0);
-      slip.values[slip.values.length - 1] = totalNonNet;
+    function payrollRecomputeMessage(result, mode = "selected") {
+      if (!result.total || result.success === 0 && result.failed > 0 && result.pending === 0) return "Seluruh slip masih gagal dihitung. Periksa pesan error.";
+      if (result.success === result.total) return mode === "all" ? "Semua slip gaji berhasil dihitung ulang." : `${result.success} slip berhasil dihitung ulang.`;
+      if (result.success > 0) return `${result.success} slip berhasil dihitung ulang dan ${result.failed + result.pending} slip masih gagal.`;
+      return "Slip masih gagal dihitung. Periksa pesan error.";
+    }
 
-      const netLine = slip.lines[slip.lines.length - 1];
-      netLine.system = totalNonNet;
-      netLine.adjustment = totalNonNet;
-      netLine.final = totalNonNet;
+    function recomputeSlip(key) {
+      const run = currentRun();
+      if (isRunLocked(run)) return;
+      const slip = run.slips.find(item => item.id === key || item.no === key);
+      if (!slip) return;
 
-      showToast("Perubahan slip gaji berhasil disimpan dan dihitung ulang.");
+      currentSlipNo = slip.id;
+      recomputeSlipData(slip);
+      syncRunCalculationStatus(run);
+      run.last_calculated_at = "2026-08-06 09:15";
+
+      if (slip.calculation_status === "SUCCESS") ensureSlipNumber(run, slip);
+      showToast(slip.calculation_status === "SUCCESS" ? "Slip gaji berhasil dihitung ulang." : "Slip masih gagal dihitung. Periksa pesan error.");
       renderRunDetail();
-      openSlip(no);
+      openSlip(slip.id);
+    }
+
+    function recomputeSelectedSlips() {
+      const run = currentRun();
+      if (isRunLocked(run)) return;
+      const selected = currentRunSelectedSlips();
+      if (!selected.length) {
+        showToast("Pilih slip gaji terlebih dahulu.");
+        return;
+      }
+      selected.forEach(slip => recomputeSlipData(slip));
+      syncRunCalculationStatus(run);
+      run.last_calculated_at = "2026-08-06 09:15";
+      const result = payrollRecomputeResult(selected);
+      clearPayrollSlipSelection();
+      renderRunDetail();
+      showToast(payrollRecomputeMessage(result, "selected"));
     }
 
     function printSelected() {
-      const selected = [...document.querySelectorAll("[data-print-slip]:checked")].length;
-      showToast(selected ? `${selected} slip gaji siap dicetak.` : "Pilih slip gaji terlebih dahulu.");
+      const selected = currentRunSelectedSlips();
+      const eligible = selected.filter(slip => slip.calculation_status === "SUCCESS");
+      const skipped = selected.length - eligible.length;
+      if (!selected.length) {
+        showToast("Pilih slip gaji terlebih dahulu.");
+        return;
+      }
+      if (!eligible.length) {
+        showToast("Tidak ada slip yang dapat dicetak. Slip harus berhasil dihitung terlebih dahulu.");
+        return;
+      }
+      showToast(`${eligible.length} slip siap dicetak.${skipped ? ` ${skipped} slip belum berhasil dihitung dan dilewati.` : ""}`);
     }
 
     function setRunStatus(status) {
@@ -14751,22 +15601,300 @@
       showToast(`Status proses penggajian menjadi ${status}.`);
     }
 
+    function canSubmitPayrollRun(run) {
+      return run?.approval_status === "DRAFT"
+        && Array.isArray(run.slips)
+        && run.slips.length > 0
+        && run.calculation_status === "SUCCESS"
+        && run.slips.every(slip => slip.calculation_status === "SUCCESS");
+    }
+
     function openCancel() {
+      if (!isRunDraft(currentRun())) {
+        closeModal("cancelModal");
+        showToast("Hanya Proses Penggajian Draft yang dapat dibatalkan.");
+        return;
+      }
       showModal("cancelModal");
     }
 
     function confirmCancel() {
+      const run = currentRun();
+      if (!isRunDraft(run)) {
+        closeModal("cancelModal");
+        showToast("Hanya Proses Penggajian Draft yang dapat dibatalkan.");
+        return;
+      }
       closeModal("cancelModal");
-      setRunStatus("Dibatalkan");
+      run.approval_status = "CANCELLED";
+      run.status = "CANCELLED";
+      run.slips.forEach(slip => slip.status = "CANCELLED");
+      renderRunDetail();
+      showToast("Proses Penggajian dibatalkan.");
     }
 
-    function openSlip(no) {
-      currentSlipNo = no;
-      const slip = currentRun().slips.find(item => item.no === no);
+    function findPayrollApprovalSetting(run) {
+      const settings = (window.iReapNetApprovalSettings || []).filter(setting => setting.transaction_type === "PAYROLL_PROCESS" && setting.is_active !== false);
+      return settings.find(setting => setting.transaction_subtype === run.period_type) || settings.find(setting => setting.transaction_subtype === "ALL") || null;
+    }
+
+    function payrollApprovalRequestStore() {
+      window.iReapNetApprovalRequests = window.iReapNetApprovalRequests || [];
+      return window.iReapNetApprovalRequests;
+    }
+
+    function payrollApprovalStageRows(setting) {
+      const stageConfigs = window.iReapNetApprovalStages || [];
+      const resolveConfig = stage => stageConfigs.find(config => String(config.id) === String(stage.stage_id) || String(config.code) === String(stage.stage_id));
+      const approverText = config => {
+        if (!config) return "-";
+        const detailValues = (config.details || []).map(item => item.value || item.name || item.label).filter(Boolean);
+        if (detailValues.length) return detailValues.join(", ");
+        return config.approver_name || config.approver || config.role_name || config.user_name || "-";
+      };
+      const stages = (setting?.stages || [])
+        .map((stage, index) => ({ stage, config: resolveConfig(stage), sequence: Number(stage.sequence_no || stage.sequence || index + 1) }))
+        .sort((a, b) => a.sequence - b.sequence);
+      if (!stages.length) return [{ stage: "-", approver: "-", status: "Menunggu", actionDate: "-", note: "-" }];
+      return stages.map(({ stage, config, sequence }) => ({
+        sequence_no: sequence,
+        stage: config?.name || stage.stage_name || stage.name || "-",
+        approver: approverText(config),
+        status: "Menunggu",
+        actionDate: "-",
+        note: "-"
+      }));
+    }
+
+    function payrollApprovalHistoryForRun(run, setting) {
+      const history = payrollApprovalStageRows(setting);
+      if (run.approval_status === "APPROVED" || run.approval_status === "REJECTED") {
+        const first = history[0] || { stage: "-", approver: "-", note: "-" };
+        first.status = run.approval_status === "APPROVED" ? "Disetujui" : "Ditolak";
+        first.actionDate = run.approval_status === "APPROVED" ? "2026-07-31 17:30" : "2026-07-09 10:30";
+        first.note = run.approval_status === "APPROVED" ? "Disetujui." : (run.reject_note || "Ditolak.");
+      }
+      return history;
+    }
+
+    function payrollApprovalRequestMatches(request, run) {
+      return request?.approvalRequestNo === run.approval_request_id
+        || request?.approval_request_no === run.approval_request_id
+        || request?.approval_request_id === run.approval_request_id
+        || (request?.transaction_type === "PAYROLL_PROCESS" && String(request?.transaction_id) === String(run.id))
+        || (request?.transactionType === "PAYROLL_PROCESS" && String(request?.transactionId) === String(run.id));
+    }
+
+    function ensurePayrollApprovalRequest(run, setting) {
+      const store = payrollApprovalRequestStore();
+      const existing = store.find(item => payrollApprovalRequestMatches(item, run));
+      if (existing) {
+        run.approval_request_id = existing.approvalRequestNo || existing.approval_request_no || existing.approval_request_id || run.approval_request_id;
+        return existing;
+      }
+      if (!run.approval_request_id) run.approval_request_id = `APR-PPR-${String(run.id).replace(/\D/g, "").padStart(4, "0")}`;
+      const history = run.approval_history?.length ? run.approval_history : payrollApprovalHistoryForRun(run, setting);
+      const nextId = Math.max(100200, ...store.map(item => Number(item.id) || 0)) + 1;
+      const request = {
+        id: nextId,
+        approvalRequestNo: run.approval_request_id,
+        approval_request_no: run.approval_request_id,
+        approval_request_id: run.approval_request_id,
+        company_id: run.company_id || 1,
+        companyId: run.company_id || 1,
+        transaction_type: "PAYROLL_PROCESS",
+        transactionType: "PAYROLL_PROCESS",
+        transaction_subtype: run.period_type,
+        transactionSubtype: run.period_type,
+        transaction_id: run.id,
+        transactionId: run.id,
+        transaction_no: run.document_number,
+        transactionNo: run.document_number,
+        documentNo: run.document_number,
+        document_number: run.document_number,
+        transaction_date: run.document_date,
+        submittedAt: run.submitted_at,
+        submitted_at: run.submitted_at,
+        submittedDate: (run.submitted_at || run.document_date || "").slice(0, 10),
+        requester: run.requested_by || "HR STERLING",
+        requestedBy: run.requested_by || "HR STERLING",
+        requested_by: run.requested_by || "HR STERLING",
+        status: run.approval_status,
+        approval_status: run.approval_status,
+        typeLabel: "Proses Penggajian",
+        approval_object: run.batch_name || run.batch || "-",
+        approval_period: fmtPeriod(run),
+        approval_description: run.note || run.description || "-",
+        stage: history[0]?.stage || "-",
+        note: "",
+        history
+      };
+      store.push(request);
+      run.approval_history = history;
+      return request;
+    }
+
+    function seedPayrollApprovalRequests() {
+      payrollRuns.forEach(run => {
+        if (run.approval_request_id) ensurePayrollApprovalRequest(run, findPayrollApprovalSetting(run));
+      });
+    }
+
+    function syncPayrollRunFromApprovalRequest(run) {
+      if (!run?.approval_request_id) return;
+      const request = payrollApprovalRequestStore().find(item => payrollApprovalRequestMatches(item, run));
+      if (!request) {
+        console.warn("Initial Approval Request Proses Penggajian tidak ditemukan.", { id: run.id, document_number: run.document_number, approval_request_id: run.approval_request_id });
+        return;
+      }
+      const status = request.approval_status || request.status;
+      if (status) {
+        run.approval_status = status;
+        run.status = status;
+        (run.slips || []).forEach(slip => slip.status = status);
+      }
+      run.approval_history = request.history || run.approval_history || [];
+    }
+
+    function syncPayrollRunsFromApprovalRequests() {
+      payrollRuns.forEach(syncPayrollRunFromApprovalRequest);
+    }
+
+    function payrollApprovalHistory(run) {
+      const request = payrollApprovalRequestStore().find(item => payrollApprovalRequestMatches(item, run));
+      return request?.history?.length ? request.history : (run.approval_history || []);
+    }
+
+    function openPayrollApprovalHistory(id) {
+      const run = payrollRuns.find(item => String(item.id) === String(id));
+      if (!run || !payrollApprovalHasHistory(run)) return;
+      syncPayrollRunFromApprovalRequest(run);
+      const request = payrollApprovalRequestStore().find(item => payrollApprovalRequestMatches(item, run));
+      document.getElementById("payrollApprovalHistorySummary").innerHTML = `
+        <div><b>No Dokumen:</b> ${escapePayrollHtml(request?.documentNo || request?.transactionNo || run.document_number || "-")}</div>
+        <div><b>Jenis Transaksi:</b> ${escapePayrollHtml(request?.typeLabel || "Proses Penggajian")}</div>
+        <div><b>Nama Proses:</b> ${escapePayrollHtml(request?.approval_object || run.batch_name || run.batch || "-")}</div>
+        <div><b>Periode:</b> ${escapePayrollHtml(request?.approval_period || fmtPeriod(run))}</div>
+        <div><b>Keterangan:</b> ${escapePayrollHtml(request?.approval_description || run.note || run.description || "-")}</div>
+      `;
+      const history = payrollApprovalHistory(run);
+      document.getElementById("payrollApprovalHistoryRows").innerHTML = history.length
+        ? history.map(row => `<tr><td>${escapePayrollHtml(row.stage || "-")}</td><td>${escapePayrollHtml(row.approver || "-")}</td><td>${statusBadge(row.status === "Menunggu" ? "PENDING" : row.status === "Disetujui" ? "APPROVED" : row.status === "Ditolak" ? "REJECTED" : row.status === "Dibatalkan" ? "CANCELLED" : row.status)}</td><td>${escapePayrollHtml(row.actionDate || "-")}</td><td>${escapePayrollHtml(row.note || "-")}</td></tr>`).join("")
+        : `<tr><td colspan="5" style="text-align:center;color:#777">Tidak ada riwayat approval.</td></tr>`;
+      showModal("payrollApprovalHistoryModal");
+    }
+
+    function submitRun() {
+      const run = currentRun();
+      if (!canSubmitPayrollRun(run)) {
+        showToast("Proses Penggajian hanya dapat diajukan jika seluruh slip berhasil dihitung.");
+        return;
+      }
+      const setting = findPayrollApprovalSetting(run);
+      run.approval_status = setting ? "PENDING" : "APPROVED";
+      run.status = run.approval_status;
+      run.submitted_at = "2026-08-06 09:30";
+      if (setting) {
+        const request = ensurePayrollApprovalRequest(run, setting);
+        request.status = run.approval_status;
+        request.approval_status = run.approval_status;
+        request.submittedAt = run.submitted_at;
+        request.submitted_at = run.submitted_at;
+        request.submittedDate = run.submitted_at.slice(0, 10);
+      } else {
+        run.approval_request_id = null;
+        run.approval_history = [];
+      }
+      run.slips.forEach(slip => slip.status = run.approval_status);
+      renderRunDetail();
+      showToast(setting ? "Proses Penggajian diajukan untuk approval." : "Tidak ada approval setting. Proses Penggajian langsung Disetujui.");
+    }
+
+    function openPayment(key) {
+      paymentMode = "single";
+      const slip = currentRun().slips.find(item => item.id === key || item.no === key);
+      if (!slip || currentRun().approval_status !== "APPROVED" || slip.calculation_status !== "SUCCESS" || slip.payment_status !== "UNPAID") return;
+      currentPaymentSlipNo = slip.no || "";
+      currentPaymentSlipId = slip.id;
+      paymentSlipIds = [slip.id];
+      document.getElementById("paymentErrors").classList.remove("show");
+      document.getElementById("paymentErrors").innerHTML = "";
+      document.getElementById("paymentDate").value = todayDate();
+      document.getElementById("paymentSummary").innerHTML = `<div><span>Karyawan</span><b>${slip.employee_no || slip.nik} - ${slip.employee_name || slip.employee}</b></div><div><span>Take Home Pay</span><b>${fmtMoney(takeHomePay(slip))}</b></div>`;
+      document.getElementById("savePaymentBtn").disabled = false;
+      showModal("paymentModal");
+    }
+
+    function openBulkPayment() {
+      const run = currentRun();
+      if (run.approval_status !== "APPROVED" || !selectedPayrollSlipIds.size) return;
+      paymentMode = "bulk";
+      paymentSlipIds = [...selectedPayrollSlipIds];
+      currentPaymentSlipNo = "";
+      currentPaymentSlipId = null;
+      const result = selectedPaymentEligibility(run, paymentSlipIds);
+      document.getElementById("paymentErrors").classList.remove("show");
+      document.getElementById("paymentErrors").innerHTML = result.eligible.length ? "" : "Tidak ada slip terpilih yang dapat diproses.";
+      if (!result.eligible.length) document.getElementById("paymentErrors").classList.add("show");
+      document.getElementById("paymentDate").value = todayDate();
+      const skippedParts = [];
+      if (result.alreadyPaid) skippedParts.push(`${result.alreadyPaid} sudah dibayar`);
+      if (result.notCalculated) skippedParts.push(`${result.notCalculated} belum berhasil dihitung`);
+      if (result.otherIneligible) skippedParts.push(`${result.otherIneligible} tidak memenuhi syarat lain`);
+      document.getElementById("paymentSummary").innerHTML = `<div><span>Jumlah Dipilih</span><b>${result.selected.length}</b></div><div><span>Dapat Dibayar</span><b>${result.eligible.length}</b></div><div><span>Dilewati</span><b>${result.skipped}${skippedParts.length ? `: ${skippedParts.join(" dan ")}` : ""}</b></div>`;
+      document.getElementById("savePaymentBtn").disabled = result.eligible.length === 0;
+      showModal("paymentModal");
+    }
+
+    function savePayment() {
+      const run = currentRun();
+      const date = document.getElementById("paymentDate").value;
+      if (!date) {
+        showErrors("paymentErrors", ["Tanggal Pembayaran wajib diisi."]);
+        return;
+      }
+      if (paymentMode === "bulk") {
+        const result = selectedPaymentEligibility(run, paymentSlipIds);
+        if (!result.eligible.length) {
+          showErrors("paymentErrors", ["Tidak ada slip terpilih yang dapat diproses."]);
+          return;
+        }
+        result.eligible.forEach(slip => {
+          slip.payment_status = "PAID";
+          slip.payment_date = date;
+        });
+        closeModal("paymentModal");
+        clearPayrollSlipSelection();
+        renderRunDetail();
+        showToast(`Pembayaran ${result.eligible.length} slip berhasil dicatat. ${result.skipped} slip dilewati.`);
+        return;
+      }
+      const record = getSlipRecords().find(item => item.slip.id === currentPaymentSlipId || item.slip.no === currentPaymentSlipNo);
+      const paymentRun = record?.run || run;
+      const slip = record?.slip || run.slips.find(item => item.id === currentPaymentSlipId || item.no === currentPaymentSlipNo);
+      if (!slip || paymentRun.approval_status !== "APPROVED" || slip.calculation_status !== "SUCCESS" || slip.payment_status !== "UNPAID") {
+        showErrors("paymentErrors", ["Slip gaji tidak dapat dicatat sebagai pembayaran."]);
+        return;
+      }
+      slip.payment_status = "PAID";
+      slip.payment_date = date;
+      closeModal("paymentModal");
+      renderRunDetail();
+      showToast("Pembayaran slip berhasil dicatat.");
+    }
+
+    function openSlip(key) {
+      const slip = currentRun().slips.find(item => item.id === key || item.no === key);
+      if (!slip) return;
+      currentSlipNo = slip.id;
+      const locked = isRunLocked(currentRun());
+      document.getElementById("recomputeSlipBtn").disabled = locked;
+      document.getElementById("saveInputsBtn").disabled = locked;
       document.getElementById("slipSummary").innerHTML = `
-        <div><span>Status Slip Gaji</span><b>${badge(slip.status)}</b></div><div><span>No Slip Gaji</span><b>${slip.no}</b></div><div><span>Batch</span><b>${currentRun().batch}</b></div>
-        <div><span>Struktur Gaji</span><b>${currentRun().structureName}</b></div><div><span>Periode</span><b>${fmtPeriod(currentRun())}</b></div><div><span>NIK</span><b>${slip.nik}</b></div>
-        <div><span>Nama Karyawan</span><b>${slip.employee}</b></div><div><span>Departemen</span><b>${slip.dept}</b></div><div><span>Posisi</span><b>${slip.position}</b></div>
+        <div><span>Status Perhitungan</span><b>${statusBadge(slip.calculation_status, "calculation")}</b></div><div><span>Status Approval</span><b>${statusBadge(currentRun().approval_status)}</b></div><div><span>Status Pembayaran</span><b>${payrollSlipPaymentDisplay(currentRun(), slip)}</b></div><div><span>Tanggal Pembayaran</span><b>${payrollSlipPaymentDateDisplay(currentRun(), slip)}</b></div>
+        <div><span>Nomor Slip Gaji</span><b>${slip.no || "-"}</b></div><div><span>Nama Proses</span><b>${currentRun().batch_name || currentRun().batch}</b></div><div><span>Periode</span><b>${fmtPeriod(currentRun())}</b></div>
+        <div><span>Nomor Karyawan</span><b>${slip.employee_no || slip.nik}</b></div><div><span>Nama Karyawan</span><b>${slip.employee_name || slip.employee}</b></div><div><span>Take Home Pay</span><b>${displaySlipAmount(slip, takeHomePay(slip))}</b></div>
+        ${slip.calculation_error_message ? `<div><span>Pesan Error</span><b>${slip.calculation_error_message}</b></div>` : ""}
       `;
       renderSlipTabs("component");
       showModal("slipModal");
@@ -14777,19 +15905,19 @@
       document.getElementById("slipComponentTab").classList.toggle("hidden", tab !== "component");
       document.getElementById("slipWorkTab").classList.toggle("hidden", tab !== "work");
       document.getElementById("slipInputTab").classList.toggle("hidden", tab !== "input");
-      const slip = currentRun().slips.find(item => item.no === currentSlipNo);
-      const locked = ["Selesai", "Terbayar"].includes(currentRun().status);
+      const slip = currentRun().slips.find(item => item.id === currentSlipNo || item.no === currentSlipNo);
+      const locked = isRunLocked(currentRun());
       if (tab === "component") {
-        document.getElementById("slipComponentTab").innerHTML = `<div class="table-wrap"><table><thead><tr><th>Nama Tampilan</th><th style="width:140px">Hasil Sistem</th><th style="width:160px">Adjustment</th><th style="width:140px">Nominal Final</th></tr></thead><tbody>${slip.lines.map((line, index) => line.code === "NET" ? `<tr><td>${line.label}</td><td style="text-align:center;color:#999">-</td><td style="text-align:center;color:#999">-</td><td style="text-align:right" id="lineFinal${index}">${fmtMoney(line.final)}</td></tr>` : `<tr><td>${line.label}</td><td style="text-align:right">${fmtMoney(line.system)}</td><td><input class="form-control" type="number" value="${line.adjustment}" data-adjust="${index}" ${!line.adjustable ? "readonly" : ""}></td><td style="text-align:right" id="lineFinal${index}">${fmtMoney(line.final)}</td></tr>`).join("")}</tbody></table></div>`;
+        document.getElementById("slipComponentTab").innerHTML = `<div class="table-wrap"><table><thead><tr><th>Komponen Gaji</th><th style="width:140px">Nilai Sistem</th><th style="width:160px">Penyesuaian</th><th style="width:140px">Nilai Digunakan</th></tr></thead><tbody>${slip.lines.map((line, index) => renderSalaryLineRow(line, index, slip, locked)).join("")}</tbody></table></div>`;
         document.querySelectorAll("[data-adjust]").forEach(input => input.addEventListener("input", event => {
           const idx = Number(event.target.dataset.adjust);
-          slip.lines[idx].adjustment = Number(event.target.value || 0);
-          slip.lines[idx].final = slip.lines[idx].adjustment;
-          document.getElementById(`lineFinal${idx}`).textContent = fmtMoney(slip.lines[idx].final);
+          slip.lines[idx].adjustment = event.target.value === "" ? "" : Number(event.target.value || 0);
+          slip.lines[idx].final = slip.lines[idx].adjustment === "" ? slip.lines[idx].system : slip.lines[idx].adjustment;
+          document.getElementById(`lineFinal${idx}`).textContent = displaySlipAmount(slip, slip.lines[idx].final);
         }));
       }
       if (tab === "work") {
-        document.getElementById("slipWorkTab").innerHTML = `<div class="table-wrap"><table><thead><tr><th>Kode</th><th>Nama</th><th style="width:130px">Jumlah</th><th style="width:130px">Satuan</th></tr></thead><tbody>${slip.workEntries.map(item => `<tr><td>${item.code}</td><td>${item.name}</td><td>${item.qty}</td><td>${item.unit}</td></tr>`).join("")}</tbody></table></div>`;
+        document.getElementById("slipWorkTab").innerHTML = `<div class="table-wrap"><table><thead><tr><th>Tipe Waktu Kerja</th><th style="width:130px">Jumlah Hari</th><th style="width:130px">Jumlah Menit</th><th style="width:130px">Jumlah Kali</th></tr></thead><tbody>${slip.workEntries.map(item => `<tr><td>${item.name || item.code}</td><td>${item.days || 0}</td><td>${item.minutes || 0}</td><td>${item.times || 0}</td></tr>`).join("")}</tbody></table></div>`;
       }
       if (tab === "input") {
         document.getElementById("slipInputTab").innerHTML = `<div class="table-wrap"><table><thead><tr><th style="width:180px">Kode Input</th><th>Nama Input</th><th style="width:180px">Nominal</th><th>Keterangan</th></tr></thead><tbody>${slip.inputs.map((item, index) => `<tr><td>${item.code}</td><td>${item.name}</td><td><input class="form-control" type="number" value="${item.amount}" data-slip-input-amount="${index}" ${locked ? "readonly" : ""}></td><td><input class="form-control" type="text" value="${item.note}" data-slip-input-note="${index}" ${locked ? "readonly" : ""}></td></tr>`).join("")}</tbody></table></div>`;
@@ -14808,6 +15936,8 @@
     document.querySelectorAll(".modal-backdrop").forEach(modal => modal.addEventListener("click", event => { if (event.target === modal && modal.id !== "progressModal") modal.classList.remove("show"); }));
     document.getElementById("saveInputsBtn").addEventListener("click", saveInputs);/*  */
     document.getElementById("confirmCancelBtn").addEventListener("click", confirmCancel);
+    document.getElementById("savePaymentBtn").addEventListener("click", savePayment);
+    document.getElementById("saveProcessNameBtn").addEventListener("click", saveProcessNameEdit);
     document.getElementById("recomputeSlipBtn").addEventListener("click", () => recomputeSlip(currentSlipNo));
     document.querySelectorAll(".tab-btn").forEach(btn => btn.addEventListener("click", () => renderSlipTabs(btn.dataset.tab)));
 
@@ -15171,7 +16301,7 @@
 
   <div class="toast" id="toast">Data berhasil disetujui.</div>
 </div>
-<script>
+<script type="text/plain">
     const approvalProcessListView = document.getElementById("approvalProcessListView");
     const approvalProcessDocumentView = document.getElementById("approvalProcessDocumentView");
     const approvalProcessRows = document.getElementById("approvalProcessRows");
@@ -15197,17 +16327,21 @@
       { value: "PAYROLL_PROCESS", label: "Proses Penggajian" }
     ];
 
+    window.iReapNetApprovalRequests = window.iReapNetApprovalRequests || [];
     let approvalProcessRowsData = window.iReapNetApprovalRequests;
     const approvalProcessLegacyRowsData = [
       { id: 1, status: "PENDING", submittedAt: "2026-07-10 09:15", submittedDate: "2026-07-10", requester: "HR Admin", documentNo: "EMPREQ-0001", transactionType: "EMPLOYEE_REQUEST", transaction_date: "2026-07-09", typeLabel: "Pengajuan Karyawan - Cuti Tahunan", approval_object: "Budi Santoso - Produksi", approval_period: "15/07/2026 - 17/07/2026", approval_description: "Keperluan keluarga", stage: "Approval Atasan Langsung", note: "" },
       { id: 2, status: "PENDING", approval_status: "PENDING", submittedAt: "2026-07-21 10:00", submittedDate: "2026-07-21", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "ADW-000002", transactionNo: "ADW-000002", transaction_no: "ADW-000002", transactionType: "ADDITIONAL_TASK", transaction_type: "ADDITIONAL_TASK", transactionSubtype: "LEMBUR", transaction_subtype: "LEMBUR", transaction_date: "2026-07-21", typeLabel: "Tugas Tambahan - Lembur", approval_object: "EMP-0007 - Anton Kurnia (Lembur)", approval_period: "22-Jul-2026 22:00 s.d. 23-Jul-2026 02:00 (4 Jam)", approval_description: "Perbaikan mesin lintas shift.", stage: "Approval Atasan Langsung", note: "" },
       { id: 3, status: "PENDING", submittedAt: "2026-07-10 11:20", submittedDate: "2026-07-10", requester: "Andi Pratama", documentNo: "RECRUIT-0003", transactionType: "EMPLOYEE_REQUISITION", transaction_date: "2026-07-09", typeLabel: "Permohonan Penambahan Karyawan - Posisi Baru", approval_object: "Produksi - 5 karyawan Harian", approval_period: "Dibutuhkan 01/08/2026", approval_description: "Penambahan shift malam", stage: "Approval HR", note: "" },
-      { id: 4, status: "PENDING", submittedAt: "2026-07-10 14:00", submittedDate: "2026-07-10", requester: "HR Admin", documentNo: "PAY-202607", transactionType: "PAYROLL_PROCESS", transaction_date: "2026-07-10", typeLabel: "Proses Penggajian - Bulanan", approval_object: "Periode Juli 2026 - Staff", approval_period: "Juli 2026", approval_description: "Payroll bulanan staff", stage: "Approval Payroll", note: "" },
+      { id: 4, approvalRequestNo: "APR-PPR-0004", approval_request_no: "APR-PPR-0004", approval_request_id: "APR-PPR-0004", status: "PENDING", approval_status: "PENDING", submittedAt: "2026-07-31 16:00", submitted_at: "2026-07-31 16:00", submittedDate: "2026-07-31", requester: "HR STERLING", requestedBy: "HR STERLING", requested_by: "HR STERLING", documentNo: "PPR260000004", document_number: "PPR260000004", transactionType: "PAYROLL_PROCESS", transaction_type: "PAYROLL_PROCESS", transactionSubtype: "MONTHLY", transaction_subtype: "MONTHLY", transactionId: 1004, transaction_id: 1004, transactionNo: "PPR260000004", transaction_no: "PPR260000004", transaction_date: "2026-07-01", typeLabel: "Proses Penggajian", approval_object: "STAFF_MONTHLY - Approval Juli 2026", approval_period: "2026-07-01 s/d 2026-07-31", approval_description: "-", stage: "Approval Payroll", note: "", history: [{ sequence_no: 1, stage: "Approval Payroll", approver: "Payroll Approver", status: "Menunggu", actionDate: "-", note: "-" }] },
       { id: 5, status: "PENDING", submittedAt: "2026-07-11 08:30", submittedDate: "2026-07-11", requester: "HR Admin", documentNo: "MOV-0005", transactionType: "EMPLOYEE_MOVEMENT", transaction_date: "2026-07-11", typeLabel: "Perubahan Data Kerja - Promosi", approval_object: "Andi Pratama - Staff Admin -> Supervisor", approval_period: "Efektif 01/08/2026", approval_description: "Promosi berdasarkan evaluasi kinerja", stage: "Approval Direktur", note: "" },
       { id: 6, status: "APPROVED", submittedAt: "2026-07-09 15:20", submittedDate: "2026-07-09", requester: "HR Admin", documentNo: "ADJ-0004", transactionType: "PAYROLL_PARAMETER_ADJUSTMENT", transaction_date: "2026-07-04", typeLabel: "Penyesuaian Parameter Gaji", approval_object: "Staff - 15 karyawan", approval_period: "Berlaku 01/08/2026", approval_description: "Penyesuaian tunjangan makan", stage: "Approval Payroll", note: "" },
       { id: 7, status: "REJECTED", submittedAt: "2026-07-08 13:10", submittedDate: "2026-07-08", requester: "Dewi Lestari", documentNo: "TERM-0002", transactionType: "EMPLOYEE_TERMINATION", transaction_date: "2026-07-08", typeLabel: "Pemberhentian Karyawan - Resign", approval_object: "Michael Tan - Sales", approval_period: "Efektif 31/07/2026", approval_description: "Dokumen pendukung belum lengkap", stage: "Approval HR", note: "Dokumen pendukung belum lengkap" },
       { id: 8, status: "CANCELLED", submittedAt: "2026-07-07 09:45", submittedDate: "2026-07-07", requester: "Budi Santoso", documentNo: "EMPREQ-0009", transactionType: "EMPLOYEE_REQUEST", transaction_date: "2026-07-07", typeLabel: "Pengajuan Karyawan - Izin", approval_object: "Budi Santoso - Produksi", approval_period: "12/07/2026", approval_description: "Izin pribadi", stage: "Approval Atasan Langsung", note: "" }
     ];
+    approvalProcessLegacyRowsData.forEach(row => {
+      if (!approvalProcessRowsData.some(existing => existing.id === row.id)) approvalProcessRowsData.push(row);
+    });
 
     let approvalProcessSelectedIds = [];
     let approvalProcessActionMode = "single";
@@ -15215,10 +16349,107 @@
 
     function syncApprovalProcessSharedRows() {
       const sharedRows = window.iReapNetApprovalRequests || [];
+
+      // Pastikan halaman Approval selalu membaca shared store terbaru.
+      approvalProcessRowsData = sharedRows;
+
+      // Hanya normalisasi field. Jangan merge array ke dirinya sendiri.
       sharedRows.forEach(shared => {
-        const existingIndex = approvalProcessRowsData.findIndex(row => row.id === shared.id);
-        if (existingIndex >= 0) approvalProcessRowsData[existingIndex] = shared;
-        else approvalProcessRowsData.push(shared);
+        if (!shared || typeof shared !== "object") return;
+
+        shared.status =
+          shared.approval_status ||
+          shared.status ||
+          "PENDING";
+
+        shared.approval_status = shared.status;
+
+        shared.transactionType =
+          shared.transactionType ||
+          shared.transaction_type ||
+          "";
+
+        shared.transaction_type =
+          shared.transaction_type ||
+          shared.transactionType;
+
+        shared.transactionSubtype =
+          shared.transactionSubtype ||
+          shared.transaction_subtype ||
+          "";
+
+        shared.transaction_subtype =
+          shared.transaction_subtype ||
+          shared.transactionSubtype;
+
+        shared.transactionId =
+          shared.transactionId ??
+          shared.transaction_id ??
+          "";
+
+        shared.transaction_id =
+          shared.transaction_id ??
+          shared.transactionId ??
+          "";
+
+        shared.documentNo =
+          shared.documentNo ||
+          shared.document_number ||
+          shared.transactionNo ||
+          shared.transaction_no ||
+          "-";
+
+        shared.document_number =
+          shared.document_number ||
+          shared.documentNo;
+
+        shared.transactionNo =
+          shared.transactionNo ||
+          shared.transaction_no ||
+          shared.documentNo;
+
+        shared.transaction_no =
+          shared.transaction_no ||
+          shared.transactionNo;
+
+        shared.submittedAt =
+          shared.submittedAt ||
+          shared.submitted_at ||
+          "-";
+
+        shared.submitted_at =
+          shared.submitted_at ||
+          shared.submittedAt;
+
+        shared.submittedDate =
+          shared.submittedDate ||
+          String(shared.submittedAt || "").slice(0, 10);
+
+        shared.requester =
+          shared.requester ||
+          shared.requestedBy ||
+          shared.requested_by ||
+          "-";
+
+        shared.requestedBy =
+          shared.requestedBy ||
+          shared.requester;
+
+        shared.requested_by =
+          shared.requested_by ||
+          shared.requester;
+
+        shared.stage =
+          shared.stage ||
+          shared.history?.find(
+            item => approvalHistoryStatusCode(item.status) === "PENDING"
+          )?.stage ||
+          shared.history?.[0]?.stage ||
+          "-";
+
+        shared.typeLabel =
+          shared.typeLabel ||
+          "Proses Approval";
       });
     }
 
@@ -15377,7 +16608,7 @@
     }
 
     function iconInfo() {
-      return 'i';
+      return '<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
     }
 
     function approvalProcessObject(row) {
@@ -15706,7 +16937,7 @@
     renderApprovalProcessList();
 </script>
 </template>
-  <template id="page-administrasi-source">
+<template id="page-administrasi-source">
 <style>
     .module-breadcrumb-meta {
       position: absolute;
@@ -18681,7 +19912,7 @@
 
 <div class="toast" id="employeeRequisitionToast">Data berhasil disimpan.</div>
 
-<script>
+<script type="text/plain">
   const el = id => document.getElementById(id);
 
   function showEmployeeRequisitionToast(message) {
@@ -27826,7 +29057,7 @@ function validateEmployeeScheduleBulkPayload(data) {
 
   <div class="toast" id="attendanceToast">Operasi absensi berhasil diproses.</div>
 </div>
-<script>
+<script type="text/plain">
   let attendanceLogSeed = 18;
   let attendanceImportBatchSeed = 16;
   let attendanceLogRows = [
@@ -38563,7 +39794,7 @@ function validateEmployeeScheduleBulkPayload(data) {
     <div class="modal-backdrop" id="rekrutmenCandidateModal"></div>
     <div class="toast" id="rekrutmenCandidateToast"></div>
   </div>
-  <script>
+  <script type="text/plain">
     function RekrutmenCandidateNow() {
       const date = new Date();
       const pad = value => String(value).padStart(2, "0");
@@ -40342,7 +41573,15 @@ function validateEmployeeScheduleBulkPayload(data) {
     }
 
     function readEmbeddedPage(id) {
-      return document.getElementById(id).innerHTML.trim();
+      const source = document.getElementById(id);
+      if (!source) {
+        throw new Error(`Embedded module source tidak ditemukan: ${id}`);
+      }
+      const content = source.innerHTML.trim();
+      if (!content) {
+        throw new Error(`Embedded module source kosong: ${id}`);
+      }
+      return content;
     }
 
     const APP_MODULES = {
@@ -41253,7 +42492,7 @@ function validateEmployeeScheduleBulkPayload(data) {
         { id: 1, status: "PENDING", submittedAt: "2026-07-10 09:15", submittedDate: "2026-07-10", requester: "HR Admin", documentNo: "EMPREQ-0001", transactionType: "EMPLOYEE_REQUEST", transaction_date: "2026-07-09", typeLabel: "Pengajuan Karyawan - Cuti Tahunan", approval_object: "Budi Santoso - Produksi", approval_period: "15/07/2026 - 17/07/2026", approval_description: "Keperluan keluarga", stage: "Approval Atasan Langsung", note: "" },
         { id: 2, approvalRequestNo: "APR-ADW-0002", approval_request_id: "APR-ADW-0002", status: "PENDING", approval_status: "PENDING", submittedAt: "2026-07-21 10:00", submittedDate: "2026-07-21", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "ADW-000002", transactionNo: "ADW-000002", transaction_no: "ADW-000002", transactionType: "ADDITIONAL_TASK", transaction_type: "ADDITIONAL_TASK", transactionSubtype: "LEMBUR", transaction_subtype: "LEMBUR", transactionId: 2, transaction_id: 2, transaction_date: "2026-07-21", employee_id: 7, department_id: "Maintenance", employment_type_id: "Bulanan", typeLabel: "Tugas Tambahan - Lembur", approval_object: "EMP-0007 - Anton Kurnia (Lembur)", approval_period: "22-Jul-2026 22:00 s.d. 23-Jul-2026 02:00 (4 Jam)", approval_description: "Perbaikan mesin lintas shift.", stage: "Approval Atasan Langsung", note: "", history: [{ stage: "Approval HR", approver: "Jennie Lou", status: "Menunggu", actionDate: "-", note: "-" }] },
         { id: 3, status: "PENDING", submittedAt: "2026-07-10 11:20", submittedDate: "2026-07-10", requester: "Andi Pratama", documentNo: "RECRUIT-0003", transactionType: "EMPLOYEE_REQUISITION", transaction_date: "2026-07-09", typeLabel: "Permohonan Penambahan Karyawan - Posisi Baru", approval_object: "Produksi - 5 karyawan Harian", approval_period: "Dibutuhkan 01/08/2026", approval_description: "Penambahan shift malam", stage: "Approval HR", note: "" },
-        { id: 4, status: "PENDING", submittedAt: "2026-07-10 14:00", submittedDate: "2026-07-10", requester: "HR Admin", documentNo: "PAY-202607", transactionType: "PAYROLL_PROCESS", transaction_date: "2026-07-10", typeLabel: "Proses Penggajian - Bulanan", approval_object: "Periode Juli 2026 - Staff", approval_period: "Juli 2026", approval_description: "Payroll bulanan staff", stage: "Approval Payroll", note: "" },
+        { id: 4, approvalRequestNo: "APR-PPR-0004", approval_request_no: "APR-PPR-0004", approval_request_id: "APR-PPR-0004", status: "PENDING", approval_status: "PENDING", submittedAt: "2026-07-31 16:00", submitted_at: "2026-07-31 16:00", submittedDate: "2026-07-31", requester: "HR STERLING", requestedBy: "HR STERLING", requested_by: "HR STERLING", documentNo: "PPR260000004", document_number: "PPR260000004", transactionType: "PAYROLL_PROCESS", transaction_type: "PAYROLL_PROCESS", transactionSubtype: "MONTHLY", transaction_subtype: "MONTHLY", transactionId: 1004, transaction_id: 1004, transactionNo: "PPR260000004", transaction_no: "PPR260000004", transaction_date: "2026-07-01", typeLabel: "Proses Penggajian", approval_object: "STAFF_MONTHLY - Approval Juli 2026", approval_period: "2026-07-01 s/d 2026-07-31", approval_description: "-", stage: "Approval Payroll", note: "", history: [{ sequence_no: 1, stage: "Approval Payroll", approver: "Payroll Approver", status: "Menunggu", actionDate: "-", note: "-" }] },
         { id: 5, status: "PENDING", submittedAt: "2026-07-11 08:30", submittedDate: "2026-07-11", requester: "HR Admin", documentNo: "MOV-0005", transactionType: "EMPLOYEE_MOVEMENT", transaction_date: "2026-07-11", typeLabel: "Perubahan Data Kerja - Promosi", approval_object: "Andi Pratama - Staff Admin -> Supervisor", approval_period: "Efektif 01/08/2026", approval_description: "Promosi berdasarkan evaluasi kinerja", stage: "Approval Direktur", note: "" },
         { id: 6, approvalRequestNo: "APR-PPA-0004", status: "APPROVED", approval_status: "APPROVED", company_id: 1, submittedAt: "2026-07-04 09:00", submittedDate: "2026-07-04", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "PPA-2026-0004", transactionType: "PAYROLL_PARAMETER_ADJUSTMENT", transactionSubtype: null, transaction_subtype: null, transactionId: 4, transactionNo: "PPA-2026-0004", transaction_date: "2026-07-04", employee_id: null, department_id: null, employment_type_id: null, typeLabel: "Penyesuaian Parameter Gaji", approval_object: "0 karyawan, 1 parameter", approval_period: "-", approval_description: "Gaji Pokok Disetujui", stage: "Approval HR", note: "", history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-04 10:00", note: "OK" }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-04 14:15", note: "Disetujui" }] },
         { id: 7, status: "REJECTED", submittedAt: "2026-07-08 13:10", submittedDate: "2026-07-08", requester: "Dewi Lestari", documentNo: "TERM-0002", transactionType: "EMPLOYEE_TERMINATION", transaction_date: "2026-07-08", typeLabel: "Pemberhentian Karyawan - Resign", approval_object: "Michael Tan - Sales", approval_period: "Efektif 31/07/2026", approval_description: "Dokumen pendukung belum lengkap", stage: "Approval HR", note: "Dokumen pendukung belum lengkap" },
@@ -41908,6 +43147,13 @@ function validateEmployeeScheduleBulkPayload(data) {
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 
