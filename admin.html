@@ -13772,7 +13772,7 @@
       width: 100%;
       max-width: 100%;
       min-width: 0;
-      overflow-x: auto;
+      overflow-x: auto !important;
     }
     .payroll-slip-table {
       min-width: 1360px;
@@ -14431,10 +14431,26 @@
         : type === "payment"
           ? paymentStatusLabel(status)
           : approvalStatusLabel(status);
-      const cls = ["SUCCESS", "APPROVED", "PAID"].includes(status) ? "done"
-        : ["PARTIAL_SUCCESS", "PENDING"].includes(status) ? "pending"
-          : ["FAILED", "ERROR", "REJECTED", "CANCELLED"].includes(status) ? "cancel"
+
+      let cls = "draft";
+
+      if (type === "calculation") {
+        cls = status === "SUCCESS" ? "active"
+          : status === "PARTIAL_SUCCESS" ? "pending"
+            : ["FAILED", "ERROR"].includes(status) ? "cancel"
+              : "draft";
+      } else if (type === "payment") {
+        cls = status === "PAID" ? "done"
+          : status === "UNPAID" ? "pending"
             : "draft";
+      } else {
+        cls = status === "APPROVED" ? "active"
+          : status === "DRAFT" ? "done"
+            : status === "PENDING" ? "pending"
+              : ["REJECTED", "CANCELLED"].includes(status) ? "cancel"
+                : "draft";
+      }
+
       return `<span class="badge ${cls}">${label}</span>`;
     }
 
@@ -14459,7 +14475,10 @@
     function paymentSummaryBadge(run) {
       const summary = paymentSummary(run);
       if (summary === "-") return "-";
-      return `<span class="badge ${summary === "Sudah Dibayar" ? "paid" : summary === "Dibayar Sebagian" ? "pending" : "draft"}">${summary}</span>`;
+      const cls = summary === "Sudah Dibayar" ? "done"
+        : summary === "Dibayar Sebagian" ? "pending"
+          : "pending";
+      return `<span class="badge ${cls}">${summary}</span>`;
     }
 
     function payrollSlipPaymentDisplay(run, slip) {
@@ -41482,6 +41501,552 @@ function validateEmployeeScheduleBulkPayload(data) {
     RekrutmenCandidateBindEvents();
   </script>
 </template>
+<template id="page-test-online-source">
+  <style>
+    .test-online-crumb-meta { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+    .test-online-list-table-wrap { display:block; width:100%; max-width:100%; min-width:0; overflow-x:auto !important; overflow-y:visible; }
+    .test-online-list-table { width:100%; min-width:1080px; table-layout:fixed; }
+    .test-online-list-table th:nth-child(1) { width:100px; }
+    .test-online-list-table th:nth-child(2) { width:120px; }
+    .test-online-list-table th:nth-child(3),
+    .test-online-list-table th:nth-child(4),
+    .test-online-list-table th:nth-child(5),
+    .test-online-list-table th:nth-child(6),
+    .test-online-list-table th:nth-child(7) { width:80px; }
+    .test-online-list-table th.action-col, .test-online-list-table td.action-cell { width:120px !important; min-width:120px !important; max-width:120px !important; }
+    .test-online-list-table .action-cell .actions.inline-actions { width:138px; max-width:138px; }
+    .test-online-status-action.btn.orange, .actions .test-online-status-action.btn.orange { background:#efb54f !important; color:#523500 !important; border-color:#efb54f !important; }
+    .test-online-gray { background:#8b95a1 !important; color:#fff !important; border-color:#8b95a1 !important; }
+    .actions .btn.test-online-reorder-btn,
+    .test-option-actions .btn.test-online-reorder-btn {
+      background:#fff !important;
+      color:#555 !important;
+      border-color:#ddd !important;
+    }
+    .test-online-filter { display:grid; grid-template-columns:170px; gap:10px; max-width:220px; }
+    .test-online-filter label { font-weight:400; }
+    .test-online-filter select { font-weight:400; }
+    .test-online-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 20px; max-width:none; }
+    .test-online-wide { grid-column:1 / -1; }
+    .test-online-checkline { display:flex; align-items:center; gap:8px; font-weight:700; margin:0 0 18px; }
+    .test-online-checkline input { margin:0; }
+    .test-online-summary { display:grid; grid-template-columns:repeat(2,minmax(0,180px)); gap:10px; margin:12px 0 0; }
+    .test-online-summary .meta { border:1px solid #e4e6eb; background:#fbfbfb; padding:10px 12px; }
+    .test-online-summary span { display:block; color:#777; font-size:12px; margin-bottom:4px; }
+    .test-online-summary b { color:#34405a; font-size:16px; }
+    .test-builder-toolbar { display:flex; gap:8px; flex-wrap:wrap; margin:0 0 14px; }
+    .test-builder-list { display:flex; flex-direction:column; gap:10px; }
+    .test-builder-item { display:grid; grid-template-columns:34px minmax(0,1fr) auto; gap:12px; align-items:start; border:1px solid #e0e4ec; background:#fff; padding:12px; border-radius:4px; }
+    .test-builder-item.dragging { opacity:.45; }
+    .test-drag-handle { width:28px; height:28px; border:1px solid #ddd; background:#f7f7f7; color:#667; display:grid; place-items:center; cursor:grab; border-radius:3px; font-weight:700; }
+    .test-item-head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+    .test-item-title { color:#34405a; font-weight:700; overflow-wrap:anywhere; }
+    .test-item-desc { color:#667; line-height:1.4; margin-top:5px; }
+    .test-item-meta { display:flex; gap:8px; flex-wrap:wrap; color:#667; font-size:12px; margin-top:8px; }
+    .test-thumb { width:92px; height:58px; object-fit:cover; border:1px solid #dfe3ea; background:#f5f7fb; border-radius:3px; margin-top:8px; display:block; }
+    .test-detail-item { border:1px solid #e0e4ec; padding:14px; margin-bottom:10px; border-radius:4px; background:#fff; }
+    .test-option-list { display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+    .test-option-head { display:grid; grid-template-columns:28px 90px minmax(0,1fr) 96px; gap:8px; align-items:center; color:#4f5965; font-weight:700; margin:0 0 6px; }
+    .test-option-row { display:grid; grid-template-columns:28px 90px minmax(0,1fr) 96px; gap:8px; align-items:start; border:1px solid #e4e6eb; background:#fbfbfb; padding:8px; }
+    .test-option-row input[type="text"] { width:100%; }
+    .test-option-actions { display:flex; gap:6px; justify-content:flex-end; }
+    .test-image-picker { border:1px dashed #cfd6e2; padding:10px; background:#fbfcff; }
+    .test-image-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .test-image-swatch { width:118px; height:74px; object-fit:cover; border:1px solid #dfe3ea; border-radius:3px; display:block; background:#f5f7fb; }
+    .test-modal-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 18px; }
+    .test-option-editor { grid-column:1 / -1; border-top:1px solid #e4e6eb; padding-top:16px; margin-top:4px; }
+    .test-file-helper { border:1px solid #d7e5f7; background:#ecf4ff; color:#37557f; padding:10px 12px; border-radius:3px; line-height:1.45; }
+    .test-online-view-duration { display:grid; grid-template-columns:minmax(0,1fr) 54px; gap:8px; align-items:center; }
+    .test-correct { color:#16826e; font-weight:700; }
+    @media (max-width:900px) {
+      .test-online-form-grid, .test-modal-grid, .test-online-filter { grid-template-columns:1fr; }
+      .test-builder-item { grid-template-columns:28px minmax(0,1fr); }
+      .test-builder-item .actions { grid-column:2; flex-direction:row; }
+      .test-option-head { display:none; }
+      .test-option-row { grid-template-columns:28px 90px minmax(0,1fr); }
+      .test-option-actions { grid-column:3; justify-content:flex-start; }
+    }
+  </style>
+  <div class="module-screen-root">
+    <div class="module-content">
+      <span id="crumbTitle" class="test-online-crumb-meta">Daftar Tes</span>
+      <div id="testOnlineApp"></div>
+    </div>
+    <div class="modal-backdrop" id="testOnlineModal"></div>
+    <div class="toast" id="testOnlineToast"></div>
+  </div>
+  <script type="text/plain">
+    const TestOnlineTypes = {
+      MULTIPLE_CHOICE_SINGLE: "Pilihan Ganda - Satu Jawaban",
+      MULTIPLE_CHOICE_MULTIPLE: "Pilihan Ganda - Beberapa Jawaban",
+      MULTILINE_TEXT: "Teks",
+      NUMERICAL: "Angka",
+      DATE: "Tanggal",
+      FILE_UPLOAD: "Upload File"
+    };
+    const TestOnlineImagePool = [
+      { id: 901, name: "Pola Numerik", url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='140'%3E%3Crect width='220' height='140' fill='%23f4f7ff'/%3E%3Ccircle cx='55' cy='70' r='28' fill='%233f55aa'/%3E%3Crect x='105' y='42' width='56' height='56' fill='%2326bdc6'/%3E%3Ctext x='110' y='124' font-family='Arial' font-size='14' fill='%23667'%3EPola%3C/text%3E%3C/svg%3E" },
+      { id: 902, name: "Diagram Proses", url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='140'%3E%3Crect width='220' height='140' fill='%23fbfcff'/%3E%3Cpath d='M25 70h55l20-35h95' stroke='%2331b79d' stroke-width='8' fill='none'/%3E%3Cpath d='M100 105h88' stroke='%23efb54f' stroke-width='8'/%3E%3Ccircle cx='25' cy='70' r='10' fill='%233f55aa'/%3E%3Ccircle cx='195' cy='35' r='10' fill='%23ef4f63'/%3E%3C/svg%3E" },
+      { id: 903, name: "Opsi Grafik", url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='140'%3E%3Crect width='220' height='140' fill='%23fff'/%3E%3Crect x='30' y='82' width='28' height='34' fill='%233f55aa'/%3E%3Crect x='78' y='58' width='28' height='58' fill='%2326bdc6'/%3E%3Crect x='126' y='36' width='28' height='80' fill='%2331b79d'/%3E%3Cpath d='M24 116h160' stroke='%23667'/%3E%3C/svg%3E" }
+    ];
+    const TestOnlineSeed = [
+      { id: 1, company_id: 1, test_code: "HR-GEN-01", test_name: "Tes Kompetensi HR Generalist", instruction: "Jawab seluruh pertanyaan sesuai pemahaman terbaik Anda.", duration_minutes: 60, passing_score: 40, status: "OPEN", items: [
+        { id: "I-1", item_type: "SECTION", sequence: 1, title: "Pengetahuan HR", description: "Pertanyaan dasar proses rekrutmen dan administrasi HR.", image_attachment_id: null },
+        { id: "I-2", item_type: "QUESTION", sequence: 2, title: "Dokumen apa yang paling relevan untuk memvalidasi pengalaman kerja kandidat?", description: "", image_attachment_id: null, question_type: "MULTIPLE_CHOICE_SINGLE", is_required: true, maximum_score: 10, options: [
+          { id: "O-1", sequence: 1, option_text: "Surat pengalaman kerja", image_attachment_id: null, is_correct: true },
+          { id: "O-2", sequence: 2, option_text: "Kartu keluarga", image_attachment_id: null, is_correct: false },
+          { id: "O-3", sequence: 3, option_text: "Struk belanja", image_attachment_id: null, is_correct: false }
+        ]},
+        { id: "I-3", item_type: "QUESTION", sequence: 3, title: "Pilih aktivitas yang termasuk proses onboarding.", description: "", image_attachment_id: null, question_type: "MULTIPLE_CHOICE_MULTIPLE", is_required: true, maximum_score: 15, options: [
+          { id: "O-4", sequence: 1, option_text: "Pengenalan kebijakan perusahaan", image_attachment_id: null, is_correct: true },
+          { id: "O-5", sequence: 2, option_text: "Pembuatan akses kerja", image_attachment_id: null, is_correct: true },
+          { id: "O-6", sequence: 3, option_text: "Penutupan slip gaji karyawan lama", image_attachment_id: null, is_correct: false }
+        ]},
+        { id: "I-4", item_type: "QUESTION", sequence: 4, title: "Jelaskan cara Anda menangani kandidat yang meminta jadwal ulang interview.", description: "", image_attachment_id: null, question_type: "MULTILINE_TEXT", is_required: true, maximum_score: 20, options: [] },
+        { id: "I-5", item_type: "SECTION", sequence: 5, title: "Analisa Data", description: "Gunakan angka dengan teliti.", image_attachment_id: null },
+        { id: "I-6", item_type: "QUESTION", sequence: 6, title: "Berapa jumlah kandidat yang lolos jika 18 dari 30 kandidat memenuhi kriteria?", description: "", image_attachment_id: null, question_type: "NUMERICAL", is_required: true, maximum_score: 10, options: [] },
+        { id: "I-7", item_type: "QUESTION", sequence: 7, title: "Kapan tanggal mulai kerja paling cepat yang Anda rekomendasikan?", description: "", image_attachment_id: null, question_type: "DATE", is_required: false, maximum_score: null, options: [] }
+      ]},
+      { id: 2, company_id: 1, test_code: "OPS-LOGIC", test_name: "Tes Logika Operasional", instruction: "Perhatikan gambar pola sebelum menjawab.", duration_minutes: null, passing_score: null, status: "DRAFT", items: [
+        { id: "I-8", item_type: "QUESTION", sequence: 1, title: "", description: "Pilih lanjutan pola yang paling tepat.", image_attachment_id: 901, question_type: "MULTIPLE_CHOICE_SINGLE", is_required: true, maximum_score: 25, options: [
+          { id: "O-7", sequence: 1, option_text: "Pola A", image_attachment_id: 903, is_correct: false },
+          { id: "O-8", sequence: 2, option_text: "Pola B", image_attachment_id: 902, is_correct: true }
+        ]},
+        { id: "I-9", item_type: "QUESTION", sequence: 2, title: "Unggah portofolio atau contoh laporan operasional.", description: "", image_attachment_id: null, question_type: "FILE_UPLOAD", is_required: false, maximum_score: null, options: [] }
+      ]},
+      { id: 3, company_id: 1, test_code: "FIN-CLOSED", test_name: "Tes Administrasi Finance", instruction: "", duration_minutes: 45, passing_score: 40, status: "CLOSED", items: [
+        { id: "I-10", item_type: "SECTION", sequence: 1, title: "Ketelitian Dokumen", description: "", image_attachment_id: 902 },
+        { id: "I-11", item_type: "QUESTION", sequence: 2, title: "Sebutkan dua dokumen pendukung invoice.", description: "", image_attachment_id: null, question_type: "MULTILINE_TEXT", is_required: true, maximum_score: 40, options: [] }
+      ]}
+    ];
+    if (!Array.isArray(window.iReapNetTestTemplates)) window.iReapNetTestTemplates = TestOnlineSeed.map(row => JSON.parse(JSON.stringify(row)));
+    let TestOnlinePage = 1, TestOnlinePageSize = 10, TestOnlineSearch = "", TestOnlineStatusFilter = "ALL";
+    window.iReapNetTestImageAttachments = window.iReapNetTestImageAttachments || [];
+    let TestOnlineMode = "list", TestOnlineEditingId = null, TestOnlineDraft = null, TestOnlineModalContext = null, TestOnlineDragIndex = null, TestOnlineOptionDragIndex = null, TestOnlineDurationEnabled = false, TestOnlineDraftTempImageIds = [];
+    function TestOnlineEl(id) { return document.getElementById(id); }
+    function TestOnlineEsc(v) { return String(v ?? "").replace(/[&<>"']/g, s => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[s])); }
+    function TestOnlineText(v) { const t = String(v ?? "").trim(); return t ? TestOnlineEsc(t) : "-"; }
+    function TestOnlineCurrentCompanyId() { return window.iReapNetGetCurrentCompanyId ? Number(window.iReapNetGetCurrentCompanyId()) : 1; }
+    function TestOnlineImage(id) { return TestOnlineImagePool.find(img => Number(img.id) === Number(id)) || window.iReapNetTestImageAttachments.find(img => Number(img.id) === Number(id)); }
+    function TestOnlineImageHtml(id, cls = "test-thumb") { const img = TestOnlineImage(id); return img ? `<img class="${cls}" src="${img.url}" alt="${TestOnlineEsc(img.name)}">` : ""; }
+    function TestOnlineQuestionCount(test) { return (test.items || []).filter(item => item.item_type === "QUESTION").length; }
+    function TestOnlineTotalScore(test) { const total = (test.items || []).filter(item => item.item_type === "QUESTION" && item.maximum_score !== null && item.maximum_score !== "" && item.maximum_score !== undefined).reduce((sum, item) => sum + Number(item.maximum_score || 0), 0); return total > 0 ? total : null; }
+    function TestOnlineCollectImageIdsFromItems(items) { const ids = []; (items || []).forEach(item => { if (item.image_attachment_id) ids.push(Number(item.image_attachment_id)); (item.options || []).forEach(option => { if (option.image_attachment_id) ids.push(Number(option.image_attachment_id)); }); }); return ids; }
+    function TestOnlineCollectCommittedImageIds() { const ids = []; (window.iReapNetTestTemplates || []).forEach(test => ids.push(...TestOnlineCollectImageIdsFromItems(test.items))); return ids; }
+    function TestOnlineCurrentDraftImageIds() { return TestOnlineDraft ? TestOnlineCollectImageIdsFromItems(TestOnlineDraft.items) : []; }
+    function TestOnlineCurrentModalImageIds() { return TestOnlineModalContext ? TestOnlineCollectImageIdsFromItems([TestOnlineModalContext.item]) : []; }
+    function TestOnlineRegisterDraftTempImage(id) { if (!TestOnlineDraftTempImageIds.includes(Number(id))) TestOnlineDraftTempImageIds.push(Number(id)); }
+    function TestOnlineCleanupTempImageIfUnreferenced(id, options = {}) {
+      const imageId = Number(id);
+      const refs = new Set([...TestOnlineCollectCommittedImageIds(), ...(options.keepDraft ? TestOnlineCurrentDraftImageIds() : []), ...(options.keepModal === false ? [] : TestOnlineCurrentModalImageIds())]);
+      const img = window.iReapNetTestImageAttachments.find(row => Number(row.id) === imageId);
+      if (img?.temporary && !refs.has(imageId)) window.iReapNetTestImageAttachments = window.iReapNetTestImageAttachments.filter(row => Number(row.id) !== imageId);
+    }
+    function TestOnlineCommitDraftImages() {
+      const draftIds = new Set(TestOnlineCurrentDraftImageIds());
+      TestOnlineDraftTempImageIds.slice().forEach(id => {
+        const img = window.iReapNetTestImageAttachments.find(row => Number(row.id) === Number(id));
+        if (img?.temporary && draftIds.has(Number(id))) img.temporary = false;
+        else TestOnlineCleanupTempImageIfUnreferenced(id);
+      });
+      TestOnlineDraftTempImageIds = [];
+    }
+    function TestOnlineCleanupDraftImages() {
+      TestOnlineDraftTempImageIds.slice().forEach(id => TestOnlineCleanupTempImageIfUnreferenced(id));
+      TestOnlineDraftTempImageIds = [];
+    }
+    function TestOnlineStatusBadge(status) { const map = { DRAFT:["Draft","done"], OPEN:["Dibuka","active"], CLOSED:["Ditutup","muted"] }; const item = map[status] || [status, "muted"]; return `<span class="badge ${item[1]}">${item[0]}</span>`; }
+    function TestOnlineStatusLabel(status) { return ({ DRAFT:"Draft", OPEN:"Dibuka", CLOSED:"Ditutup" })[status] || status || "-"; }
+    function TestOnlineTypeLabel(type) { return TestOnlineTypes[type] || "-"; }
+    function TestOnlineIconUnlock() { return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V8a5 5 0 0 1 9.2-2.7l-1.6 1.2A3 3 0 0 0 9 8v2h9v10H5V10h2Zm0 2v6h9v-6H7Z"/></svg>'; }
+    function TestOnlineIconLock() { return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 10h2v10H5V10h2V8a5 5 0 0 1 10 0v2Zm-8 0h6V8a3 3 0 0 0-6 0v2Zm-2 2v6h10v-6H7Z"/></svg>'; }
+    function TestOnlineStatusActionButton(test) {
+      const isOpen = test.status === "OPEN";
+      return `<button class="btn ${isOpen ? "test-online-gray" : "green"} small icon-btn test-online-status-action" type="button" title="${isOpen ? "Tutup Tes" : "Buka Tes"}" aria-label="${isOpen ? "Tutup Tes" : "Buka Tes"}" data-module-action="toggleTestOnlineTemplateStatus" data-module-args="${test.id}">${isOpen ? TestOnlineIconLock() : TestOnlineIconUnlock()}</button>`;
+    }
+    function TestOnlineToast(message) { const toast = TestOnlineEl("testOnlineToast"); toast.textContent = message; toast.classList.add("show"); clearTimeout(TestOnlineToast.timer); TestOnlineToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2200); }
+    function TestOnlineSetTitle(title) { const el = TestOnlineEl("crumbTitle"); if (el) { el.className = "test-online-crumb-meta"; el.textContent = title; } }
+    function TestOnlineRows() {
+      const companyId = TestOnlineCurrentCompanyId();
+      return window.iReapNetTestTemplates.filter(test => Number(test.company_id) === companyId).filter(test => {
+        const q = TestOnlineSearch.trim().toLowerCase();
+        return (TestOnlineStatusFilter === "ALL" || test.status === TestOnlineStatusFilter) && (!q || String(test.test_code).toLowerCase().includes(q) || String(test.test_name).toLowerCase().includes(q));
+      });
+    }
+    function renderTestOnlineTemplateList() {
+      TestOnlineMode = "list"; TestOnlineSetTitle("Daftar Tes");
+      const rows = TestOnlineRows(); const totalPages = Math.max(1, Math.ceil(rows.length / TestOnlinePageSize)); if (TestOnlinePage > totalPages) TestOnlinePage = totalPages;
+      const pageRows = rows.slice((TestOnlinePage - 1) * TestOnlinePageSize, TestOnlinePage * TestOnlinePageSize);
+      TestOnlineEl("testOnlineApp").innerHTML = `
+        <div class="toolbar"><button class="btn" type="button" data-module-action="openTestOnlineTemplateCreate">Tambah Tes</button></div>
+        <div class="filter-row"><div class="test-online-filter"><label>Status<select class="form-control" data-test-online-status><option value="ALL">Semua</option>${["DRAFT","OPEN","CLOSED"].map(s => `<option value="${s}" ${TestOnlineStatusFilter === s ? "selected" : ""}>${TestOnlineStatusLabel(s)}</option>`).join("")}</select></label></div></div>
+        <div class="table-tools table-utility-row"><div>Menampilkan <select data-test-online-page-size>${[10,25,50].map(size => `<option value="${size}" ${TestOnlinePageSize === size ? "selected" : ""}>${size}</option>`).join("")}</select> data</div><label class="table-search"><span>Cari</span><input class="search-box" type="search" data-test-online-search value="${TestOnlineEsc(TestOnlineSearch)}"></label></div>
+        <div class="table-wrap test-online-list-table-wrap"><table class="test-online-list-table"><thead><tr><th>Kode Tes</th><th>Nama Tes</th><th>Jumlah Pertanyaan</th><th>Total Skor Maksimum</th><th>Durasi</th><th>Batas Kelulusan</th><th>Status</th><th class="action-col">Aksi</th></tr></thead><tbody data-test-online-rows>${pageRows.map(TestOnlineListRow).join("") || `<tr><td colspan="8">Tidak ada data Tes.</td></tr>`}</tbody></table></div>
+        <div class="pager" data-test-online-pager>${TestOnlinePagerHtml(rows, totalPages)}</div>`;
+      TestOnlineBindListInputs();
+    }
+    function TestOnlinePagerHtml(rows, totalPages) {
+      return `<span>Menampilkan ${rows.length ? ((TestOnlinePage - 1) * TestOnlinePageSize) + 1 : 0} - ${Math.min(TestOnlinePage * TestOnlinePageSize, rows.length)} dari ${rows.length} Data</span><span class="pages"><button type="button" data-module-action="setTestOnlinePage" data-module-args="${TestOnlinePage - 1}" ${TestOnlinePage <= 1 ? "disabled" : ""}>&lt;</button><button type="button" disabled>${TestOnlinePage}</button><button type="button" data-module-action="setTestOnlinePage" data-module-args="${TestOnlinePage + 1}" ${TestOnlinePage >= totalPages ? "disabled" : ""}>&gt;</button></span>`;
+    }
+    function refreshTestOnlineTemplateRows() {
+      const rows = TestOnlineRows(); const totalPages = Math.max(1, Math.ceil(rows.length / TestOnlinePageSize)); if (TestOnlinePage > totalPages) TestOnlinePage = totalPages;
+      const pageRows = rows.slice((TestOnlinePage - 1) * TestOnlinePageSize, TestOnlinePage * TestOnlinePageSize);
+      const tbody = TestOnlineEl("testOnlineApp").querySelector("[data-test-online-rows]");
+      const pager = TestOnlineEl("testOnlineApp").querySelector("[data-test-online-pager]");
+      if (tbody) tbody.innerHTML = pageRows.map(TestOnlineListRow).join("") || `<tr><td colspan="8">Tidak ada data Tes.</td></tr>`;
+      if (pager) pager.innerHTML = TestOnlinePagerHtml(rows, totalPages);
+    }
+    function TestOnlineListRow(test) {
+      const total = TestOnlineTotalScore(test);
+      return `<tr><td>${TestOnlineText(test.test_code)}</td><td>${TestOnlineText(test.test_name)}</td><td>${TestOnlineQuestionCount(test)}</td><td>${total == null ? "-" : total}</td><td>${test.duration_minutes ? `${test.duration_minutes} Menit` : "Tanpa Batas"}</td><td>${test.passing_score ?? "-"}</td><td>${TestOnlineStatusBadge(test.status)}</td><td class="action-cell"><div class="actions inline-actions"><button class="btn teal small icon-btn" type="button" title="Lihat" data-module-action="openTestOnlineTemplateView" data-module-args="${test.id}">${window.iconEye()}</button><button class="btn small icon-btn" type="button" title="Ubah" data-module-action="openTestOnlineTemplateEdit" data-module-args="${test.id}">${window.iconPencil()}</button>${TestOnlineStatusActionButton(test)}</div></td></tr>`;
+    }
+    function TestOnlineBindListInputs() {
+      const search = TestOnlineEl("testOnlineApp").querySelector("[data-test-online-search]");
+      const status = TestOnlineEl("testOnlineApp").querySelector("[data-test-online-status]");
+      const size = TestOnlineEl("testOnlineApp").querySelector("[data-test-online-page-size]");
+      if (search) search.addEventListener("input", e => { TestOnlineSearch = e.target.value; TestOnlinePage = 1; refreshTestOnlineTemplateRows(); });
+      if (status) status.addEventListener("change", e => { TestOnlineStatusFilter = e.target.value; TestOnlinePage = 1; refreshTestOnlineTemplateRows(); });
+      if (size) size.addEventListener("change", e => { TestOnlinePageSize = Number(e.target.value) || 10; TestOnlinePage = 1; refreshTestOnlineTemplateRows(); });
+    }
+    function setTestOnlinePage(page) { TestOnlinePage = Math.max(1, Number(page) || 1); refreshTestOnlineTemplateRows(); }
+    function TestOnlineBlank() { return { id: null, company_id: TestOnlineCurrentCompanyId(), test_code: "", test_name: "", instruction: "", duration_minutes: null, passing_score: null, status: "DRAFT", items: [] }; }
+    function openTestOnlineTemplateCreate() { TestOnlineMode = "create"; TestOnlineEditingId = null; TestOnlineDurationEnabled = false; TestOnlineDraftTempImageIds = []; TestOnlineDraft = TestOnlineBlank(); renderTestOnlineTemplateForm("Tambah Tes"); }
+    function openTestOnlineTemplateEdit(id) { const test = window.iReapNetTestTemplates.find(row => Number(row.id) === Number(id)); if (!test) return renderTestOnlineTemplateList(); TestOnlineMode = "edit"; TestOnlineEditingId = Number(id); TestOnlineDraftTempImageIds = []; TestOnlineDraft = JSON.parse(JSON.stringify(test)); TestOnlineDurationEnabled = TestOnlineDraft.duration_minutes !== null && TestOnlineDraft.duration_minutes !== "" && TestOnlineDraft.duration_minutes !== undefined; renderTestOnlineTemplateForm("Ubah Tes"); }
+    function renderTestOnlineTemplateForm(title) {
+      TestOnlineSetTitle(title); const draft = TestOnlineDraft || TestOnlineBlank(); const total = TestOnlineTotalScore(draft);
+      TestOnlineEl("testOnlineApp").innerHTML = `
+        <div class="toolbar" style="justify-content:flex-start">
+          <button class="btn" type="button" data-module-action="saveTestOnlineTemplate">Simpan</button>
+          <button class="btn secondary" type="button" data-module-action="backTestOnlineTemplateList">Batal</button>
+          ${TestOnlineMode === "edit" ? `<button class="btn ${draft.status === "OPEN" ? "test-online-gray" : "green"}" type="button" data-module-action="saveAndToggleTestOnlineTemplateStatus" data-module-args="${draft.id}">${draft.status === "OPEN" ? "Tutup Tes" : "Buka Tes"}</button>` : ""}
+        </div>
+        <div id="testOnlineFormErrors" class="error-box"></div>
+        <div class="form-section"><h2 class="section-title">Informasi Tes</h2><div class="test-online-form-grid">
+          <div class="form-row"><label>Kode Tes <span class="required">*</span></label><input class="form-control" data-test-field="test_code" value="${TestOnlineEsc(draft.test_code)}"></div>
+          <div class="form-row"><label>Nama Tes <span class="required">*</span></label><input class="form-control" data-test-field="test_name" value="${TestOnlineEsc(draft.test_name)}"></div>
+          <label class="test-online-checkline"><input type="checkbox" data-test-duration-check ${TestOnlineDurationEnabled ? "checked" : ""}>Batasi Durasi</label>
+          <div class="form-row"><label>Durasi</label><input class="form-control" type="number" min="1" data-test-field="duration_minutes" value="${draft.duration_minutes ?? ""}" ${TestOnlineDurationEnabled ? "" : "disabled"}><div class="helper-text">Menit</div></div>
+          <div class="form-row"><label>Batas Kelulusan</label><input class="form-control" type="number" min="0" data-test-field="passing_score" value="${draft.passing_score ?? ""}"><div class="helper-text">Kosongkan jika Tes tidak menggunakan hasil Lulus/Tidak Lulus.</div></div>
+          <div class="form-row test-online-wide"><label>Instruksi Tes</label><textarea class="form-control" data-test-field="instruction">${TestOnlineEsc(draft.instruction)}</textarea></div>
+        </div><div class="test-online-summary"><div class="meta"><span>Jumlah Pertanyaan</span><b>${TestOnlineQuestionCount(draft)}</b></div><div class="meta"><span>Total Skor Maksimum</span><b>${total == null ? "-" : total}</b></div></div></div>
+        <div class="form-section"><h2 class="section-title">Isi Tes</h2><div class="test-builder-toolbar"><button class="btn outline" type="button" data-module-action="openTestOnlineSectionModal">Tambah Section</button><button class="btn outline" type="button" data-module-action="openTestOnlineQuestionModal">Tambah Pertanyaan</button></div><div class="test-builder-list">${[...(draft.items || [])].sort((a,b)=>a.sequence-b.sequence).map(TestOnlineBuilderItem).join("") || `<div class="empty-state">Belum ada Section atau Pertanyaan.</div>`}</div></div>`;
+      TestOnlineBindFormInputs(); TestOnlineBindBuilderDrag();
+    }
+    function TestOnlineBuilderItem(item, index) {
+      const qNo = item.item_type === "QUESTION" ? TestOnlineDraft.items.slice(0, index + 1).filter(row => row.item_type === "QUESTION").length : "";
+      const meta = item.item_type === "QUESTION" ? `<div class="test-item-meta"><span>${TestOnlineTypeLabel(item.question_type)}</span><span>${item.is_required ? "Wajib" : "Opsional"}</span><span>Skor Maksimum: ${item.maximum_score ?? "-"}</span>${item.question_type?.startsWith("MULTIPLE") ? `<span>${(item.options || []).length} Pilihan &bull; ${(item.options || []).filter(o => o.is_correct).length} Jawaban Benar</span>` : ""}</div>` : "";
+      const title = TestOnlineItemTitle(item);
+      return `<div class="test-builder-item" data-builder-index="${index}"><div class="test-drag-handle" draggable="true" data-drag-handle="item">☰</div><div><div class="test-item-head"><span class="badge ${item.item_type === "SECTION" ? "done" : "filter"}">${item.item_type === "SECTION" ? "SECTION" : "Pertanyaan " + qNo}</span>${title ? `<span class="test-item-title">${title}</span>` : ""}</div>${item.description ? `<div class="test-item-desc">${TestOnlineEsc(item.description)}</div>` : ""}${TestOnlineImageHtml(item.image_attachment_id)}${meta}</div><div class="actions inline-actions"><button class="btn secondary small icon-btn test-online-reorder-btn" type="button" title="Naik" aria-label="Naik" data-module-action="moveTestOnlineItem" data-module-args="${index}|-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14l5-5 5 5H7Z"/></svg></button><button class="btn secondary small icon-btn test-online-reorder-btn" type="button" title="Turun" aria-label="Turun" data-module-action="moveTestOnlineItem" data-module-args="${index}|1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5H7Z"/></svg></button><button class="btn small icon-btn" type="button" title="Ubah" data-module-action="${item.item_type === "SECTION" ? "openTestOnlineSectionModal" : "openTestOnlineQuestionModal"}" data-module-args="${index}">${window.iconPencil()}</button><button class="btn red small icon-btn" type="button" title="Hapus" data-module-action="deleteTestOnlineItem" data-module-args="${index}">${window.iconTrash()}</button></div></div>`;
+    }
+    function TestOnlineBindFormInputs() {
+      TestOnlineEl("testOnlineApp").querySelectorAll("[data-test-field]").forEach(input => input.addEventListener("input", () => {
+        const field = input.dataset.testField; const raw = input.value;
+        TestOnlineDraft[field] = ["duration_minutes","passing_score"].includes(field) ? (raw === "" ? null : Number(raw)) : raw;
+      }));
+      const check = TestOnlineEl("testOnlineApp").querySelector("[data-test-duration-check]");
+      if (check) check.addEventListener("change", () => { TestOnlineDurationEnabled = check.checked; if (!check.checked) TestOnlineDraft.duration_minutes = null; renderTestOnlineTemplateForm(TestOnlineMode === "create" ? "Tambah Tes" : "Ubah Tes"); });
+    }
+    function TestOnlineBindBuilderDrag() {
+      TestOnlineEl("testOnlineApp").querySelectorAll("[data-builder-index]").forEach(row => {
+        const handle = row.querySelector("[data-drag-handle]");
+        if (handle) handle.addEventListener("dragstart", e => { TestOnlineDragIndex = Number(row.dataset.builderIndex); row.classList.add("dragging"); e.dataTransfer.effectAllowed = "move"; });
+        row.addEventListener("dragend", () => row.classList.remove("dragging"));
+        row.addEventListener("dragover", e => e.preventDefault());
+        row.addEventListener("drop", e => { e.preventDefault(); const to = Number(row.dataset.builderIndex); if (Number.isInteger(TestOnlineDragIndex) && TestOnlineDragIndex !== to) TestOnlineReorderItem(TestOnlineDragIndex, to); TestOnlineDragIndex = null; });
+      });
+    }
+    function TestOnlineReorderItem(from, to) { const rows = TestOnlineDraft.items; const [item] = rows.splice(from, 1); rows.splice(to, 0, item); TestOnlineNormalizeSequence(rows); renderTestOnlineTemplateForm(TestOnlineMode === "create" ? "Tambah Tes" : "Ubah Tes"); }
+    function moveTestOnlineItem(index, dir) { const to = Number(index) + Number(dir); if (to < 0 || to >= TestOnlineDraft.items.length) return; TestOnlineReorderItem(Number(index), to); }
+    function deleteTestOnlineItem(index) { TestOnlineDraft.items.splice(Number(index), 1); TestOnlineNormalizeSequence(TestOnlineDraft.items); renderTestOnlineTemplateForm(TestOnlineMode === "create" ? "Tambah Tes" : "Ubah Tes"); }
+    function TestOnlineNormalizeSequence(rows) { rows.forEach((row, index) => row.sequence = index + 1); return rows; }
+    function TestOnlineItemTitle(item) {
+      const title = String(item?.title || "").trim();
+      if (title) return TestOnlineEsc(title);
+      return item?.image_attachment_id ? "Pertanyaan berupa gambar" : "";
+    }
+    function TestOnlineImagePicker(name, value) {
+      const img = TestOnlineImage(value);
+      return `<div class="test-image-picker" data-image-picker="${name}">${img ? TestOnlineImageHtml(value, "test-image-swatch") : `<div class="helper-text">Belum ada gambar.</div>`}<input type="file" accept="image/*" class="hidden" data-image-file="${name}"><div class="test-image-actions"><button class="btn secondary small" type="button" data-module-action="triggerTestOnlineImageInput" data-module-args="${name}">${img ? "Ganti" : "Pilih Gambar"}</button>${img ? `<button class="btn secondary small" type="button" data-module-action="clearTestOnlineImage" data-module-args="${name}">Hapus</button>` : ""}</div></div>`;
+    }
+    function openTestOnlineSectionModal(index = "") {
+      const editing = index !== ""; const item = editing ? JSON.parse(JSON.stringify(TestOnlineDraft.items[Number(index)])) : { item_type:"SECTION", title:"", description:"", image_attachment_id:null };
+      TestOnlineModalContext = { type:"SECTION", index: editing ? Number(index) : null, item, tempImageIds: [] };
+      TestOnlineRenderSectionModal(editing ? "Ubah Section" : "Tambah Section");
+    }
+    function TestOnlineRenderSectionModal(title) {
+      const item = TestOnlineModalContext.item;
+      TestOnlineOpenModal(title, `<div class="error-box" data-test-modal-error></div><div class="form-row"><label>Judul Section <span class="required">*</span></label><input class="form-control" name="title" value="${TestOnlineEsc(item.title)}"></div><div class="form-row"><label>Deskripsi</label><textarea class="form-control" name="description">${TestOnlineEsc(item.description)}</textarea></div><div class="form-row"><label>Gambar</label>${TestOnlineImagePicker("section", item.image_attachment_id)}</div>`, `<button class="btn" type="button" data-module-action="saveTestOnlineSectionModal">Simpan</button><button class="btn secondary" type="button" data-module-action="closeTestOnlineModal">Batal</button>`);
+      const modal = TestOnlineEl("testOnlineModal");
+      modal.querySelector('[name="title"]').addEventListener("input", e => item.title = e.target.value);
+      modal.querySelector('[name="description"]').addEventListener("input", e => item.description = e.target.value);
+      TestOnlineBindImageSelects();
+    }
+    function saveTestOnlineSectionModal() {
+      const modal = TestOnlineEl("testOnlineModal"); const item = TestOnlineModalContext.item;
+      item.title = modal.querySelector('[name="title"]').value.trim(); item.description = modal.querySelector('[name="description"]').value.trim();
+      if (!item.title) return TestOnlineModalError("Judul Section wajib diisi.");
+      TestOnlineCommitModalImages();
+      if (TestOnlineModalContext.index == null) TestOnlineDraft.items.push({ ...item, id:`I-${Date.now()}`, sequence: TestOnlineDraft.items.length + 1 });
+      else TestOnlineDraft.items[TestOnlineModalContext.index] = { ...TestOnlineDraft.items[TestOnlineModalContext.index], ...item };
+      closeTestOnlineModal(); renderTestOnlineTemplateForm(TestOnlineMode === "create" ? "Tambah Tes" : "Ubah Tes");
+    }
+    function openTestOnlineQuestionModal(index = "") {
+      const editing = index !== ""; const item = editing ? JSON.parse(JSON.stringify(TestOnlineDraft.items[Number(index)])) : { item_type:"QUESTION", title:"", description:"", image_attachment_id:null, question_type:"", is_required:false, maximum_score:null, options:[] };
+      TestOnlineModalContext = { type:"QUESTION", index: editing ? Number(index) : null, item, tempImageIds: [] };
+      TestOnlineRenderQuestionModal(editing ? "Ubah Pertanyaan" : "Tambah Pertanyaan");
+    }
+    function TestOnlineRenderQuestionModal(title) {
+      const item = TestOnlineModalContext.item; const isMc = String(item.question_type).startsWith("MULTIPLE_CHOICE");
+      TestOnlineOpenModal(title, `<div class="error-box" data-test-modal-error></div><div class="test-modal-grid">
+        <div class="form-row test-online-wide"><label>Tipe Pertanyaan <span class="required">*</span></label><select class="form-control" name="question_type"><option value="">Pilih Tipe Pertanyaan</option>${Object.entries(TestOnlineTypes).map(([k,v]) => `<option value="${k}" ${item.question_type === k ? "selected" : ""}>${v}</option>`).join("")}</select></div>
+        <div class="form-row test-online-wide"><label>Pertanyaan</label><input class="form-control" name="title" value="${TestOnlineEsc(item.title)}"></div>
+        <div class="form-row test-online-wide"><label>Deskripsi / Instruksi Tambahan</label><textarea class="form-control" name="description">${TestOnlineEsc(item.description)}</textarea></div>
+        <div class="form-row test-online-wide"><label>Gambar</label>${TestOnlineImagePicker("question", item.image_attachment_id)}</div>
+        <label class="test-online-checkline"><input type="checkbox" name="is_required" ${item.is_required ? "checked" : ""}>Wajib Dijawab</label>
+        <div class="form-row"><label>Skor Maksimum</label><input class="form-control" name="maximum_score" type="number" min="1" value="${item.maximum_score ?? ""}"><div class="helper-text">Kosongkan jika tidak menggunakan scoring.</div></div>
+        ${item.question_type === "FILE_UPLOAD" ? `<div class="test-file-helper test-online-wide">Peserta dapat mengunggah maksimal 1 file.<br>Format: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, JPEG, PNG, ZIP, RAR.<br>Ukuran maksimum 10 MB.</div>` : ""}
+        ${isMc ? `<div class="test-option-editor"><div class="test-builder-toolbar"><button class="btn outline small" type="button" data-module-action="addTestOnlineOption">Tambah Pilihan</button></div><div class="test-option-head"><span></span><span>Jawaban Benar</span><span>Pilihan</span><span>Aksi</span></div><div class="test-option-list">${[...(item.options || [])].sort((a,b)=>a.sequence-b.sequence).map(TestOnlineOptionRow).join("") || `<div class="empty-state">Belum ada pilihan jawaban.</div>`}</div></div>` : ""}
+      </div>`, `<button class="btn" type="button" data-module-action="saveTestOnlineQuestionModal">Simpan</button><button class="btn secondary" type="button" data-module-action="closeTestOnlineModal">Batal</button>`, "wide");
+      TestOnlineBindQuestionModalInputs(); TestOnlineBindImageSelects(); TestOnlineBindOptionDrag();
+    }
+    function TestOnlineQuestionModalTitle() {
+      return TestOnlineModalContext.index == null ? "Tambah Pertanyaan" : "Ubah Pertanyaan";
+    }
+
+    function TestOnlineRenderQuestionModalKeepScroll(title) {
+      const modalBefore = TestOnlineEl("testOnlineModal")?.querySelector(".modal");
+      const scrollTop = modalBefore ? modalBefore.scrollTop : 0;
+
+      TestOnlineRenderQuestionModal(title);
+
+      const modalAfter = TestOnlineEl("testOnlineModal")?.querySelector(".modal");
+      if (modalAfter) modalAfter.scrollTop = scrollTop;
+    }
+    function TestOnlineOptionRow(option, index) {
+      const type = TestOnlineModalContext.item.question_type === "MULTIPLE_CHOICE_SINGLE" ? "radio" : "checkbox";
+      return `<div class="test-option-row" data-option-index="${index}"><div class="test-drag-handle" draggable="true" data-drag-handle="option">☰</div><label class="test-online-checkline" style="margin:4px 0 0"><input type="${type}" name="correct_option" data-option-correct="${index}" ${option.is_correct ? "checked" : ""}><span class="hidden">Jawaban Benar</span></label><div><input class="form-control" data-option-text="${index}" placeholder="Teks pilihan" value="${TestOnlineEsc(option.option_text)}">${TestOnlineImagePicker("option-" + index, option.image_attachment_id)}</div><div class="test-option-actions"><button class="btn secondary icon-btn test-online-reorder-btn" type="button" title="Naik" aria-label="Naik" data-module-action="moveTestOnlineOption" data-module-args="${index}|-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14l5-5 5 5H7Z"/></svg></button><button class="btn secondary icon-btn test-online-reorder-btn" type="button" title="Turun" aria-label="Turun" data-module-action="moveTestOnlineOption" data-module-args="${index}|1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5H7Z"/></svg></button><button class="btn red icon-btn" type="button" title="Hapus" data-module-action="deleteTestOnlineOption" data-module-args="${index}">${window.iconTrash()}</button></div></div>`;
+    }
+    function TestOnlineBindQuestionModalInputs() {
+      const modal = TestOnlineEl("testOnlineModal"), item = TestOnlineModalContext.item;
+      modal.querySelector('[name="question_type"]').addEventListener("change", e => { item.question_type = e.target.value; if (!item.question_type.startsWith("MULTIPLE")) item.options = []; TestOnlineRenderQuestionModal(TestOnlineModalContext.index == null ? "Tambah Pertanyaan" : "Ubah Pertanyaan"); });
+      modal.querySelector('[name="is_required"]').addEventListener("change", e => item.is_required = e.target.checked);
+      modal.querySelector('[name="title"]').addEventListener("input", e => item.title = e.target.value);
+      modal.querySelector('[name="description"]').addEventListener("input", e => item.description = e.target.value);
+      modal.querySelector('[name="maximum_score"]').addEventListener("input", e => item.maximum_score = e.target.value === "" ? null : Number(e.target.value));
+      modal.querySelectorAll("[data-option-text]").forEach(input => input.addEventListener("input", e => item.options[Number(input.dataset.optionText)].option_text = e.target.value));
+      modal.querySelectorAll("[data-option-correct]").forEach(input => input.addEventListener("change", e => { const i = Number(input.dataset.optionCorrect); if (item.question_type === "MULTIPLE_CHOICE_SINGLE") item.options.forEach((o, idx) => o.is_correct = idx === i); else item.options[i].is_correct = e.target.checked; TestOnlineRenderQuestionModalKeepScroll(TestOnlineQuestionModalTitle()); }));
+    }
+    function TestOnlineBindImageSelects() { TestOnlineEl("testOnlineModal").querySelectorAll("[data-image-file]").forEach(input => input.addEventListener("change", e => TestOnlineReadImageFile(input.dataset.imageFile, e.target.files && e.target.files[0]))); }
+    function triggerTestOnlineImageInput(name) { const input = TestOnlineEl("testOnlineModal").querySelector(`[data-image-file="${name}"]`); if (input) input.click(); }
+    function TestOnlineReadImageFile(name, file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = event => {
+        const id = Math.max(1000, ...TestOnlineImagePool.map(img => Number(img.id) || 0), ...window.iReapNetTestImageAttachments.map(img => Number(img.id) || 0)) + 1;
+        window.iReapNetTestImageAttachments.push({ id, name: file.name || `gambar-${id}`, url: event.target.result, temporary: true });
+        if (TestOnlineModalContext) TestOnlineModalContext.tempImageIds.push(id);
+        TestOnlineRegisterDraftTempImage(id);
+        TestOnlineSetImage(name, id);
+      };
+      reader.readAsDataURL(file);
+    }
+    function TestOnlineCurrentImageValue(name) {
+      const ctx = TestOnlineModalContext;
+      if (!ctx) return null;
+      if (name === "section" || name === "question") return ctx.item.image_attachment_id;
+      if (name.startsWith("option-")) return ctx.item.options[Number(name.split("-")[1])]?.image_attachment_id;
+      return null;
+    }
+    function TestOnlineCleanupTempImage(id) {
+      if (!id || !TestOnlineModalContext?.tempImageIds?.includes(Number(id))) return;
+      window.iReapNetTestImageAttachments = window.iReapNetTestImageAttachments.filter(img => Number(img.id) !== Number(id));
+      TestOnlineModalContext.tempImageIds = TestOnlineModalContext.tempImageIds.filter(tempId => Number(tempId) !== Number(id));
+    }
+    function TestOnlineSetImage(name, value) {
+      const ctx = TestOnlineModalContext;
+      const previous = TestOnlineCurrentImageValue(name);
+      if (previous && previous !== value) TestOnlineCleanupTempImageIfUnreferenced(previous, { keepDraft: true, keepModal: false });
+      if (name === "section" || name === "question") ctx.item.image_attachment_id = value;
+      else if (name.startsWith("option-")) ctx.item.options[Number(name.split("-")[1])].image_attachment_id = value;
+      ctx.type === "QUESTION" ? TestOnlineRenderQuestionModalKeepScroll(TestOnlineQuestionModalTitle()) : TestOnlineRenderSectionModal(ctx.index == null ? "Tambah Section" : "Ubah Section");
+    }
+    function clearTestOnlineImage(name) { TestOnlineSetImage(name, null); }
+    function addTestOnlineOption() { const options = TestOnlineModalContext.item.options || (TestOnlineModalContext.item.options = []); options.push({ id:`O-${Date.now()}`, sequence: options.length + 1, option_text:"", image_attachment_id:null, is_correct:false }); TestOnlineRenderQuestionModalKeepScroll(TestOnlineQuestionModalTitle()); }
+    function deleteTestOnlineOption(index) { TestOnlineModalContext.item.options.splice(Number(index), 1); TestOnlineNormalizeSequence(TestOnlineModalContext.item.options); TestOnlineRenderQuestionModalKeepScroll(TestOnlineQuestionModalTitle()); }
+    function moveTestOnlineOption(index, dir) { const rows = TestOnlineModalContext.item.options; const to = Number(index) + Number(dir); if (to < 0 || to >= rows.length) return; const [row] = rows.splice(Number(index), 1); rows.splice(to, 0, row); TestOnlineNormalizeSequence(rows); TestOnlineRenderQuestionModalKeepScroll(TestOnlineQuestionModalTitle()); }
+    function TestOnlineBindOptionDrag() { TestOnlineEl("testOnlineModal").querySelectorAll("[data-option-index]").forEach(row => { const handle = row.querySelector("[data-drag-handle]"); if (handle) handle.addEventListener("dragstart", () => TestOnlineOptionDragIndex = Number(row.dataset.optionIndex)); row.addEventListener("dragover", e => e.preventDefault()); row.addEventListener("drop", e => { e.preventDefault(); const to = Number(row.dataset.optionIndex); if (Number.isInteger(TestOnlineOptionDragIndex) && TestOnlineOptionDragIndex !== to) { const rows = TestOnlineModalContext.item.options; const [item] = rows.splice(TestOnlineOptionDragIndex, 1); rows.splice(to, 0, item); TestOnlineNormalizeSequence(rows); TestOnlineRenderQuestionModalKeepScroll(TestOnlineQuestionModalTitle()); } TestOnlineOptionDragIndex = null; }); }); }
+    function saveTestOnlineQuestionModal() {
+      const item = TestOnlineModalContext.item;
+      TestOnlineNormalizeQuestionText(item);
+      const errors = TestOnlineValidateQuestion(item);
+      if (errors.length) return TestOnlineModalError(errors.join("<br>"));
+      TestOnlineCommitModalImages();
+      if (TestOnlineModalContext.index == null) TestOnlineDraft.items.push({ ...item, id:`I-${Date.now()}`, sequence: TestOnlineDraft.items.length + 1 });
+      else TestOnlineDraft.items[TestOnlineModalContext.index] = { ...TestOnlineDraft.items[TestOnlineModalContext.index], ...item };
+      closeTestOnlineModal(); renderTestOnlineTemplateForm(TestOnlineMode === "create" ? "Tambah Tes" : "Ubah Tes");
+    }
+    function TestOnlineValidateQuestion(item) {
+      const errors = []; if (!item.question_type) errors.push("Tipe Pertanyaan wajib diisi."); if (!String(item.title || "").trim() && !item.image_attachment_id) errors.push("Pertanyaan atau gambar wajib diisi.");
+      if (item.maximum_score !== null && item.maximum_score !== "") {
+        const score = Number(item.maximum_score);
+        if (!Number.isFinite(score) || score <= 0) errors.push("Skor Maksimum harus lebih besar dari 0.");
+      }
+      if (String(item.question_type).startsWith("MULTIPLE")) {
+        if (!(item.options || []).length) errors.push("Pilihan jawaban wajib diisi.");
+        (item.options || []).forEach((option, idx) => { if (!String(option.option_text || "").trim() && !option.image_attachment_id) errors.push(`Pilihan ${idx + 1} wajib memiliki teks atau gambar.`); });
+        if (item.maximum_score !== null && item.maximum_score !== "") {
+          const correct = (item.options || []).filter(o => o.is_correct).length;
+          if (item.question_type === "MULTIPLE_CHOICE_SINGLE" && correct !== 1) errors.push("Pilihan Ganda - Satu Jawaban yang berskor harus mempunyai tepat satu jawaban benar.");
+          if (item.question_type === "MULTIPLE_CHOICE_MULTIPLE" && correct < 1) errors.push("Pilihan Ganda - Beberapa Jawaban yang berskor harus mempunyai minimal satu jawaban benar.");
+        }
+      }
+      return errors;
+    }
+    function TestOnlineNormalizeQuestionText(item) {
+      item.title = String(item.title || "").trim();
+      item.description = String(item.description || "").trim();
+      if (item.maximum_score === "" || item.maximum_score === undefined) item.maximum_score = null;
+      if (item.maximum_score !== null) item.maximum_score = Number(item.maximum_score);
+      (item.options || []).forEach(option => option.option_text = String(option.option_text || "").trim());
+    }
+    function TestOnlineUsedModalImageIds() {
+      const item = TestOnlineModalContext?.item || {};
+      const ids = [];
+      if (item.image_attachment_id) ids.push(Number(item.image_attachment_id));
+      (item.options || []).forEach(option => { if (option.image_attachment_id) ids.push(Number(option.image_attachment_id)); });
+      return ids;
+    }
+    function TestOnlineCommitModalImages() {
+      const used = TestOnlineUsedModalImageIds();
+      (TestOnlineModalContext?.tempImageIds || []).slice().forEach(id => {
+        if (!used.includes(Number(id))) TestOnlineCleanupTempImageIfUnreferenced(id, { keepDraft: true, keepModal: false });
+      });
+      if (TestOnlineModalContext) TestOnlineModalContext.tempImageIds = [];
+    }
+    function TestOnlineCleanupModalImages() {
+      (TestOnlineModalContext?.tempImageIds || []).slice().forEach(id => TestOnlineCleanupTempImageIfUnreferenced(id, { keepDraft: true, keepModal: false }));
+    }
+    function TestOnlineOpenModal(title, body, foot, extra = "") { const modal = TestOnlineEl("testOnlineModal"); modal.innerHTML = `<div class="modal ${extra}"><div class="modal-head">${TestOnlineEsc(title)}<button class="modal-close" type="button" data-module-action="closeTestOnlineModal">&times;</button></div><div class="modal-body">${body}</div><div class="modal-foot">${foot}</div></div>`; modal.classList.add("show"); }
+    function closeTestOnlineModal() { TestOnlineCleanupModalImages(); TestOnlineEl("testOnlineModal").classList.remove("show"); TestOnlineEl("testOnlineModal").innerHTML = ""; TestOnlineModalContext = null; }
+    function TestOnlineModalError(message) { const el = TestOnlineEl("testOnlineModal").querySelector("[data-test-modal-error]"); if (el) { el.innerHTML = message; el.classList.add("show"); } }
+    function saveTestOnlineTemplate() {
+      TestOnlineNormalizeTemplate(TestOnlineDraft);
+      const errors = TestOnlineDraft.status === "OPEN" ? TestOnlineValidateReadyToOpen(TestOnlineDraft) : TestOnlineValidateTemplate(TestOnlineDraft);
+      const box = TestOnlineEl("testOnlineFormErrors"); if (errors.length) { box.innerHTML = errors.join("<br>"); box.classList.add("show"); return; }
+      TestOnlineNormalizeSequence(TestOnlineDraft.items);
+      if (TestOnlineMode === "create") { TestOnlineDraft.id = Math.max(...window.iReapNetTestTemplates.map(t => Number(t.id) || 0), 0) + 1; window.iReapNetTestTemplates.push(JSON.parse(JSON.stringify(TestOnlineDraft))); TestOnlineToast("Tes berhasil ditambahkan."); }
+      else { const idx = window.iReapNetTestTemplates.findIndex(t => Number(t.id) === Number(TestOnlineEditingId)); if (idx >= 0) window.iReapNetTestTemplates[idx] = JSON.parse(JSON.stringify(TestOnlineDraft)); TestOnlineToast("Tes berhasil disimpan."); }
+      TestOnlineCommitDraftImages();
+      renderTestOnlineTemplateList();
+    }
+    function saveAndToggleTestOnlineTemplateStatus(id) {
+      TestOnlineNormalizeTemplate(TestOnlineDraft);
+
+      const next = TestOnlineDraft.status === "OPEN" ? "CLOSED" : "OPEN";
+      const errors = next === "OPEN"
+        ? TestOnlineValidateReadyToOpen(TestOnlineDraft)
+        : TestOnlineValidateTemplate(TestOnlineDraft);
+
+      const box = TestOnlineEl("testOnlineFormErrors");
+      if (errors.length) {
+        box.innerHTML = errors.join("<br>");
+        box.classList.add("show");
+        return;
+      }
+
+      TestOnlineNormalizeSequence(TestOnlineDraft.items);
+
+      const existing = window.iReapNetTestTemplates.find(row => Number(row.id) === Number(id));
+      if (!existing) return renderTestOnlineTemplateList();
+
+      Object.assign(existing, JSON.parse(JSON.stringify(TestOnlineDraft)));
+      existing.id = Number(id);
+      existing.company_id = existing.company_id || TestOnlineCurrentCompanyId();
+      existing.status = next;
+      TestOnlineCommitDraftImages();
+
+      TestOnlineToast(existing.status === "OPEN" ? "Tes dibuka." : "Tes ditutup.");
+      renderTestOnlineTemplateList();
+    }
+    function TestOnlineValidateTemplate(test) {
+      const errors = []; if (!String(test.test_code || "").trim()) errors.push("Kode Tes wajib diisi."); if (!String(test.test_name || "").trim()) errors.push("Nama Tes wajib diisi.");
+      const normalizedCode = String(test.test_code || "").trim().toLowerCase();
+      const duplicate = window.iReapNetTestTemplates.find(row => Number(row.company_id) === Number(test.company_id) && String(row.test_code || "").trim().toLowerCase() === normalizedCode && Number(row.id) !== Number(test.id || TestOnlineEditingId || 0));
+      if (duplicate) errors.push("Kode Tes harus unik dalam Company aktif.");
+      if (TestOnlineDurationEnabled && (test.duration_minutes === null || test.duration_minutes === "" || test.duration_minutes === undefined)) errors.push("Durasi wajib diisi jika Batasi Durasi aktif.");
+      if (test.duration_minutes !== null && test.duration_minutes !== "" && test.duration_minutes !== undefined && (!(Number(test.duration_minutes) > 0) || !Number.isInteger(Number(test.duration_minutes)))) errors.push("Durasi wajib berupa angka bulat lebih besar dari 0.");
+      const total = TestOnlineTotalScore(test);
+      if (test.passing_score !== null && test.passing_score !== "") {
+        if (!Number.isFinite(Number(test.passing_score))) errors.push("Batas Kelulusan wajib berupa angka.");
+        if (Number(test.passing_score) < 0) errors.push("Batas Kelulusan tidak boleh negatif.");
+        if (total == null) errors.push("Batas Kelulusan harus kosong jika tidak ada Pertanyaan yang mempunyai Skor Maksimum.");
+        if (total != null && Number(test.passing_score) > total) errors.push("Batas Kelulusan tidak boleh lebih besar daripada Total Skor Maksimum.");
+      }
+      (test.items || []).forEach((item, idx) => { if (item.item_type === "SECTION" && !String(item.title || "").trim()) errors.push(`Section urutan ${idx + 1}: Judul wajib diisi.`); if (item.item_type === "QUESTION") TestOnlineValidateQuestion(item).forEach(err => errors.push(`Pertanyaan urutan ${idx + 1}: ${err}`)); });
+      return errors;
+    }
+    function TestOnlineNormalizeTemplate(test) {
+      test.test_code = String(test.test_code || "").trim();
+      test.test_name = String(test.test_name || "").trim();
+      test.instruction = String(test.instruction || "").trim();
+      if (!TestOnlineDurationEnabled) test.duration_minutes = null;
+      if (test.duration_minutes === "" || test.duration_minutes === undefined) test.duration_minutes = null;
+      if (test.duration_minutes !== null) test.duration_minutes = Number(test.duration_minutes);
+      if (test.passing_score === "" || test.passing_score === undefined) test.passing_score = null;
+      if (test.passing_score !== null) test.passing_score = Number(test.passing_score);
+      (test.items || []).forEach(item => {
+        item.title = String(item.title || "").trim();
+        item.description = String(item.description || "").trim();
+        if (item.item_type === "QUESTION") TestOnlineNormalizeQuestionText(item);
+      });
+    }
+    function TestOnlineValidateReadyToOpen(test) {
+      const errors = TestOnlineValidateTemplate(test);
+      if (TestOnlineQuestionCount(test) < 1) errors.push("Tes belum dapat dibuka. Minimal harus memiliki 1 Pertanyaan.");
+      return errors;
+    }
+    function backTestOnlineTemplateList() { TestOnlineCleanupDraftImages(); renderTestOnlineTemplateList(); }
+    function toggleTestOnlineTemplateStatus(id) { const test = window.iReapNetTestTemplates.find(row => Number(row.id) === Number(id)); if (!test) return; const next = test.status === "OPEN" ? "CLOSED" : "OPEN"; if (next === "OPEN") { const previous = TestOnlineDurationEnabled; TestOnlineDurationEnabled = test.duration_minutes !== null && test.duration_minutes !== "" && test.duration_minutes !== undefined; const errors = TestOnlineValidateReadyToOpen(test); TestOnlineDurationEnabled = previous; if (errors.length) return TestOnlineToast(errors.join(" ")); } test.status = next; TestOnlineToast(test.status === "OPEN" ? "Tes dibuka." : "Tes ditutup."); if (TestOnlineMode === "view") openTestOnlineTemplateView(id); else renderTestOnlineTemplateList(); }
+    function openTestOnlineTemplateView(id) {
+      const test = window.iReapNetTestTemplates.find(row => Number(row.id) === Number(id)); if (!test) return renderTestOnlineTemplateList(); TestOnlineMode = "view"; TestOnlineSetTitle("Lihat Tes"); const total = TestOnlineTotalScore(test);
+      TestOnlineEl("testOnlineApp").innerHTML = `<div class="toolbar" style="justify-content:flex-start"><button class="btn secondary" type="button" data-module-action="backTestOnlineTemplateList">Kembali</button><button class="btn ${test.status === "OPEN" ? "test-online-gray" : "green"}" type="button" title="${test.status === "OPEN" ? "Tutup Tes" : "Buka Tes"}" aria-label="${test.status === "OPEN" ? "Tutup Tes" : "Buka Tes"}" data-module-action="toggleTestOnlineTemplateStatus" data-module-args="${test.id}">${test.status === "OPEN" ? "Tutup Tes" : "Buka Tes"}</button></div>
+      <div class="form-section"><h2 class="section-title">Informasi Tes</h2><div class="test-online-form-grid">
+        <div class="form-row"><label>Kode Tes</label><input class="form-control" readonly value="${TestOnlineEsc(test.test_code)}"></div>
+        <div class="form-row"><label>Nama Tes</label><input class="form-control" readonly value="${TestOnlineEsc(test.test_name)}"></div>
+        <div class="form-row"><label>Status</label><input class="form-control" readonly value="${TestOnlineEsc(TestOnlineStatusLabel(test.status))}"></div>
+        <label class="test-online-checkline"><input type="checkbox" disabled ${test.duration_minutes ? "checked" : ""}>Batasi Durasi</label>
+        <div class="form-row"><label>Durasi</label><div class="test-online-view-duration"><input class="form-control" readonly ${test.duration_minutes ? "" : "disabled"} value="${test.duration_minutes ?? ""}"><span>Menit</span></div></div>
+        <div class="form-row"><label>Batas Kelulusan</label><input class="form-control" readonly value="${test.passing_score ?? ""}"></div>
+        <div class="form-row test-online-wide"><label>Instruksi Tes</label><textarea class="form-control" readonly>${TestOnlineEsc(test.instruction || "")}</textarea></div>
+      </div><div class="test-online-summary"><div class="meta"><span>Jumlah Pertanyaan</span><b>${TestOnlineQuestionCount(test)}</b></div><div class="meta"><span>Total Skor Maksimum</span><b>${total == null ? "-" : total}</b></div></div></div>
+      <div class="form-section"><h2 class="section-title">Isi Tes</h2>${[...(test.items || [])].sort((a,b)=>a.sequence-b.sequence).map(TestOnlineReadonlyItem).join("") || `<div class="empty-state">Belum ada isi Tes.</div>`}</div>`;
+    }
+    function TestOnlineReadonlyItem(item, index, rows) {
+      const qNo = item.item_type === "QUESTION" ? rows.slice(0, index + 1).filter(row => row.item_type === "QUESTION").length : "";
+      const opts = item.question_type?.startsWith("MULTIPLE") ? `<div class="test-option-list">${[...(item.options || [])].sort((a,b)=>a.sequence-b.sequence).map(opt => `<div>${TestOnlineImageHtml(opt.image_attachment_id, "test-image-swatch")}${String(opt.option_text || "").trim() ? `<span class="${opt.is_correct ? "test-correct" : ""}">${TestOnlineText(opt.option_text)}${opt.is_correct ? " - Jawaban Benar" : ""}</span>` : (opt.is_correct ? `<span class="test-correct">Jawaban Benar</span>` : "")}</div>`).join("")}</div>` : "";
+      const title = TestOnlineItemTitle(item);
+      return `<div class="test-detail-item"><div class="test-item-head"><span class="badge ${item.item_type === "SECTION" ? "done" : "filter"}">${item.item_type === "SECTION" ? "SECTION" : "Pertanyaan " + qNo}</span>${title ? `<span class="test-item-title">${title}</span>` : ""}</div>${item.description ? `<div class="test-item-desc">${TestOnlineEsc(item.description)}</div>` : ""}${TestOnlineImageHtml(item.image_attachment_id)}${item.item_type === "QUESTION" ? `<div class="test-item-meta"><span>${TestOnlineTypeLabel(item.question_type)}</span><span>${item.is_required ? "Wajib" : "Opsional"}</span><span>Skor Maksimum: ${item.maximum_score ?? "-"}</span></div>${opts}` : ""}</div>`;
+    }
+    if (window.iReapNetTestOnlineCompanyHandler) {
+      window.removeEventListener("ireapnet:company-changed", window.iReapNetTestOnlineCompanyHandler);
+    }
+    window.iReapNetTestOnlineCompanyHandler = function iReapNetTestOnlineCompanyHandler() {
+      const app = document.getElementById("testOnlineApp");
+      if (!app || app.nodeType !== 1) return;
+      closeTestOnlineModal();
+      TestOnlineCleanupDraftImages();
+      TestOnlineDraft = null;
+      TestOnlineEditingId = null;
+      TestOnlineDurationEnabled = false;
+      TestOnlineSearch = "";
+      TestOnlineStatusFilter = "ALL";
+      TestOnlinePage = 1;
+      TestOnlineMode = "list";
+      renderTestOnlineTemplateList();
+    };
+    window.addEventListener("ireapnet:company-changed", window.iReapNetTestOnlineCompanyHandler);
+  </script>
+</template>
   <script>
     function iReapNetIsValidDateOnly(value) {
       const text = String(value || "").trim();
@@ -41591,7 +42156,8 @@ function validateEmployeeScheduleBulkPayload(data) {
       approval: { sourceId: 'page-approval-source' },
       administrasi: { sourceId: 'page-administrasi-source' },
       attendance: { sourceId: 'page-attendance-source' },
-      recruitment: { sourceId: 'page-recruitment-source' }
+      recruitment: { sourceId: 'page-recruitment-source' },
+      testOnline: { sourceId: 'page-test-online-source' }
     };
 
     const APP_MENU = [
@@ -41690,6 +42256,14 @@ function validateEmployeeScheduleBulkPayload(data) {
           { label: 'Lamaran', route: 'recruitment.application' }
         ]
       },
+      {
+        label: 'Tes Online',
+        icon: '&#9635;',
+        group: 'Tes Online',
+        items: [
+          { label: 'Daftar Tes', route: 'testOnline.template' }
+        ]
+      },
       { label: 'Laporan', icon: '&#9645;', chevron: true }
     ];
 
@@ -41771,6 +42345,7 @@ function validateEmployeeScheduleBulkPayload(data) {
       ['attendance.employeeAllocation', 'attendance', 'Absensi', 'Alokasi Karyawan', 'Daftar Alokasi Karyawan', 'renderEmployeeAllocationScreen'],
       ['recruitment.candidate', 'recruitment', 'Rekrutmen', 'Kandidat', 'Daftar Kandidat', 'renderRekrutmenCandidateList'],
       ['recruitment.application', 'recruitment', 'Rekrutmen', 'Lamaran', 'Daftar Lamaran', 'renderRekrutmenApplicationList'],
+      ['testOnline.template', 'testOnline', 'Tes Online', 'Daftar Tes', 'Daftar Tes', 'renderTestOnlineTemplateList'],
       ['administrasi.employee', 'administrasi', 'Administrasi', 'Karyawan', 'Daftar Karyawan', 'renderEmployeeList'],
       ['administrasi.employeeContract', 'administrasi', 'Administrasi', 'Kontrak Karyawan', 'Daftar Kontrak Karyawan', 'renderEmployeeContractList'],
       ['administrasi.employeeSchedule', 'administrasi', 'Administrasi', 'Pengaturan Jadwal Karyawan', 'Daftar', 'renderEmployeeScheduleList'],
