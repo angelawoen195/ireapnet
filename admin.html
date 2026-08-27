@@ -23401,13 +23401,195 @@ EMP003;INSENTIF;600000;2026-06-30;;;2026-07-31;Y;Y;Insentif penjualan Juni`;
     el("employeeHistoryModal").classList.remove("show");
   }
 
+  function employeeContractTypeName(id) {
+    return employeeContractTypes.find(item => item.id === Number(id))?.name || "-";
+  }
+
+  function employeeContractEmployee(contract) {
+    return employees.find(item => item.id === Number(contract.employee_id)) || {};
+  }
+
+  function employeeContractIsExpired(contract) {
+    return contract.is_active && contract.end_date && contract.end_date < todayIso();
+  }
+
+  function renderEmployeeContractTypeOptions() {
+    const typeFilter = el("employeeContractTypeFilter").value || "all";
+    const employeeTypeFilter = el("employeeContractEmployeeTypeFilter").value || "all";
+    const departmentFilter = el("employeeContractDepartmentFilter").value || "all";
+    el("employeeContractType").innerHTML = '<option value="">Pilih Tipe Kontrak</option>' + employeeContractTypes.map(item => `<option value="${item.id}">${escapeAdminHtml(item.name)}</option>`).join("");
+    el("employeeContractTypeFilter").innerHTML = '<option value="all">Semua</option>' + employeeContractTypes.map(item => `<option value="${item.id}">${escapeAdminHtml(item.name)}</option>`).join("");
+    el("employeeContractTypeFilter").value = typeFilter;
+    el("employeeContractEmployeeTypeFilter").innerHTML = '<option value="all">Semua</option>' + employeeDropdowns.types.map(item => `<option value="${escapeAdminHtml(item)}">${escapeAdminHtml(item)}</option>`).join("");
+    el("employeeContractEmployeeTypeFilter").value = employeeTypeFilter;
+    el("employeeContractDepartmentFilter").innerHTML = '<option value="all">Semua</option>' + employeeDropdowns.departments.map(item => `<option value="${escapeAdminHtml(item)}">${escapeAdminHtml(item)}</option>`).join("");
+    el("employeeContractDepartmentFilter").value = departmentFilter;
+  }
+
+  function setEmployeeContractScreen(mode, title = "") {
+    employeeContractMode = mode;
+    el("employeeListView").classList.add("hidden");
+    el("employeeFormPage").classList.add("hidden");
+    el("employeeRequisitionListView").classList.add("hidden");
+    el("employeeRequisitionFormPage").classList.add("hidden");
+    el("employeeRequisitionViewPage").classList.add("hidden");
+    el("employeeScheduleListView").classList.add("hidden");
+    el("employeeScheduleFormPage").classList.add("hidden");
+    el("employeePayrollListView").classList.add("hidden");
+    el("employeePayrollFormPage").classList.add("hidden");
+    el("payrollParameterAdjustmentListView").classList.add("hidden");
+    el("payrollParameterAdjustmentFormPage").classList.add("hidden");
+    el("employeeMovementListView").classList.add("hidden");
+    el("employeeMovementFormPage").classList.add("hidden");
+    el("employeeTerminationListView").classList.add("hidden");
+    el("employeeTerminationFormPage").classList.add("hidden");
+    el("employeeContractListView").classList.toggle("hidden", mode !== "list");
+    el("employeeContractFormPage").classList.toggle("hidden", !["create", "edit", "view"].includes(mode));
+    const crumbTitle = el("crumbTitle");
+    if (mode === "list") {
+      crumbTitle.classList.add("hidden");
+      crumbTitle.textContent = "";
+    } else {
+      crumbTitle.classList.remove("hidden");
+      crumbTitle.textContent = title;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
+  function filteredEmployeeContracts() {
+    const status = el("employeeContractStatusFilter").value;
+    const type = el("employeeContractTypeFilter").value;
+    const employeeType = el("employeeContractEmployeeTypeFilter").value;
+    const department = el("employeeContractDepartmentFilter").value;
+    const query = el("employeeContractSearchBox").value.trim().toLowerCase();
+    return employeeContracts.filter(contract => {
+      const employee = employeeContractEmployee(contract);
+      const matches = (status === "all" || (status === "active" ? contract.is_active : !contract.is_active))
+        && (type === "all" || Number(contract.contract_type_id) === Number(type))
+        && (employeeType === "all" || employee.employment_type === employeeType)
+        && (department === "all" || employee.department === department);
+      const text = [contract.contract_number, contract.contract_name, employee.employee_number, employee.name].join(" ").toLowerCase();
+      return matches && (!query || text.includes(query));
+    });
+  }
+
+  function renderEmployeeContractList() {
+    renderEmployeeContractTypeOptions();
+    setEmployeeContractScreen("list");
+    const rows = filteredEmployeeContracts();
+    const pageSize = Number(el("employeeContractPageSize").value || 10);
+    const visible = rows.slice(0, pageSize);
+    el("employeeContractRows").innerHTML = visible.map(contract => {
+      const employee = employeeContractEmployee(contract);
+      const expired = employeeContractIsExpired(contract);
+      const warning = expired ? '<span class="employee-contract-expired-warning" aria-label="Tanggal kontrak sudah lewat">&#9888;<span class="employee-contract-expired-tooltip">Tanggal kontrak sudah lewat</span></span>' : "";
+      return `<tr class="${expired ? "employee-contract-expired-row" : ""}">
+        <td>${escapeAdminHtml(contract.contract_number)}</td>
+        <td>${escapeAdminHtml(employee.employee_number || "-")}</td>
+        <td>${escapeAdminHtml(employee.name || "-")}</td>
+        <td>${escapeAdminHtml(employeeContractTypeName(contract.contract_type_id))}</td>
+        <td>${escapeAdminHtml(contract.start_date)}</td>
+        <td>${escapeAdminHtml(contract.end_date || "-")}</td>
+        <td><span class="employee-contract-status-cell">${employeeBadge(contract.is_active ? "Aktif" : "Tidak Aktif")}${warning}</span></td>
+        <td class="employee-contract-action-cell"><div class="actions inline-actions"><button class="btn teal icon-btn" type="button" title="Lihat" aria-label="Lihat" data-module-action="openEmployeeContractView" data-module-args="${contract.id}">${window.iconEye()}</button><button class="btn icon-btn" type="button" title="Ubah" aria-label="Ubah" data-module-action="openEmployeeContractEdit" data-module-args="${contract.id}">${window.iconPencil()}</button></div></td>
+      </tr>`;
+    }).join("");
+    el("employeeContractEmptyState").classList.toggle("hidden", rows.length > 0);
+    el("employeeContractPageInfo").textContent = `Menampilkan ${rows.length ? `1 - ${visible.length}` : "0 - 0"} dari ${rows.length} data`;
+  }
+
+  function fillEmployeeContractEmployee(employeeId) {
+    const employee = employees.find(item => item.id === Number(employeeId)) || {};
+    el("employeeContractEmployee").value = employee.employee_number ? `${employee.employee_number} - ${employee.name}` : "";
+    el("employeeContractEmployee").dataset.employeeId = employee.id || "";
+    el("employeeContractEmployeeName").value = employee.name || "";
+    el("employeeContractEmployeeNumber").value = employee.employee_number || "";
+    el("employeeContractEmployeeType").value = employee.employment_type || "";
+    el("employeeContractDepartment").value = employee.department || "";
+    el("employeeContractJob").value = employee.job || "";
+    el("employeeContractPosition").value = employee.position || "";
+    el("employeeContractWorkLocation").value = employee.work_location || "";
+  }
+
+  function setEmployeeContractReadonly(readonly, lockEmployee = false) {
+    ["employeeContractNumber", "employeeContractName", "employeeContractType", "employeeContractStartDate", "employeeContractEndDate", "employeeContractActive", "employeeContractAttachmentFile", "employeeContractNote"].forEach(id => el(id).disabled = readonly);
+    el("employeeContractEmployeeLookupBtn").disabled = readonly || lockEmployee;
+    el("employeeContractAttachmentActions").classList.toggle("hidden", !readonly || !el("employeeContractAttachmentName").dataset.fileName);
+  }
+
+  function fillEmployeeContractForm(contract = null) {
+    renderEmployeeContractTypeOptions();
+    fillEmployeeContractEmployee(contract?.employee_id || "");
+    el("employeeContractNumber").value = contract?.contract_number || `CTR-2026-${String(employeeContractSeed).padStart(4, "0")}`;
+    el("employeeContractName").value = contract?.contract_name || "";
+    el("employeeContractType").value = contract?.contract_type_id || "";
+    el("employeeContractStartDate").value = contract?.start_date || todayIso();
+    el("employeeContractEndDate").value = contract?.end_date || "";
+    el("employeeContractActive").checked = contract ? !!contract.is_active : true;
+    el("employeeContractNote").value = contract?.note || "";
+    el("employeeContractAttachmentFile").value = "";
+    const fileName = contract?.attachment?.file_name || "";
+    el("employeeContractAttachmentName").dataset.fileName = fileName;
+    el("employeeContractAttachmentName").textContent = fileName || "Belum ada lampiran.";
+    el("employeeContractFormErrors").classList.remove("show");
+  }
+
+  function openEmployeeContractCreate() {
+    employeeContractEditingId = null;
+    employeeContractViewingId = null;
+    fillEmployeeContractForm(null);
+    el("employeeContractFormActions").innerHTML = '<button class="btn" type="button" data-module-action="saveEmployeeContractForm">Simpan</button><button class="btn secondary" type="button" data-module-action="renderEmployeeContractList">Kembali</button>';
+    setEmployeeContractReadonly(false, false);
+    setEmployeeContractScreen("create", "Tambah Kontrak Karyawan");
+  }
+
+  function openEmployeeContractEdit(id) {
+    const contract = employeeContracts.find(item => item.id === Number(id));
+    if (!contract) return;
+    employeeContractEditingId = contract.id;
+    employeeContractViewingId = null;
+    fillEmployeeContractForm(contract);
+    el("employeeContractFormActions").innerHTML = '<button class="btn" type="button" data-module-action="saveEmployeeContractForm">Simpan</button><button class="btn secondary" type="button" data-module-action="renderEmployeeContractList">Kembali</button>';
+    setEmployeeContractReadonly(false, true);
+    setEmployeeContractScreen("edit", "Ubah Kontrak Karyawan");
+  }
+
+  function openEmployeeContractView(id) {
+    const contract = employeeContracts.find(item => item.id === Number(id));
+    if (!contract) return;
+    employeeContractEditingId = null;
+    employeeContractViewingId = contract.id;
+    fillEmployeeContractForm(contract);
+    el("employeeContractFormActions").innerHTML = '<button class="btn secondary" type="button" data-module-action="renderEmployeeContractList">Kembali</button>';
+    setEmployeeContractReadonly(true, true);
+    setEmployeeContractScreen("view", "Lihat Kontrak Karyawan");
+  }
+
   function readEmployeeContractForm() {
-    return {};
+    const file = el("employeeContractAttachmentFile").files[0];
+    return {
+      employee_id: Number(el("employeeContractEmployee").dataset.employeeId || 0),
+      contract_number: el("employeeContractNumber").value.trim(),
+      contract_name: el("employeeContractName").value.trim(),
+      contract_type_id: Number(el("employeeContractType").value || 0),
+      start_date: el("employeeContractStartDate").value,
+      end_date: el("employeeContractEndDate").value,
+      is_active: el("employeeContractActive").checked,
+      attachment: file ? { file_name: file.name } : (el("employeeContractAttachmentName").dataset.fileName ? { file_name: el("employeeContractAttachmentName").dataset.fileName } : null),
+      note: el("employeeContractNote").value.trim()
+    };
   }
 
   function validateEmployeeContractForm(data) {
     const errors = [];
-    showEmployeeContractFormErrors(errors);
+    if (!data.employee_id) errors.push("Karyawan wajib dipilih.");
+    if (!data.contract_number) errors.push("No Kontrak wajib diisi.");
+    if (!data.contract_type_id) errors.push("Tipe Kontrak wajib diisi.");
+    if (!data.start_date) errors.push("Tanggal Mulai wajib diisi.");
+    if (data.end_date && data.start_date && data.end_date < data.start_date) errors.push("Tanggal Berakhir tidak boleh lebih kecil daripada Tanggal Mulai.");
+    if (data.contract_number && employeeContracts.some(item => item.contract_number.toLowerCase() === data.contract_number.toLowerCase() && item.id !== employeeContractEditingId)) errors.push("No Kontrak sudah digunakan. Gunakan nomor lain.");
+    el("employeeContractFormErrors").innerHTML = errors.map(error => `<div>${escapeAdminHtml(error)}</div>`).join("");
+    el("employeeContractFormErrors").classList.toggle("show", errors.length > 0);
     return !errors.length;
   }
 
