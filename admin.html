@@ -14692,6 +14692,8 @@
       line.source_count = Number(line.source_count || 0);
       line.source_document_numbers = Array.isArray(line.source_document_numbers) ? line.source_document_numbers : [];
       line.transaction_ids = Array.isArray(line.transaction_ids) ? line.transaction_ids : [];
+      line.transaction_snapshots = Array.isArray(line.transaction_snapshots) ? line.transaction_snapshots : [];
+      line.transaction_snapshot_ready = Boolean(line.transaction_snapshot_ready);
       line.thp_amount = Number(line.thp_amount ?? payrollLineThpAmount(line, line.final_amount));
       line.pph21_base_amount = Number(line.pph21_base_amount || 0);
       return line;
@@ -14714,6 +14716,8 @@
         source_count: 0,
         source_document_numbers: [],
         transaction_ids: [],
+        transaction_snapshots: [],
+        transaction_snapshot_ready: false,
         thp_amount: payrollLineThpAmount({ category_code: categoryCode, code }, signedAmount),
         pph21_base_amount: 0
       });
@@ -15324,11 +15328,11 @@
     }
 
     function payrollComponentTransactionPullText(row) {
-      return row.payroll_run_id ? "Sudah Tertarik" : "Belum Tertarik";
+      return payrollComponentTransactionIsPulled(row) ? "Sudah Ditarik" : "Belum Ditarik";
     }
 
     function payrollComponentTransactionPullBadge(row) {
-      return `<span class="badge ${row.payroll_run_id ? "done" : "pending"} payroll-component-transaction-pull-badge">${payrollComponentTransactionPullText(row)}</span>`;
+      return `<span class="badge ${payrollComponentTransactionIsPulled(row) ? "done" : "pending"} payroll-component-transaction-pull-badge">${payrollComponentTransactionPullText(row)}</span>`;
     }
 
     function payrollComponentTransactionYesNoBadge(value) {
@@ -15360,19 +15364,19 @@
     }
 
     function canEditPayrollComponentTransaction(row) {
-      return row?.approval_status === "DRAFT" && !row.payroll_run_id && !row.payslip_id;
+      return row?.approval_status === "DRAFT" && !payrollComponentTransactionIsPulled(row);
     }
 
     function canEditPayrollComponentTransactionTarget(row) {
-      return row?.approval_status === "APPROVED" && !row.payroll_run_id && !row.payslip_id;
+      return row?.approval_status === "APPROVED" && !payrollComponentTransactionIsPulled(row);
     }
 
     function canSubmitPayrollComponentTransaction(row) {
-      return row?.approval_status === "DRAFT" && !row.payroll_run_id && !row.payslip_id;
+      return row?.approval_status === "DRAFT" && !payrollComponentTransactionIsPulled(row);
     }
 
     function canCancelPayrollComponentTransaction(row) {
-      return row && ["DRAFT", "PENDING", "APPROVED"].includes(row.approval_status) && !row.payroll_run_id && !row.payslip_id;
+      return row && ["DRAFT", "PENDING", "APPROVED"].includes(row.approval_status) && !payrollComponentTransactionIsPulled(row);
     }
 
     function canDuplicatePayrollComponentTransaction(row) {
@@ -15513,6 +15517,20 @@
       return Boolean(row?.payroll_run_id || row?.payslip_id);
     }
 
+    function payrollComponentTransactionPayrollContext(row) {
+      const runById = payrollRuns.find(item => String(item.id) === String(row?.payroll_run_id || ""));
+      const slipRecord = payrollRuns.flatMap(run => (run.slips || []).map(slip => ({ run, slip })))
+        .find(item => String(item.slip.id || "") === String(row?.payslip_id || "") || String(item.slip.no || "") === String(row?.payslip_id || ""));
+      const run = runById || slipRecord?.run;
+      const slip = runById?.slips?.find(item => String(item.id || "") === String(row?.payslip_id || "") || String(item.no || "") === String(row?.payslip_id || "")) || slipRecord?.slip;
+      return {
+        run,
+        slip,
+        batchName: run ? (run.batch_name || run.batch || "-") : "-",
+        slipNo: slip ? (slip.no || "-") : "-"
+      };
+    }
+
     function payrollComponentTransactionHasValue(value) {
       return value !== undefined && value !== null && value !== "";
     }
@@ -15531,6 +15549,28 @@
     function payrollComponentTransactionEffectiveAmount(row) {
       normalizePayrollComponentTransactionAmount(row);
       return Number(row.final_amount ?? row.amount ?? 0);
+    }
+
+    function payrollComponentTransactionSnapshot(row) {
+      normalizePayrollComponentTransactionAmount(row);
+      return {
+        id: row.id,
+        source_transaction_id: row.id,
+        document_number: row.document_number,
+        document_date: row.document_date,
+        source_period_start: row.source_period_start,
+        source_period_end: row.source_period_end,
+        target_payroll_date: row.target_payroll_date,
+        salary_component_id: row.salary_component_id,
+        salary_component_code: row.salary_component_code,
+        salary_component_name: row.salary_component_name,
+        amount: Number(row.amount || 0),
+        adjustment_amount: payrollComponentTransactionHasValue(row.adjustment_amount) ? Number(row.adjustment_amount) : null,
+        final_amount: Number(row.final_amount ?? row.amount ?? 0),
+        include_in_thp: Boolean(row.include_in_thp),
+        include_in_pph21: Boolean(row.include_in_pph21),
+        description: row.description || ""
+      };
     }
 
     function payrollComponentTransactionAdjustmentText(row) {
@@ -15579,7 +15619,7 @@
       return payrollComponentTransactions.filter(row => {
         const haystack = [row.document_number, row.employee_number, row.employee_name, row.salary_component_code, row.salary_component_name, row.description].join(" ").toLowerCase();
         return (payrollComponentTransactionFilters.approval === "all" || row.approval_status === payrollComponentTransactionFilters.approval)
-          && (payrollComponentTransactionFilters.pull === "all" || (payrollComponentTransactionFilters.pull === "pulled" ? Boolean(row.payroll_run_id) : !row.payroll_run_id))
+          && (payrollComponentTransactionFilters.pull === "all" || (payrollComponentTransactionFilters.pull === "pulled" ? payrollComponentTransactionIsPulled(row) : !payrollComponentTransactionIsPulled(row)))
           && (!query || haystack.includes(query));
       });
     }
@@ -15620,8 +15660,8 @@
             </select></label>
             <label><span>Status Tarik</span><select class="form-control" id="payrollComponentTransactionPullFilter">
               <option value="all">Semua</option>
-              <option value="open" ${payrollComponentTransactionFilters.pull === "open" ? "selected" : ""}>Belum Tertarik</option>
-              <option value="pulled" ${payrollComponentTransactionFilters.pull === "pulled" ? "selected" : ""}>Sudah Tertarik</option>
+              <option value="open" ${payrollComponentTransactionFilters.pull === "open" ? "selected" : ""}>Belum Ditarik</option>
+              <option value="pulled" ${payrollComponentTransactionFilters.pull === "pulled" ? "selected" : ""}>Sudah Ditarik</option>
             </select></label>
             </div>
           </div>
@@ -15833,7 +15873,7 @@
       window.iReapNetSyncPayrollComponentTransactionApprovalRequests?.();
       const row = payrollComponentTransactions.find(item => Number(item.id) === Number(id));
       if (!row) return renderPayrollComponentTransactionList();
-      if (row.payroll_run_id) return showToast("Transaksi sudah tertarik payroll dan tidak dapat diubah.");
+      if (payrollComponentTransactionIsPulled(row)) return showToast("Transaksi sudah tertarik payroll dan tidak dapat diubah.");
       if (row.approval_status !== "DRAFT") return showToast("Transaksi hanya bisa diubah saat status Draft.");
       payrollComponentTransactionFormMode = "edit";
       payrollComponentTransactionEditingId = Number(id);
@@ -16367,7 +16407,8 @@
     function payrollComponentTransactionImportSampleText() {
       return `EMP001;BONUS;450000;2026-06-30;2026-06-01;2026-06-30;2026-07-31;Y;Y;Import bonus Juni
 EMP002;LEMBUR;325000;2026-06-30;2026-06-24;2026-06-30;2026-07-31;N;Y;Lembur mingguan sudah dibayar
-EMP003;INSENTIF;600000;2026-06-30;;;2026-07-31;Y;Y;Insentif penjualan Juni`;
+EMP003;INSENTIF;600000;2026-06-30;;;2026-07-31;Y;Y;Insentif penjualan Juni
+EMP001;BONUS;200000;2026-06-30;2026-06-01;2026-06-30;;Y;Y;Import bonus Juni tanpa target payroll`;
     }
 
     function downloadPayrollComponentTransactionImportTemplate() {
@@ -16720,13 +16761,14 @@ EMP003;INSENTIF;600000;2026-06-30;;;2026-07-31;Y;Y;Insentif penjualan Juni`;
       window.iReapNetSyncPayrollComponentTransactionApprovalRequests?.();
       const row = payrollComponentTransactions.find(item => Number(item.id) === Number(id));
       if (!row) return renderPayrollComponentTransactionList();
+      const payrollContext = payrollComponentTransactionPayrollContext(row);
       const payrollInfoHtml = row.approval_status === "APPROVED" ? `
           <section class="form-section">
             <h2 class="section-title">Informasi Payroll</h2>
             <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:14px 22px">
               ${payrollComponentTransactionReadonlyField("Status Tarik", payrollComponentTransactionPullText(row))}
-              ${payrollComponentTransactionReadonlyField("Payroll Run ID", row.payroll_run_id)}
-              ${payrollComponentTransactionReadonlyField("Payslip ID", row.payslip_id)}
+              ${payrollComponentTransactionReadonlyField("Batch Penggajian", payrollContext.batchName)}
+              ${payrollComponentTransactionReadonlyField("No. Slip Gaji", payrollContext.slipNo)}
             </div>
           </section>
         ` : "";
@@ -16764,7 +16806,6 @@ EMP003;INSENTIF;600000;2026-06-30;;;2026-07-31;Y;Y;Insentif penjualan Juni`;
               ${payrollComponentTransactionReadonlyField("Masuk THP", payrollComponentTransactionYesNoText(row.include_in_thp))}
               ${payrollComponentTransactionReadonlyField("Masuk PPh21", payrollComponentTransactionYesNoText(row.include_in_pph21))}
               ${payrollComponentTransactionReadonlyField("Status Approval", payrollComponentTransactionApprovalLabel(row.approval_status))}
-              ${payrollComponentTransactionReadonlyField("Status Tarik", payrollComponentTransactionPullText(row))}
               ${payrollComponentTransactionReadonlyTextarea("Deskripsi", row.description, true)}
               ${cancelReasonHtml}
             </div>
@@ -17524,9 +17565,12 @@ EMP003;INSENTIF;600000;2026-06-30;;;2026-07-31;Y;Y;Insentif penjualan Juni`;
         line.source_count = 0;
         line.source_document_numbers = [];
         line.transaction_ids = [];
+        line.transaction_snapshots = [];
+        line.transaction_snapshot_ready = false;
         line.pph21_base_amount = 0;
         if (line.value_source === "TRANSACTION" && run && isRunDraft(run)) {
           const transactions = getEligiblePayrollComponentTransactions(run, slip, line.code);
+          const transactionSnapshots = transactions.map(row => payrollComponentTransactionSnapshot(row));
           const sign = payrollLineSign(line) || 1;
           const systemAmount = transactions.reduce((sum, row) => sum + payrollComponentTransactionEffectiveAmount(row), 0) * sign;
           const thpAmount = transactions.reduce((sum, row) => sum + (row.include_in_thp ? payrollComponentTransactionEffectiveAmount(row) * sign : 0), 0);
@@ -17537,6 +17581,8 @@ EMP003;INSENTIF;600000;2026-06-30;;;2026-07-31;Y;Y;Insentif penjualan Juni`;
           line.source_count = transactions.length;
           line.source_document_numbers = transactions.map(row => row.document_number);
           line.transaction_ids = transactions.map(row => row.id);
+          line.transaction_snapshots = transactionSnapshots;
+          line.transaction_snapshot_ready = true;
           line.thp_amount = thpAmount;
           line.pph21_base_amount = pph21BaseAmount;
           line.adjustable = false;
@@ -17784,6 +17830,9 @@ EMP003;INSENTIF;600000;2026-06-30;;;2026-07-31;Y;Y;Insentif penjualan Juni`;
         run.approval_status = status;
         run.status = status;
         (run.slips || []).forEach(slip => slip.status = status);
+        if (status === "REJECTED") {
+          releasePayrollComponentTransactionsForRun(run.id);
+        }
       }
       run.approval_history = request.history || run.approval_history || [];
     }
@@ -17916,8 +17965,19 @@ EMP003;INSENTIF;600000;2026-06-30;;;2026-07-31;Y;Y;Insentif penjualan Juni`;
     }
 
     function payrollSlipComponentTransactionRows(run, slip, componentCode = "") {
+      const transactionLines = (slip.lines || [])
+        .map(line => normalizePayrollLineMetadata(line, run))
+        .filter(line => line.value_source === "TRANSACTION");
+      const hasSnapshotMetadata = transactionLines.some(line => line.transaction_snapshot_ready || (Array.isArray(line.transaction_snapshots) && line.transaction_snapshots.length));
+      if (hasSnapshotMetadata) {
+        return transactionLines
+          .filter(line => !componentCode || payrollLineCode(line) === componentCode)
+          .flatMap(line => line.transaction_snapshots || [])
+          .filter(row => !componentCode || row.salary_component_code === componentCode)
+          .map(row => normalizePayrollComponentTransactionAmount({ ...row }));
+      }
       const store = ensurePayrollComponentTransactionReadyForPayroll();
-      const idSet = new Set((slip.lines || [])
+      const idSet = new Set(transactionLines
         .filter(line => !componentCode || payrollLineCode(line) === componentCode)
         .flatMap(line => Array.isArray(line.transaction_ids) ? line.transaction_ids : [])
         .map(id => String(id)));

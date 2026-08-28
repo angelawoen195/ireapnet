@@ -214,6 +214,22 @@
     .empty { padding:24px; text-align:center; color:#777; background:#fbfbfb; border:1px dashed #d6dce4; border-radius:3px; }
     .files { display:grid; gap:7px; margin-top:8px; }
     .file-row { display:flex; justify-content:space-between; gap:10px; align-items:center; border:1px solid #e2e6eb; background:#fbfcfe; border-radius:3px; padding:8px 10px; }
+    .online-test-list-table .test-name { display:block; color:#667; font-size:12px; margin-top:2px; }
+    .online-test-status { display:inline-flex; align-items:center; min-height:22px; padding:3px 9px; border:1px solid #e1e1e1; border-radius:3px; background:#f3f3f3; color:#777; font-size:12px; font-weight:700; line-height:1; }
+    .online-test-status.assigned { color:#37557f; background:var(--soft-blue); border-color:#d7e5f7; }
+    .online-test-status.progress { color:#16826e; background:var(--soft-green); border-color:#c8efe5; }
+    .online-test-helper { margin-top:6px; color:#777; font-size:12px; line-height:1.35; }
+    .online-test-shell { display:grid; gap:14px; }
+    .online-test-sticky { position:sticky; top:70px; z-index:4; display:flex; justify-content:space-between; gap:12px; align-items:center; border:1px solid #d7e5f7; background:#f8fbff; padding:10px 12px; border-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+    .online-test-timer span { display:block; color:#667; font-size:12px; }
+    .online-test-timer b { color:#26364d; font-size:20px; line-height:1.2; }
+    .online-test-section { border-left:4px solid #d7e5f7; background:#f8fbff; }
+    .online-test-question.invalid { border-color:#efb4bd; box-shadow:inset 3px 0 0 var(--red); }
+    .online-test-image { display:block; max-width:100%; width:auto; max-height:220px; object-fit:contain; border:1px solid #dfe3ea; border-radius:3px; background:#f5f7fb; margin:8px 0; }
+    .online-test-option { display:flex; align-items:flex-start; gap:8px; border:1px solid #e4e6eb; background:#fbfbfb; padding:8px; margin-top:7px; border-radius:3px; }
+    .online-test-option img { width:118px; height:74px; object-fit:cover; }
+    .online-test-answer { margin-top:10px; }
+    .online-test-file-warning { color:#a82838; background:var(--soft-red); border:1px solid #efb4bd; padding:8px 10px; border-radius:3px; margin-top:8px; }
     .toast { position:fixed; top:76px; right:28px; z-index:30; display:none; max-width:360px; padding:11px 14px; border:1px solid #c8efe5; border-radius:3px; background:var(--soft-green); color:#16826e; box-shadow:0 4px 18px rgba(0,0,0,.16); font-weight:700; line-height:1.35; }
     .toast.show { display:block; }
     .toast-action { margin-top:8px; }
@@ -485,11 +501,15 @@
     function actionButton(action, title, aria, icon, cls="") {
       return `<button class="btn small icon-btn ${cls}" type="button" title="${title}" aria-label="${aria}" onclick="${action}">${icon}</button>`;
     }
-    function go(screen, detailId=null) { state.screen = screen; state.detailId = detailId; state.editingProfile = false; closeDrawer(); render(); window.scrollTo(0,0); }
+    function go(screen, detailId=null) {
+      if (screen !== "testTaking") clearInterval(window.portalTestTimer);
+      state.screen = screen; state.detailId = detailId; state.editingProfile = false; closeDrawer(); render(); window.scrollTo(0,0);
+    }
     function mainSection() {
       if (state.screen === "home") return "home";
       if (["vacancies","apply"].includes(state.screen)) return "vacancies";
       if (["applications","applicationDetail"].includes(state.screen)) return "applications";
+      if (["onlineTests","testTaking"].includes(state.screen)) return "onlineTests";
       return "profile";
     }
     function navButton(key, label, icon) {
@@ -500,7 +520,8 @@
         navButton("home","Beranda","B"),
         navButton("profile","Profil Saya","P"),
         navButton("vacancies","Lowongan","L"),
-        navButton("applications","Lamaran Saya","A")
+        navButton("applications","Lamaran Saya","A"),
+        navButton("onlineTests","Tes Online","T")
       ].join("");
       $("mainNav").innerHTML = html;
       $("drawerNav").innerHTML = html + `<button type="button" onclick="logout()"><span class="nav-icon">O</span><span>Keluar</span></button>`;
@@ -525,6 +546,12 @@
       if (state.screen === "applicationDetail") {
         return [{ label:"Beranda", go:"home" }, { label:"Lamaran Saya", go:"applications" }, { label:"Lihat Lamaran" }];
       }
+      if (state.screen === "onlineTests") {
+        return [{ label:"Beranda", go:"home" }, { label:"Tes Online" }];
+      }
+      if (state.screen === "testTaking") {
+        return [{ label:"Beranda", go:"home" }, { label:"Tes Online", go:"onlineTests" }, { label:"Pengerjaan Tes" }];
+      }
       return [{ label:"Beranda" }];
     }
     function renderBreadcrumb() {
@@ -534,7 +561,7 @@
         const part = item.go ? `<button type="button" onclick="go('${item.go}'${item.id ? "," + item.id : ""})">${label}</button>` : `<span>${label}</span>`;
         return `${index ? `<span class="sep">/</span>` : ""}${part}`;
       }).join("");
-      const mobileLabels = { home:"Beranda", profile:"Profil Saya", vacancies:"Daftar Lowongan", apply:"Form Lamaran", applications:"Daftar Lamaran", applicationDetail:"Lihat Lamaran" };
+      const mobileLabels = { home:"Beranda", profile:"Profil Saya", vacancies:"Daftar Lowongan", apply:"Form Lamaran", applications:"Daftar Lamaran", applicationDetail:"Lihat Lamaran", onlineTests:"Tes Online", testTaking:"Pengerjaan Tes" };
       $("mobileCrumb").textContent = mobileLabels[state.screen] || items[items.length - 1].label;
     }
     function logout() { closeDrawer(); showToast("Simulasi logout pelamar."); }
@@ -553,6 +580,8 @@
       if (state.screen === "apply") renderApplyForm(state.detailId);
       if (state.screen === "applications") renderApplications();
       if (state.screen === "applicationDetail") renderApplicationDetail(state.detailId);
+      if (state.screen === "onlineTests") renderOnlineTests();
+      if (state.screen === "testTaking") renderTestTaking(state.detailId);
     }
 
     function renderHome() {
@@ -737,6 +766,290 @@
       go("applicationDetail", app.id);
     }
 
+    const TEST_STORAGE_KEY = `ireapnet.portal.testOnline.v1.candidate.${CURRENT_CANDIDATE_ID}`;
+    const TEST_IDB_NAME = "ireapnetPortalTestOnlineFiles";
+    const TEST_IDB_STORE = "files";
+    const testImageMap = {
+      901: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='260'%3E%3Crect width='520' height='260' fill='%23ecf4ff'/%3E%3Ccircle cx='145' cy='130' r='54' fill='%2326bdc6'/%3E%3Crect x='275' y='76' width='108' height='108' fill='%233f55aa'/%3E%3Ctext x='260' y='226' text-anchor='middle' font-family='Arial' font-size='20' fill='%2333455f'%3EPola Visual%3C/text%3E%3C/svg%3E",
+      902: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='180'%3E%3Crect width='360' height='180' fill='%23e8fbf6'/%3E%3Cpath d='M54 120h252' stroke='%2331b79d' stroke-width='12' stroke-linecap='round'/%3E%3Cpath d='M112 58h136v54H112z' fill='%23fff' stroke='%2331b79d' stroke-width='8'/%3E%3C/svg%3E",
+      903: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='120'%3E%3Crect width='180' height='120' fill='%23fff6df'/%3E%3Cpath d='M30 84 88 24l62 60z' fill='%23efb54f'/%3E%3C/svg%3E"
+    };
+    window.iReapNetTestTemplates = window.iReapNetTestTemplates || [
+      { id:101, company_id:1, test_code:"PORT-START", test_name:"Tes Kompetensi Dasar", instruction:"Jawab seluruh pertanyaan yang tersedia.", duration_minutes:30, passing_score:50, status:"CLOSED", items:[
+        { id:"I-101-1", item_type:"SECTION", sequence:1, title:"Pemahaman Umum", description:"Bagian ini mengukur pemahaman dasar kandidat.", image_attachment_id:null },
+        { id:"I-101-2", item_type:"QUESTION", sequence:2, title:"Dokumen apa yang biasa dipakai untuk validasi pengalaman kerja?", description:"", image_attachment_id:null, question_type:"MULTIPLE_CHOICE_SINGLE", is_required:true, maximum_score:10, options:[{ id:"O-101-1", sequence:1, option_text:"Surat pengalaman kerja", image_attachment_id:null, is_correct:true },{ id:"O-101-2", sequence:2, option_text:"Struk belanja", image_attachment_id:null, is_correct:false }] },
+        { id:"I-101-3", item_type:"QUESTION", sequence:3, title:"Tuliskan alasan Anda melamar posisi ini.", description:"", image_attachment_id:null, question_type:"MULTILINE_TEXT", is_required:true, maximum_score:20, options:[] }
+      ] },
+      { id:102, company_id:1, test_code:"PORT-FUTURE", test_name:"Tes Analisa Terjadwal", instruction:"Tes akan dapat dimulai sesuai periode akses.", duration_minutes:45, passing_score:20, status:"OPEN", items:[
+        { id:"I-102-1", item_type:"SECTION", sequence:1, title:"Analisa Visual", description:"Perhatikan gambar berikut.", image_attachment_id:902 },
+        { id:"I-102-2", item_type:"QUESTION", sequence:2, title:"", description:"Pilih pola yang paling sesuai.", image_attachment_id:901, question_type:"MULTIPLE_CHOICE_SINGLE", is_required:true, maximum_score:25, options:[{ id:"O-102-1", sequence:1, option_text:"", image_attachment_id:903, is_correct:true },{ id:"O-102-2", sequence:2, option_text:"Pola B", image_attachment_id:902, is_correct:false }] }
+      ] },
+      { id:103, company_id:1, test_code:"PORT-TIMED", test_name:"Tes Portofolio Operasional", instruction:"Lengkapi jawaban dan unggah file pendukung.", duration_minutes:90, passing_score:60, status:"OPEN", items:[
+        { id:"I-103-1", item_type:"SECTION", sequence:1, title:"Portofolio", description:"Gunakan contoh pekerjaan yang relevan.", image_attachment_id:null },
+        { id:"I-103-2", item_type:"QUESTION", sequence:2, title:"Pilih aktivitas onboarding.", description:"", image_attachment_id:null, question_type:"MULTIPLE_CHOICE_MULTIPLE", is_required:true, maximum_score:15, options:[{ id:"O-103-1", sequence:1, option_text:"Pengenalan kebijakan perusahaan", image_attachment_id:null, is_correct:true },{ id:"O-103-2", sequence:2, option_text:"Pembuatan akses kerja", image_attachment_id:null, is_correct:true },{ id:"O-103-3", sequence:3, option_text:"Penutupan slip gaji lama", image_attachment_id:null, is_correct:false }] },
+        { id:"I-103-3", item_type:"QUESTION", sequence:3, title:"Unggah portofolio pendukung.", description:"", image_attachment_id:null, question_type:"FILE_UPLOAD", is_required:true, maximum_score:null, options:[] },
+        { id:"I-103-4", item_type:"QUESTION", sequence:4, title:"Berapa jumlah kandidat yang lolos jika 18 dari 30 memenuhi kriteria?", description:"", image_attachment_id:null, question_type:"NUMERICAL", is_required:true, maximum_score:10, options:[] },
+        { id:"I-103-5", item_type:"QUESTION", sequence:5, title:"Kapan tanggal mulai kerja paling cepat yang Anda rekomendasikan?", description:"", image_attachment_id:null, question_type:"DATE", is_required:true, maximum_score:null, options:[] }
+      ] },
+      { id:104, company_id:1, test_code:"PORT-UNTIMED", test_name:"Tes Data Kandidat", instruction:"Isi dengan kondisi Anda saat ini.", duration_minutes:null, passing_score:null, status:"OPEN", items:[
+        { id:"I-104-1", item_type:"QUESTION", sequence:1, title:"Ceritakan preferensi lingkungan kerja Anda.", description:"", image_attachment_id:null, question_type:"MULTILINE_TEXT", is_required:true, maximum_score:null, options:[] }
+      ] }
+    ];
+    function testNowDate() { return new Date(); }
+    function testInternal(date) { const pad = n => String(n).padStart(2, "0"); return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`; }
+    function testOffset(minutes) { const d = testNowDate(); d.setMinutes(d.getMinutes() + Number(minutes || 0)); return testInternal(d); }
+    function fmtTestDateTime(v) { if (!v) return "-"; const d = new Date(String(v).replace(" ", "T")); if (Number.isNaN(d.getTime())) return esc(v); const m = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"]; const pad = n => String(n).padStart(2, "0"); return `${pad(d.getDate())}-${m[d.getMonth()]}-${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+    function testTimeMs(v) { const d = new Date(String(v || "").replace(" ", "T")); return Number.isNaN(d.getTime()) ? null : d.getTime(); }
+    function testTemplate(id) { return (window.iReapNetTestTemplates || []).find(t => Number(t.id) === Number(id)) || {}; }
+    function testAssignment(id) { return (window.iReapNetTestAssignments || []).find(a => Number(a.id) === Number(id)); }
+    function testApplication(row) { return applications.find(a => Number(a.id) === Number(row?.application_id)); }
+    function ownsTestAssignment(row) { const app = testApplication(row); return !!row && !!app && Number(app.candidate_id) === CURRENT_CANDIDATE_ID; }
+    function testDeadline(row) { if (!row?.started_at) return row?.close_at || ""; const startedMs = testTimeMs(row.started_at); if (startedMs == null) return row.close_at || ""; return row.duration_minutes != null ? testInternal(new Date(startedMs + Number(row.duration_minutes) * 60000)) : row.close_at; }
+    function testRemainingMs(row) { return (testTimeMs(testDeadline(row)) ?? 0) - Date.now(); }
+    function initPortalTests() {
+      const seed = [
+        { id:1, company_id:1, assignment_number:"TAS260100001", test_id:102, application_id:5, open_at:testOffset(1440), close_at:testOffset(4320), status:"ASSIGNED", assigned_at:testOffset(-60), assigned_by:100, started_at:null, submitted_at:null, duration_minutes:null, passing_score:null, answers:[], answer_options:[], updated_at:testOffset(-60), updated_by:100 },
+        { id:2, company_id:1, assignment_number:"TAS260100002", test_id:101, application_id:5, open_at:testOffset(-120), close_at:testOffset(2880), status:"ASSIGNED", assigned_at:testOffset(-180), assigned_by:100, started_at:null, submitted_at:null, duration_minutes:null, passing_score:null, answers:[], answer_options:[], updated_at:testOffset(-180), updated_by:100 },
+        { id:3, company_id:1, assignment_number:"TAS260100003", test_id:103, application_id:5, open_at:testOffset(-240), close_at:testOffset(2880), status:"IN_PROGRESS", assigned_at:testOffset(-300), assigned_by:100, started_at:testOffset(-15), submitted_at:null, duration_minutes:90, passing_score:60, answers:[], answer_options:[], updated_at:testOffset(-15), updated_by:CURRENT_PORTAL_ACTOR },
+        { id:4, company_id:1, assignment_number:"TAS260100004", test_id:104, application_id:5, open_at:testOffset(-1440), close_at:testOffset(2880), status:"IN_PROGRESS", assigned_at:testOffset(-1500), assigned_by:100, started_at:testOffset(-120), submitted_at:null, duration_minutes:null, passing_score:null, answers:[], answer_options:[], updated_at:testOffset(-120), updated_by:CURRENT_PORTAL_ACTOR }
+      ];
+      window.iReapNetTestAssignments = seed;
+      seed.filter(row => row.status === "IN_PROGRESS").forEach(row => {
+        if (!(row.answers || []).length) createTestSnapshot(row);
+      });
+      const timed = testAssignment(3);
+      const timedText = timed?.answers?.find(a => a.question_type === "NUMERICAL");
+      if (timedText) timedText.numeric_answer = 0;
+      const saved = loadTestState();
+      if (saved?.assignments) mergeTestAssignments(saved.assignments);
+      reconcilePortalTests();
+      persistTestState();
+    }
+    function loadTestState() { try { return JSON.parse(localStorage.getItem(TEST_STORAGE_KEY) || "null"); } catch { return null; } }
+    function persistTestState() { localStorage.setItem(TEST_STORAGE_KEY, JSON.stringify({ assignments: window.iReapNetTestAssignments || [], attachments: window.iReapNetTestAnswerAttachments || [] })); }
+    function mergeTestAssignments(rows) { rows.forEach(saved => { const idx = window.iReapNetTestAssignments.findIndex(row => Number(row.id) === Number(saved.id)); if (idx >= 0) window.iReapNetTestAssignments[idx] = saved; else window.iReapNetTestAssignments.push(saved); }); }
+    window.iReapNetTestAnswerAttachments = loadTestState()?.attachments || [];
+    function verifyTestFileBinaries() {
+      const attachments = window.iReapNetTestAnswerAttachments || [];
+      if (!attachments.length) return;
+      if (!window.indexedDB) {
+        attachments.forEach(att => att.binary_missing = true);
+        persistTestState();
+        return;
+      }
+      openTestDb().then(db => {
+        let pending = attachments.length, changed = false;
+        attachments.forEach(att => {
+          const req = db.transaction(TEST_IDB_STORE, "readonly").objectStore(TEST_IDB_STORE).get(att.id);
+          req.onsuccess = () => { if (!req.result && !att.binary_missing) { att.binary_missing = true; changed = true; } if (--pending === 0 && changed) { persistTestState(); if (state.screen === "testTaking") renderTestTaking(state.detailId); } };
+          req.onerror = () => { if (!att.binary_missing) { att.binary_missing = true; changed = true; } if (--pending === 0 && changed) { persistTestState(); if (state.screen === "testTaking") renderTestTaking(state.detailId); } };
+        });
+      }).catch(() => {
+        attachments.forEach(att => att.binary_missing = true);
+        persistTestState();
+        if (state.screen === "testTaking") renderTestTaking(state.detailId);
+      });
+    }
+    function createTestSnapshot(row) {
+      const test = testTemplate(row.test_id), key = row.assignment_number;
+      row.duration_minutes = test.duration_minutes ?? null;
+      row.passing_score = test.passing_score ?? null;
+      row.answers = [...(test.items || [])].sort((a,b)=>a.sequence-b.sequence).map((item, idx) => ({ id:`ANS-${key}-${item.id}-${idx}`, assignment_id:row.id, test_item_id:item.id, item_type:item.item_type, sequence:item.sequence, title:item.title || "", description:item.description || "", image_attachment_id:item.image_attachment_id || null, question_type:item.question_type || "", is_required:!!item.is_required, maximum_score:item.maximum_score ?? null, text_answer:"", numeric_answer:null, date_answer:"", attachment_id:null, score:null, grading_note:"", graded_at:"", graded_by:"" }));
+      row.answer_options = [];
+      // Production Portal API must not send is_correct or answer keys to applicant browsers.
+      (test.items || []).forEach(item => { const answer = row.answers.find(a => a.test_item_id === item.id); (item.options || []).forEach(opt => row.answer_options.push({ id:`AOP-${key}-${item.id}-${opt.id}`, answer_id:answer?.id || "", test_question_option_id:opt.id, option_text:opt.option_text || "", image_attachment_id:opt.image_attachment_id || null, is_correct:!!opt.is_correct, sequence:opt.sequence, is_selected:false })); });
+    }
+    function reconcilePortalTests() {
+      const now = testInternal(testNowDate());
+      (window.iReapNetTestAssignments || []).forEach(row => {
+        if (!ownsTestAssignment(row)) return;
+        const app = testApplication(row);
+        if (row.status === "ASSIGNED" && app && ["ACCEPTED","REJECTED","WITHDRAWN","CANCELLED"].includes(app.status)) {
+          const changedAt = String(app.status_changed_at || "").replace("T", " ").slice(0,19);
+          const changedAtMs = testTimeMs(changedAt), closeAtMs = testTimeMs(row.close_at), nowMs = testTimeMs(now);
+          if (changedAtMs != null && closeAtMs != null && changedAtMs > closeAtMs) { row.status = "EXPIRED"; row.updated_at = row.close_at; row.updated_by = "SYSTEM"; }
+          else if (changedAt) { row.status = "CANCELLED"; row.cancelled_at = changedAt; row.cancelled_by = app.status_changed_by || "SYSTEM"; row.cancellation_reason = "Pelaksanaan Tes dibatalkan karena Lamaran tidak lagi berstatus Sedang Diproses."; row.updated_at = row.cancelled_at; row.updated_by = row.cancelled_by; }
+          else if (closeAtMs != null && nowMs != null && nowMs > closeAtMs) { row.status = "EXPIRED"; row.updated_at = row.close_at; row.updated_by = "SYSTEM"; }
+          else { row.status = "CANCELLED"; row.cancelled_at = null; row.cancelled_by = app.status_changed_by || "SYSTEM"; row.cancellation_reason = "Pelaksanaan Tes dibatalkan karena Lamaran tidak lagi berstatus Sedang Diproses."; row.updated_at = now; row.updated_by = "SYSTEM"; }
+        }
+        if (row.status === "ASSIGNED" && !row.started_at && row.close_at && testTimeMs(now) > testTimeMs(row.close_at)) { row.status = "EXPIRED"; row.updated_at = row.close_at; row.updated_by = "SYSTEM"; }
+        if (row.status === "IN_PROGRESS" && testRemainingMs(row) <= 0) autoSubmitTest(row.id);
+      });
+    }
+    function visibleOnlineTests() { reconcilePortalTests(); return (window.iReapNetTestAssignments || []).filter(row => ownsTestAssignment(row) && ["ASSIGNED","IN_PROGRESS"].includes(row.status)); }
+    function onlineTestStatus(row) { return row.status === "IN_PROGRESS" ? `<span class="online-test-status progress">Sedang Dikerjakan</span>` : `<span class="online-test-status assigned">Belum Dimulai</span>`; }
+    function onlineTestAction(row) {
+      const now = testInternal(testNowDate()), nowMs = testTimeMs(now), openMs = testTimeMs(row.open_at), closeMs = testTimeMs(row.close_at);
+      if (row.status === "IN_PROGRESS") return `<button class="btn small" onclick="continueOnlineTest(${row.id})">Lanjutkan Tes</button>`;
+      const canStart = !row.started_at && nowMs != null && openMs != null && closeMs != null && nowMs >= openMs && nowMs <= closeMs;
+      return `<button class="btn small" onclick="openStartOnlineTest(${row.id})" ${canStart ? "" : "disabled"}>Mulai Tes</button>${nowMs < openMs ? `<div class="online-test-helper">Dapat dimulai ${fmtTestDateTime(row.open_at)}</div>` : ""}`;
+    }
+    function renderOnlineTests() {
+      const rows = visibleOnlineTests();
+      $("app").innerHTML = rows.length ? `<div class="table-wrap desktop-table"><table class="online-test-list-table"><thead><tr><th>Tes</th><th>No. Lamaran</th><th>Posisi Dilamar</th><th>Periode Akses</th><th>Durasi</th><th>Status</th><th class="action-col">Aksi</th></tr></thead><tbody>${rows.map(onlineTestRow).join("")}</tbody></table></div><div class="mobile-cards">${rows.map(onlineTestMobile).join("")}</div>` : `<div class="empty">Tidak ada tes yang perlu dikerjakan saat ini.</div>`;
+    }
+    function onlineTestRow(row) {
+      const test = testTemplate(row.test_id), app = testApplication(row), v = applicationVacancy(app);
+      return `<tr><td><b>${esc(test.test_code || "-")}</b><span class="test-name">${esc(test.test_name || "-")}</span></td><td>${esc(app?.application_number || "-")}</td><td>${esc(v.position || "-")}</td><td>${fmtTestDateTime(row.open_at)}<br>s.d. ${fmtTestDateTime(row.close_at)}</td><td>${row.status === "IN_PROGRESS" ? durationLabel(row.duration_minutes) : durationLabel(test.duration_minutes)}</td><td>${onlineTestStatus(row)}</td><td>${onlineTestAction(row)}</td></tr>`;
+    }
+    function onlineTestMobile(row) {
+      const test = testTemplate(row.test_id), app = testApplication(row), v = applicationVacancy(app);
+      const duration = row.status === "IN_PROGRESS" ? durationLabel(row.duration_minutes) : durationLabel(test.duration_minutes);
+      const status = row.status === "IN_PROGRESS" ? "Sedang Dikerjakan" : "Belum Dimulai";
+      return `<div class="mobile-item">
+        <b>${esc(test.test_code || "-")} - ${esc(test.test_name || "-")}</b>
+        <span>No. Lamaran: ${esc(app?.application_number || "-")}</span>
+        <span>Posisi Dilamar: ${esc(v.position || "-")}</span>
+        <span>Periode Akses: ${fmtTestDateTime(row.open_at)}<br>s.d. ${fmtTestDateTime(row.close_at)}</span>
+        <span>Durasi: ${esc(duration)}</span>
+        <span>Status: ${status}</span>
+        <div class="actions">${onlineTestAction(row)}</div>
+      </div>`;
+    }
+    function durationLabel(value) { return value == null || value === "" ? "Tanpa batas durasi" : `${value} menit`; }
+    function openStartOnlineTest(id) {
+      const row = testAssignment(id);
+      reconcilePortalTests();
+      if (!ownsTestAssignment(row) || row.status !== "ASSIGNED" || row.started_at) return showToast("Tes tidak dapat dimulai.", true);
+      const now = testInternal(testNowDate());
+      const nowMs = testTimeMs(now), openMs = testTimeMs(row.open_at), closeMs = testTimeMs(row.close_at);
+      if (nowMs == null || openMs == null || closeMs == null || nowMs < openMs || nowMs > closeMs) { renderOnlineTests(); return showToast("Tes belum berada dalam periode mulai.", true); }
+      const test = testTemplate(row.test_id);
+      openModal("Mulai Tes", `<div class="grid cols-2"><div><label>Nama Tes</label><input class="form-control" value="${esc(test.test_name || "-")}" readonly></div><div><label>Durasi</label><input class="form-control" value="${durationLabel(test.duration_minutes)}" readonly></div><div><label>Batas Pelaksanaan</label><input class="form-control" value="${fmtTestDateTime(row.close_at)}" readonly></div></div><p class="subtitle">${test.duration_minutes != null ? "Waktu pengerjaan mulai dihitung setelah Anda menekan Mulai Tes." : "Tes dapat dikerjakan sampai Batas Pelaksanaan."}</p>`, `<button class="btn" onclick="confirmStartOnlineTest(${row.id})">Mulai Tes</button><button class="btn secondary" onclick="closeModal()">Batal</button>`, "small");
+    }
+    function confirmStartOnlineTest(id) {
+      const row = testAssignment(id);
+      reconcilePortalTests();
+      const now = testInternal(testNowDate());
+      const nowMs = testTimeMs(now), openMs = testTimeMs(row.open_at), closeMs = testTimeMs(row.close_at);
+      if (!ownsTestAssignment(row) || row.status !== "ASSIGNED" || row.started_at || nowMs == null || openMs == null || closeMs == null || nowMs < openMs || nowMs > closeMs) { closeModal(); renderOnlineTests(); return showToast("Tes tidak dapat dimulai.", true); }
+      createTestSnapshot(row);
+      row.started_at = now;
+      row.status = "IN_PROGRESS";
+      row.updated_at = now;
+      row.updated_by = CURRENT_PORTAL_ACTOR;
+      persistTestState();
+      closeModal();
+      go("testTaking", row.id);
+    }
+    function continueOnlineTest(id) {
+      const row = testAssignment(id);
+      reconcilePortalTests();
+      if (!ownsTestAssignment(row)) return showToast("Tes tidak ditemukan.", true);
+      if (row.status !== "IN_PROGRESS") { persistTestState(); renderOnlineTests(); return showToast("Tes sudah tidak dapat dikerjakan.", true); }
+      go("testTaking", row.id);
+    }
+    function renderTestTaking(id) {
+      const row = testAssignment(id);
+      reconcilePortalTests();
+      if (!ownsTestAssignment(row) || row.status !== "IN_PROGRESS") { go("onlineTests"); return; }
+      const test = testTemplate(row.test_id), app = testApplication(row), v = applicationVacancy(app);
+      $("app").innerHTML = `<div class="online-test-shell"><div class="toolbar" style="justify-content:flex-start"><button class="btn secondary" onclick="backToOnlineTests()">Kembali</button><button class="btn" onclick="openSubmitOnlineTest(${row.id})">Kumpulkan Tes</button></div><div class="online-test-sticky"><div><b>${esc(test.test_name || "-")}</b><div class="subtitle">${esc(app?.application_number || "-")} - ${esc(v.position || "-")}</div></div><div class="online-test-timer" id="onlineTestTimer">${testTimerHtml(row)}</div></div><div id="onlineTestErrors"></div>${[...(row.answers || [])].sort((a,b)=>a.sequence-b.sequence).map((a, i, all) => renderTestAnswer(row, a, all.slice(0, i + 1).filter(x => x.item_type === "QUESTION").length)).join("")}<div class="toolbar" style="justify-content:flex-start"><button class="btn" onclick="openSubmitOnlineTest(${row.id})">Kumpulkan Tes</button><button class="btn secondary" onclick="backToOnlineTests()">Kembali</button></div></div>`;
+      bindFileInputs();
+      startTestTimer(row.id);
+    }
+    function backToOnlineTests() { persistTestState(); go("onlineTests"); }
+    function testTimerHtml(row) { return row.duration_minutes != null ? `<span>Sisa Waktu</span><b>${formatRemaining(Math.max(0, testRemainingMs(row)))}</b>` : `<span>Batas Pelaksanaan</span><b>${fmtTestDateTime(row.close_at)}</b>`; }
+    function formatRemaining(ms) { const total = Math.max(0, Math.floor(ms / 1000)); const h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), s = total % 60; return [h,m,s].map(n => String(n).padStart(2, "0")).join(":"); }
+    function startTestTimer(id) { clearInterval(window.portalTestTimer); window.portalTestTimer = setInterval(() => { const row = testAssignment(id); if (!row || row.status !== "IN_PROGRESS") { clearInterval(window.portalTestTimer); return; } if (testRemainingMs(row) <= 0) { clearInterval(window.portalTestTimer); autoSubmitTest(id, true); return; } const el = $("onlineTestTimer"); if (el) el.innerHTML = testTimerHtml(row); }, 1000); }
+    function testImage(id) { return id && testImageMap[id] ? `<img class="online-test-image" src="${testImageMap[id]}" alt="">` : ""; }
+    function renderTestAnswer(row, answer, qNo) {
+      if (answer.item_type === "SECTION") return `<section class="form-section online-test-section">${answer.title ? `<h3 class="form-section-title">${esc(answer.title)}</h3>` : ""}${answer.description ? `<p class="subtitle">${esc(answer.description)}</p>` : ""}${testImage(answer.image_attachment_id)}</section>`;
+      return `<section class="form-section online-test-question" data-question-id="${answer.id}"><h3 class="form-section-title">Pertanyaan ${qNo}${answer.is_required ? " *" : ""}</h3>${answer.title ? `<p><b>${esc(answer.title)}</b></p>` : ""}${answer.description ? `<p class="subtitle">${esc(answer.description)}</p>` : ""}${testImage(answer.image_attachment_id)}<div class="online-test-answer">${answerInput(row, answer)}</div></section>`;
+    }
+    function answerInput(row, answer) {
+      if (answer.question_type === "MULTIPLE_CHOICE_SINGLE" || answer.question_type === "MULTIPLE_CHOICE_MULTIPLE") {
+        const type = answer.question_type === "MULTIPLE_CHOICE_SINGLE" ? "radio" : "checkbox";
+        return (row.answer_options || []).filter(o => o.answer_id === answer.id).sort((a,b)=>a.sequence-b.sequence).map(opt => `<label class="online-test-option"><input type="${type}" name="q_${answer.id}" ${opt.is_selected ? "checked" : ""} onchange="saveChoice(${row.id},'${answer.id}','${opt.id}',this.checked)"><span>${opt.option_text ? esc(opt.option_text) : ""}${testImage(opt.image_attachment_id)}</span></label>`).join("");
+      }
+      if (answer.question_type === "MULTILINE_TEXT") return `<label>Teks</label><textarea class="form-control" oninput="saveAnswer(${row.id},'${answer.id}','text_answer',this.value)">${esc(answer.text_answer || "")}</textarea>`;
+      if (answer.question_type === "NUMERICAL") return `<input class="form-control" type="number" value="${answer.numeric_answer ?? ""}" oninput="saveAnswer(${row.id},'${answer.id}','numeric_answer',this.value === '' ? null : Number(this.value))">`;
+      if (answer.question_type === "DATE") return `<input class="form-control" type="date" value="${esc(answer.date_answer || "")}" onchange="saveAnswer(${row.id},'${answer.id}','date_answer',this.value)">`;
+      if (answer.question_type === "FILE_UPLOAD") return fileUploadHtml(row, answer);
+      return "";
+    }
+    function fileUploadHtml(row, answer) {
+      const att = (window.iReapNetTestAnswerAttachments || []).find(a => a.id === answer.attachment_id);
+      return `<input class="form-control" type="file" data-file-answer="${answer.id}" data-file-assignment="${row.id}"><div class="online-test-helper">Peserta dapat mengunggah maksimal 1 file. Format: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, JPEG, PNG, ZIP, RAR. Ukuran maksimum 10 MB.</div>${att ? `<div class="file-row"><span>${esc(att.file_name)}${att.binary_missing ? " (perlu unggah ulang)" : ""}</span><button class="btn red small" onclick="removeTestFile(${row.id},'${answer.id}')">Hapus</button></div>${att.binary_missing ? `<div class="online-test-file-warning">File perlu diunggah ulang karena binary tidak tersedia.</div>` : ""}` : ""}`;
+    }
+    function saveAnswer(rowId, answerId, field, value) { const row = testAssignment(rowId); if (!ownsTestAssignment(row) || row.status !== "IN_PROGRESS") return; const answer = row.answers.find(a => a.id === answerId); if (!answer) return; answer[field] = value; row.updated_at = testInternal(testNowDate()); row.updated_by = CURRENT_PORTAL_ACTOR; persistTestState(); }
+    function saveChoice(rowId, answerId, optionId, checked) { const row = testAssignment(rowId); if (!ownsTestAssignment(row) || row.status !== "IN_PROGRESS") return; const answer = row.answers.find(a => a.id === answerId); if (!answer) return; const opts = row.answer_options.filter(o => o.answer_id === answerId); if (answer.question_type === "MULTIPLE_CHOICE_SINGLE") opts.forEach(o => o.is_selected = o.id === optionId); else opts.find(o => o.id === optionId).is_selected = checked; row.updated_at = testInternal(testNowDate()); row.updated_by = CURRENT_PORTAL_ACTOR; persistTestState(); if (answer.question_type === "MULTIPLE_CHOICE_SINGLE") renderTestTaking(rowId); }
+    function bindFileInputs() { document.querySelectorAll("[data-file-answer]").forEach(input => input.addEventListener("change", () => saveTestFile(Number(input.dataset.fileAssignment), input.dataset.fileAnswer, input.files[0]))); }
+    async function saveTestFile(rowId, answerId, file) {
+      const row = testAssignment(rowId); if (!ownsTestAssignment(row) || row.status !== "IN_PROGRESS" || !file) return;
+      const answer = row.answers.find(a => a.id === answerId && Number(a.assignment_id) === Number(row.id));
+      if (!answer) { showToast("Jawaban file tidak ditemukan.", true); return; }
+      const ext = String(file.name.split(".").pop() || "").toUpperCase(), allowed = ["PDF","DOC","DOCX","XLS","XLSX","PPT","PPTX","JPG","JPEG","PNG","ZIP","RAR"];
+      if (!allowed.includes(ext) || file.size > 10 * 1024 * 1024) { showToast("Format file tidak valid atau ukuran melebihi 10 MB.", true); renderTestTaking(rowId); return; }
+      const id = `ATT-${row.assignment_number}-${answerId}-${Date.now()}`;
+      const oldAttachmentId = answer.attachment_id;
+      try {
+        await saveFileBlob(id, file);
+      } catch {
+        showToast("File gagal disimpan. Silakan unggah ulang.", true);
+        renderTestTaking(rowId);
+        return;
+      }
+      window.iReapNetTestAnswerAttachments = (window.iReapNetTestAnswerAttachments || []).filter(a => a.id !== oldAttachmentId && a.answer_id !== answerId);
+      window.iReapNetTestAnswerAttachments.push({ id, answer_id:answerId, file_name:file.name, extension:ext, mime_type:file.type, file_size:file.size, binary_missing:false });
+      answer.attachment_id = id;
+      row.updated_at = testInternal(testNowDate());
+      row.updated_by = CURRENT_PORTAL_ACTOR;
+      persistTestState();
+      if (oldAttachmentId) deleteFileBlob(oldAttachmentId);
+      renderTestTaking(rowId);
+    }
+    function removeTestFile(rowId, answerId) {
+      const row = testAssignment(rowId);
+      if (!ownsTestAssignment(row)) return showToast("Tes tidak ditemukan.", true);
+      if (row.status !== "IN_PROGRESS") return showToast("File tidak dapat dihapus karena tes tidak sedang dikerjakan.", true);
+      const answer = (row.answers || []).find(a => a.id === answerId && Number(a.assignment_id) === Number(row.id));
+      if (!answer) return showToast("Jawaban file tidak ditemukan.", true);
+      const attachmentId = answer.attachment_id;
+      answer.attachment_id = null;
+      window.iReapNetTestAnswerAttachments = (window.iReapNetTestAnswerAttachments || []).filter(a => a.id !== attachmentId && a.answer_id !== answerId);
+      row.updated_at = testInternal(testNowDate());
+      row.updated_by = CURRENT_PORTAL_ACTOR;
+      persistTestState();
+      if (attachmentId) deleteFileBlob(attachmentId);
+      renderTestTaking(rowId);
+    }
+    function openTestDb() { return new Promise((resolve, reject) => { if (!window.indexedDB) { reject(new Error("IndexedDB unavailable")); return; } const req = indexedDB.open(TEST_IDB_NAME, 1); req.onupgradeneeded = () => req.result.createObjectStore(TEST_IDB_STORE); req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error); }); }
+    function saveFileBlob(id, file) {
+      return openTestDb().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(TEST_IDB_STORE, "readwrite");
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error);
+        const req = tx.objectStore(TEST_IDB_STORE).put(file, id);
+        req.onerror = () => reject(req.error);
+      }));
+    }
+    function deleteFileBlob(id) {
+      return openTestDb().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(TEST_IDB_STORE, "readwrite");
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error);
+        tx.objectStore(TEST_IDB_STORE).delete(id);
+      })).catch(() => {});
+    }
+    function openSubmitOnlineTest(id) { const row = testAssignment(id); if (!ownsTestAssignment(row) || row.status !== "IN_PROGRESS") return; if (testRemainingMs(row) <= 0) return autoSubmitTest(id, true); const invalid = firstInvalidAnswer(row); if (invalid) return showRequiredError(invalid); openModal("Kumpulkan Tes", `<p>Apakah Anda yakin ingin mengumpulkan Tes ini?<br>Setelah dikumpulkan, jawaban tidak dapat diubah kembali.</p>`, `<button class="btn" onclick="confirmSubmitOnlineTest(${id})">Kumpulkan Tes</button><button class="btn secondary" onclick="closeModal()">Batal</button>`, "small"); }
+    function confirmSubmitOnlineTest(id) { if (testRemainingMs(testAssignment(id)) <= 0) { closeModal(); return autoSubmitTest(id, true); } submitOnlineTest(id, false); closeModal(); renderSubmitSuccess(); }
+    function submitOnlineTest(id, auto) { const row = testAssignment(id); if (!ownsTestAssignment(row) || row.status !== "IN_PROGRESS") return; const now = testInternal(testNowDate()); row.status = "WAITING_REVIEW"; row.submitted_at = auto ? (testDeadline(row) || now) : now; row.updated_at = row.submitted_at; row.updated_by = auto ? "SYSTEM" : CURRENT_PORTAL_ACTOR; persistTestState(); }
+    function autoSubmitTest(id, showSuccess=false) { submitOnlineTest(id, true); if (showSuccess) { closeModal(); renderSubmitSuccess(); } }
+    function renderSubmitSuccess() { $("app").innerHTML = `<div class="empty"><h2>Tes berhasil dikumpulkan.</h2><button class="btn" onclick="go('onlineTests')">Kembali ke Tes Online</button></div>`; }
+    function firstInvalidAnswer(row) { return (row.answers || []).find(a => a.item_type === "QUESTION" && a.is_required && !isAnswerFilled(row, a)); }
+    function isAnswerFilled(row, answer) {
+      if (answer.question_type?.startsWith("MULTIPLE")) return (row.answer_options || []).some(o => o.answer_id === answer.id && o.is_selected);
+      if (answer.question_type === "MULTILINE_TEXT") return String(answer.text_answer || "").trim() !== "";
+      if (answer.question_type === "NUMERICAL") return answer.numeric_answer !== null && answer.numeric_answer !== undefined && answer.numeric_answer !== "";
+      if (answer.question_type === "DATE") return String(answer.date_answer || "").trim() !== "";
+      if (answer.question_type === "FILE_UPLOAD") { const att = (window.iReapNetTestAnswerAttachments || []).find(a => a.id === answer.attachment_id); return !!att && !att.binary_missing; }
+      return true;
+    }
+    function showRequiredError(answer) { document.querySelectorAll(".online-test-question.invalid").forEach(el => el.classList.remove("invalid")); const el = document.querySelector(`[data-question-id="${answer.id}"]`); if (el) { el.classList.add("invalid"); el.scrollIntoView({ behavior:"smooth", block:"center" }); } showToast("Lengkapi pertanyaan wajib terlebih dahulu.", true); }
+
     function renderApplications() {
       $("app").innerHTML = `
         <div class="filters" style="grid-template-columns:2fr 1fr"><input class="form-control" id="qApp" placeholder="Cari nomor lamaran atau posisi" oninput="renderApplicationRows()"><select class="form-control" id="fStatus" onchange="renderApplicationRows()"><option value="">Semua Status</option>${Object.entries(labels).map(([k,v]) => `<option value="${k}">${v}</option>`).join("")}</select></div><div id="applicationRows"></div>`;
@@ -855,6 +1168,8 @@
       if (!app || app.status !== "PROCESSING") { closeModal(); showToast("Lamaran ini tidak dapat diubah.", true); return; }
       const now = nowDateTime();
       app.status = "WITHDRAWN"; app.status_reason = reason; app.status_changed_at = now; app.status_changed_by = CURRENT_PORTAL_ACTOR; app.updated_at = now; app.updated_by = CURRENT_PORTAL_ACTOR;
+      reconcilePortalTests();
+      persistTestState();
       closeModal(); renderApplicationDetail(id); showToast("Lamaran berhasil diubah menjadi Mengundurkan Diri.");
     }
     function openModal(title, body, foot, size="") {
@@ -867,6 +1182,8 @@
     }
     function closeModal() { $("modalBackdrop").classList.remove("show"); $("modalBackdrop").innerHTML = ""; }
     $("modalBackdrop").addEventListener("click", e => { if (e.target.id === "modalBackdrop") closeModal(); });
+    initPortalTests();
+    verifyTestFileBinaries();
     render();
   </script>
 </body>
