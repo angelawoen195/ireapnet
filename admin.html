@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
@@ -115,6 +115,11 @@
     .app.sidebar-collapsed .submenu { display: none; }
     .app.sidebar-collapsed .menu-search { justify-content: center; padding: 0; }
     .app.sidebar-collapsed .nav-item { grid-template-columns: 1fr; justify-items: center; padding: 0; }
+    #sidebarMenu [data-route="notification.center"] { position: relative; }
+    #sidebarMenu [data-route="notification.center"] .notification-nav-badge { position:absolute; right:14px; top:50%; transform:translateY(-50%); min-width:18px; height:18px; padding:0 5px; border-radius:9px; display:inline-flex; align-items:center; justify-content:center; background:#3f55aa; color:#fff; font-size:11px; font-weight:700; line-height:1; }
+    #sidebarMenu [data-route="notification.center"] .notification-nav-badge.hidden { display:none; }
+    .app.sidebar-collapsed #sidebarMenu [data-route="notification.center"] .notification-nav-badge { display:inline-flex; top:6px; right:8px; transform:none; min-width:16px; height:16px; padding:0 4px; font-size:10px; }
+    .app.sidebar-collapsed #sidebarMenu [data-route="notification.center"] .notification-nav-badge.hidden { display:none; }
     .topbar {
       grid-column: 2;
       height: 60px;
@@ -177,6 +182,20 @@
       .menu-search span,
       .nav-item span:not(.icon),
       .submenu {
+        display: none;
+      }
+      #sidebarMenu [data-route="notification.center"] .notification-nav-badge {
+        display: inline-flex;
+        position: absolute;
+        top: 6px;
+        right: 8px;
+        transform: none;
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+        font-size: 10px;
+      }
+      #sidebarMenu [data-route="notification.center"] .notification-nav-badge.hidden {
         display: none;
       }
       .menu-search {
@@ -7529,6 +7548,540 @@
       window.ensureRecruitmentSharedDataCanonical();
     })();
   </script>
+  <template id="page-notification-source">
+<style>
+  .admin-notification { padding:30px 35px 66px; background:#fff; color:#4f5965; }
+  .admin-notification-panel { border:1px solid #e4e6eb; border-radius:4px; background:#fff; box-shadow:0 1px 3px rgba(40,50,70,.04); }
+  .admin-notification-head { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:18px 22px 14px; border-bottom:1px solid #e4e6eb; }
+  .admin-notification-head h1 { margin:0; color:#17233d; font-size:18px; font-weight:700; line-height:1.25; }
+  .admin-notification-mark { border:1px solid #d7e0f0; border-radius:3px; background:#fff; color:#3f55aa; padding:7px 10px; font-weight:700; cursor:pointer; }
+  .admin-notification-mark:hover, .admin-notification-mark:focus { background:#f8fbff; outline:none; }
+  .admin-notification-mark:disabled { color:#98a1ad; background:#f7f7f7; border-color:#e4e6eb; cursor:not-allowed; }
+  .admin-notification-tabs { display:flex; align-items:center; gap:8px; padding:12px 22px; border-bottom:1px solid #edf0f4; }
+  .admin-notification-tab { min-height:30px; padding:6px 12px; border:1px solid #dfe5ef; border-radius:3px; background:#fff; color:#50607c; cursor:pointer; }
+  .admin-notification-tab.active { border-color:#3f55aa; background:#edf4ff; color:#253f91; font-weight:700; }
+  .admin-notification-body { padding:0 22px 10px; }
+  .admin-notification-group { padding:16px 0 4px; }
+  .admin-notification-group-title { display:flex; align-items:center; gap:12px; margin:0 0 8px; color:#17233d; font-size:14px; font-weight:700; line-height:1.3; }
+  .admin-notification-group-title::after { content:""; flex:1; height:1px; background:#edf0f4; }
+  .admin-notification-row { width:100%; min-height:68px; display:grid; grid-template-columns:16px minmax(0,1fr) auto; gap:10px; align-items:center; padding:10px 0; border:0; border-bottom:1px solid #edf0f4; background:#fff; color:#4f5965; text-align:left; cursor:pointer; }
+  .admin-notification-row:hover, .admin-notification-row:focus { background:#f8fbff; outline:none; }
+  .admin-notification-row.unread { background:#f8fbff; }
+  .admin-notification-dot { width:7px; height:7px; border-radius:50%; background:transparent; justify-self:center; align-self:start; margin-top:10px; }
+  .admin-notification-row.unread .admin-notification-dot { background:#3f55aa; }
+  .admin-notification-row.warning.unread .admin-notification-dot { background:#b27300; }
+  .admin-notification-row.danger.unread .admin-notification-dot { background:#c73645; }
+  .admin-notification-title { display:block; color:#17233d; font-weight:400; line-height:1.35; overflow-wrap:anywhere; }
+  .admin-notification-row.unread .admin-notification-title { font-weight:700; }
+  .admin-notification-row.danger .admin-notification-title { color:#9d2f3c; }
+  .admin-notification-message { display:block; margin-top:2px; color:#50607c; line-height:1.35; overflow-wrap:anywhere; }
+  .admin-notification-time { display:block; margin-top:4px; color:#88919c; font-size:12px; line-height:1.3; }
+  .admin-notification-chevron { color:#263a5e; font-size:18px; line-height:1; padding-left:12px; }
+  .admin-notification-empty { padding:30px 0; color:#777; text-align:center; }
+  @media (max-width:760px) {
+    .admin-notification { padding:22px 18px 46px; }
+    .admin-notification-head { align-items:flex-start; flex-direction:column; padding:16px 18px 12px; }
+    .admin-notification-tabs, .admin-notification-body { padding-left:18px; padding-right:18px; }
+    .admin-notification-row { grid-template-columns:14px minmax(0,1fr) auto; }
+  }
+</style>
+<div class="module-screen-root">
+  <div class="admin-notification">
+    <section class="admin-notification-panel">
+      <div class="admin-notification-head">
+        <h1>Notifikasi</h1>
+        <button class="admin-notification-mark" type="button" data-module-action="adminNotificationMarkAllRead">Tandai Semua Dibaca</button>
+      </div>
+      <div class="admin-notification-tabs">
+        <button class="admin-notification-tab active" id="adminNotificationTabAll" type="button" data-module-action="adminNotificationSetTab" data-module-args="all">Semua</button>
+        <button class="admin-notification-tab" id="adminNotificationTabUnread" type="button" data-module-action="adminNotificationSetTab" data-module-args="unread">Belum Dibaca</button>
+      </div>
+      <div class="admin-notification-body" id="adminNotificationBody"></div>
+    </section>
+  </div>
+</div>
+<script>
+  let adminNotificationActiveTab = "all";
+
+  function adminNotificationRows() {
+    return Array.isArray(window.iReapNetAdminMockNotifications) ? window.iReapNetAdminMockNotifications : [];
+  }
+  function adminNotificationEscape(value) {
+    return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+  }
+  function adminNotificationDate(value) {
+    const text = String(value || "").replace(" ", "T");
+    const date = new Date(text);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  function adminNotificationDayKey(date) {
+    if (!date) return "older";
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    const key = item => `${item.getFullYear()}-${String(item.getMonth() + 1).padStart(2, "0")}-${String(item.getDate()).padStart(2, "0")}`;
+    if (key(date) === key(today)) return "today";
+    if (key(date) === key(yesterday)) return "yesterday";
+    return "older";
+  }
+  function adminNotificationTimeText(item) {
+    const date = adminNotificationDate(item.created_at);
+    if (!date) return item.time_text || "";
+    const group = adminNotificationDayKey(date);
+    const minutes = Math.max(1, Math.round((Date.now() - date.getTime()) / 60000));
+    const time = date.toLocaleTimeString("id-ID", { hour:"2-digit", minute:"2-digit" }).replace(".", ":");
+    if (group === "today") {
+      if (minutes < 60) return `${minutes} menit yang lalu`;
+      return `${Math.floor(minutes / 60)} jam yang lalu`;
+    }
+    if (group === "yesterday") return `Kemarin, ${time}`;
+    return `${date.toLocaleDateString("id-ID", { day:"numeric", month:"short", year:"numeric" })}, ${time}`;
+  }
+  function adminNotificationRefreshBadge() {
+    if (typeof window.iReapNetAdminNotificationRefreshSidebar === "function") window.iReapNetAdminNotificationRefreshSidebar();
+  }
+  function adminNotificationSetTab(tab) {
+    adminNotificationActiveTab = tab === "unread" ? "unread" : "all";
+    renderAdminNotificationCenter();
+  }
+  function adminNotificationGroups() {
+    const filtered = adminNotificationRows().filter(item => adminNotificationActiveTab !== "unread" || !item.is_read);
+    const order = [
+      { key:"today", label:"Hari Ini" },
+      { key:"yesterday", label:"Kemarin" },
+      { key:"older", label:"Sebelumnya" }
+    ];
+    return order.map(group => ({
+      ...group,
+      rows: filtered.filter(item => adminNotificationDayKey(adminNotificationDate(item.created_at)) === group.key)
+    })).filter(group => group.rows.length);
+  }
+  function adminNotificationRowHtml(item) {
+    const classes = ["admin-notification-row", item.is_read ? "read" : "unread", item.tone || ""].join(" ");
+    return `<button class="${adminNotificationEscape(classes)}" type="button" data-module-action="adminNotificationOpen" data-module-args="${item.id}"><span class="admin-notification-dot"></span><span><span class="admin-notification-title">${adminNotificationEscape(item.title)}</span><span class="admin-notification-message">${adminNotificationEscape(item.message)}</span><span class="admin-notification-time">${adminNotificationEscape(adminNotificationTimeText(item))}</span></span><span class="admin-notification-chevron">&gt;</span></button>`;
+  }
+  function adminNotificationGroupHtml(group) {
+    return `<div class="admin-notification-group"><h2 class="admin-notification-group-title">${adminNotificationEscape(group.label)}</h2>${group.rows.map(adminNotificationRowHtml).join("")}</div>`;
+  }
+  function adminNotificationOpen(id) {
+    const item = adminNotificationRows().find(row => Number(row.id) === Number(id));
+    if (!item) return;
+    item.is_read = true;
+    adminNotificationRefreshBadge();
+    if (item.route && window.iReapNetOpenRoute) window.iReapNetOpenRoute(item.route);
+    else renderAdminNotificationCenter();
+  }
+  function adminNotificationMarkAllRead() {
+    if (!adminNotificationRows().some(item => !item.is_read)) return;
+    adminNotificationRows().forEach(item => { item.is_read = true; });
+    adminNotificationRefreshBadge();
+    renderAdminNotificationCenter();
+  }
+  function renderAdminNotificationCenter() {
+    const body = document.getElementById("adminNotificationBody");
+    const allTab = document.getElementById("adminNotificationTabAll");
+    const unreadTab = document.getElementById("adminNotificationTabUnread");
+    const markButton = document.querySelector(".admin-notification-mark");
+    if (allTab) allTab.classList.toggle("active", adminNotificationActiveTab === "all");
+    if (unreadTab) unreadTab.classList.toggle("active", adminNotificationActiveTab === "unread");
+    if (markButton) markButton.disabled = !adminNotificationRows().some(item => !item.is_read);
+    const groups = adminNotificationGroups();
+    body.innerHTML = groups.length
+      ? groups.map(adminNotificationGroupHtml).join("")
+      : `<div class="admin-notification-empty">${adminNotificationActiveTab === "unread" ? "Tidak ada notifikasi yang belum dibaca." : "Belum ada notifikasi."}</div>`;
+    adminNotificationRefreshBadge();
+  }
+</script>
+</template>
+
+  <template id="page-home-source">
+<style>
+  .admin-home { padding:30px 35px 66px; background:#fff; color:#4f5965; }
+  .admin-home-section { margin-bottom:18px; }
+  .admin-home-summary { border:1px solid #e4e6eb; border-radius:4px; background:#fff; box-shadow:0 1px 3px rgba(40,50,70,.05); }
+  .admin-home-summary-head { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 22px 10px; }
+  .admin-home-summary-head h1 { margin:0; color:#17233d; font-size:18px; font-weight:700; line-height:1.25; }
+  .admin-home-date { color:#6f7b8d; font-size:13px; font-weight:400; line-height:1.35; text-align:right; }
+  .admin-home-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); padding:8px 14px 16px; }
+  .admin-home-kpi { min-width:0; padding:9px 12px; border:0; border-right:1px solid #e4e8f0; background:#fff; text-align:center; cursor:default; }
+  .admin-home-kpi:last-child { border-right:0; }
+  .admin-home-kpi[data-clickable="true"] { cursor:pointer; }
+  .admin-home-kpi[data-clickable="true"]:hover, .admin-home-kpi[data-clickable="true"]:focus { background:#f8fbff; outline:none; }
+  .admin-home-kpi-value { margin:0 0 5px; color:#0f45b7; font-size:24px; font-weight:700; line-height:1; }
+  .admin-home-kpi.is-green .admin-home-kpi-value { color:#16826e; }
+  .admin-home-kpi.is-amber .admin-home-kpi-value { color:#b27300; }
+  .admin-home-kpi.is-red .admin-home-kpi-value { color:#c73645; }
+  .admin-home-kpi-label { color:#17233d; font-size:12px; font-weight:400; line-height:1.3; }
+  .admin-home-grid { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr); gap:18px; align-items:start; }
+  .admin-home-grid.single { grid-template-columns:minmax(0,1fr); }
+  .admin-home-card { border:1px solid #e4e6eb; border-radius:4px; background:#fff; overflow:hidden; box-shadow:0 1px 3px rgba(40,50,70,.04); }
+  .admin-home-card-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 22px 12px; border-bottom:1px solid #e4e6eb; background:#fff; }
+  .admin-home-card-head h2 { margin:0; color:#17233d; font-size:18px; font-weight:700; line-height:1.25; }
+  .admin-home-card-meta { color:#7a8492; font-size:12px; font-weight:400; white-space:nowrap; }
+  .admin-home-list { display:flex; flex-direction:column; }
+  .admin-home-row { width:100%; min-height:43px; display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:14px; padding:9px 7px; margin:0 22px; width:calc(100% - 44px); border:0; border-bottom:1px solid #edf0f4; background:#fff; color:#17233d; text-align:left; cursor:pointer; }
+  .admin-home-row:last-child { border-bottom:0; }
+  .admin-home-row:hover, .admin-home-row:focus { background:#f8fbff; outline:none; }
+  .admin-home-row-label { min-width:0; overflow-wrap:anywhere; font-weight:400; line-height:1.35; }
+  .admin-home-count { min-width:24px; color:#0f45b7; font-size:16px; font-weight:700; text-align:right; }
+  .admin-home-chevron { color:#263a5e; font-size:18px; line-height:1; }
+  .admin-home-empty { padding:22px; color:#777; line-height:1.45; }
+  .admin-home-group { padding:12px 22px 11px; border-bottom:1px solid #edf0f4; }
+  .admin-home-group:last-child { border-bottom:0; }
+  .admin-home-group-title { margin:0 0 6px; color:#17233d; font-size:14px; font-weight:700; line-height:1.3; }
+  .admin-home-subrow { width:100%; min-height:31px; display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:11px; padding:4px 0; border:0; background:#fff; color:#263a5e; text-align:left; cursor:pointer; }
+  .admin-home-subrow:hover, .admin-home-subrow:focus { background:#f8fbff; outline:none; }
+  .admin-home-subcount { min-width:34px; padding:3px 8px; border-radius:4px; color:#17233d; background:#fff2d8; font-size:13px; font-weight:700; text-align:center; line-height:1.1; }
+  .admin-home-subcount.problem { background:#ffe0e5; }
+  .admin-home-subcount.neutral { background:#e8efff; color:#0f45b7; }
+  .admin-home-subrow-label { min-width:0; overflow-wrap:anywhere; line-height:1.35; }
+  @media (max-width:1280px) {
+    .admin-home { padding:26px 28px 58px; }
+    .admin-home-kpi { padding-left:9px; padding-right:9px; }
+  }
+  @media (max-width:980px) {
+    .admin-home-kpis { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .admin-home-kpi:nth-child(3) { border-right:0; }
+    .admin-home-kpi:nth-child(n+4) { border-top:1px solid #e4e8f0; }
+  }
+  @media (max-width:760px) {
+    .admin-home { padding:22px 18px 46px; }
+    .admin-home-kpis, .admin-home-grid { grid-template-columns:1fr; }
+    .admin-home-summary-head { align-items:flex-start; flex-direction:column; padding:16px 18px 8px; }
+    .admin-home-date { text-align:left; font-size:14px; }
+    .admin-home-kpis { padding:6px 14px 14px; }
+    .admin-home-kpi { border-right:0; border-top:1px solid #e4e8f0; }
+    .admin-home-kpi:first-child { border-top:0; }
+    .admin-home-card-head { padding:16px 18px 12px; }
+    .admin-home-row { margin:0 18px; width:calc(100% - 36px); }
+    .admin-home-group { padding-left:18px; padding-right:18px; }
+  }
+</style>
+<div class="module-screen-root">
+  <div class="admin-home">
+    <section class="admin-home-section" id="adminHomeTodaySection"></section>
+    <section class="admin-home-grid" id="adminHomeListGrid"></section>
+  </div>
+</div>
+<script>
+  const adminHomeModuleCodes = {
+    employee: "201",
+    contract: "202",
+    attendance: "301",
+    attendanceCorrection: "302",
+    additionalWork: "303",
+    payroll: "501",
+    recruitmentApplication: "603",
+    approval: "701"
+  };
+
+  const adminHomeRouteCodes = {
+    "attendance.attendanceDaily": "301",
+    "attendance.attendanceCorrection": "302",
+    "attendance.additionalWork": "303",
+    "attendance.employeeRequest": "301",
+    "payroll.process": "501",
+    "approval.process": "701",
+    "recruitment.application": "603",
+    "testOnline.execution": "603",
+    "administrasi.employeeContract": "202",
+    "administrasi.employeeMovement": "201",
+    "administrasi.employeeTermination": "201"
+  };
+
+  /*
+    MOCKUP ONLY:
+    Beranda sengaja menampilkan seluruh candidate item dengan sample count
+    agar scope UI / kebutuhan implementation terlihat lengkap saat handover.
+
+    Production:
+    - set ADMIN_HOME_MOCKUP_SHOWCASE ke false
+    - render mengikuti authorization user
+    - mengikuti Company aktif dan data scope
+    - count berasal dari canonical source
+    - item dengan count 0 dapat disembunyikan
+  */
+  const ADMIN_HOME_MOCKUP_SHOWCASE = true;
+  const adminHomeShowcaseMetricCounts = {
+    "Dijadwalkan Hari Ini": 125,
+    "Hadir": 108,
+    "Terlambat": 8,
+    "Belum Check In": 6,
+    "Pengajuan Disetujui": 11
+  };
+  const adminHomeShowcaseActionCounts = {
+    "Pengajuan Karyawan Menunggu Persetujuan": 5,
+    "Tugas Tambahan Menunggu Persetujuan": 2,
+    "Payroll / Transaksi Lain Menunggu Persetujuan": 3,
+    "Data Absensi Perlu Diperiksa": 8,
+    "Jadwal Hari Ini Belum Tersedia": 3,
+    "Payroll Menunggu Pembayaran": 1,
+    "Lamaran Baru": 6,
+    "Hasil Tes Menunggu Review": 4
+  };
+  const adminHomeShowcaseAttentionCounts = {
+    "Kontrak Akan Berakhir": 7,
+    "Kontrak Berakhir Masih Aktif": 2,
+    "Pergerakan Karyawan Akan Efektif": 4,
+    "Pergerakan Karyawan Belum Diterapkan": 1,
+    "Pemberhentian Akan Efektif": 2,
+    "Pemberhentian Belum Diterapkan": 1,
+    "Tugas Tambahan Belum Direalisasikan": 6,
+    "Tes Akan Ditutup": 5
+  };
+
+  function adminHomeEl(id) { return document.getElementById(id); }
+  function adminHomeEscape(value) {
+    return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+  }
+  function adminHomeRows(name) { return Array.isArray(window[name]) ? window[name] : []; }
+  function adminHomeToday() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+  function adminHomeDateOnly(value) {
+    const text = String(value || "").trim();
+    return /^\d{4}-\d{2}-\d{2}/.test(text) ? text.slice(0, 10) : "";
+  }
+  function adminHomeDateValue(value) {
+    const text = adminHomeDateOnly(value);
+    return text ? new Date(`${text}T00:00:00`) : null;
+  }
+  function adminHomeAddDays(iso, days) {
+    const date = adminHomeDateValue(iso);
+    if (!date) return "";
+    date.setDate(date.getDate() + days);
+    return date.toISOString().slice(0, 10);
+  }
+  function adminHomeInRange(value, start, end) {
+    const date = adminHomeDateOnly(value);
+    return !!date && date >= start && date <= end;
+  }
+  function adminHomeCurrentCompanyId() {
+    return window.iReapNetGetCurrentCompanyId ? Number(window.iReapNetGetCurrentCompanyId()) : 1;
+  }
+  function adminHomeCurrentRoleCode() {
+    const userId = window.iReapNetCurrentUser?.id;
+    const access = (typeof users !== "undefined" ? users : []).find(user => Number(user.id) === Number(userId))?.access || [];
+    const companyId = adminHomeCurrentCompanyId();
+    const selected = access.find(item => Number(item.company_id) === companyId) || access.find(item => item.is_default) || access[0];
+    const roleId = selected?.role_id;
+    return (typeof userRoleOptions !== "undefined" ? userRoleOptions : []).find(role => Number(role.id) === Number(roleId))?.code || "admin";
+  }
+  function adminHomePermission(code) {
+    if (!code) return { allowed: true, scope: { scope_mode: "ALL" } };
+    if (typeof authPermissions === "undefined") return { code, scope: { scope_mode: "ALL" } };
+    const roleCode = adminHomeCurrentRoleCode();
+    const list = typeof authPermissions !== "undefined" ? (authPermissions[roleCode] || []) : [];
+    return list.find(item => String(item.code) === String(code)) || null;
+  }
+  function adminHomeCan(code) {
+    if (ADMIN_HOME_MOCKUP_SHOWCASE) return true;
+    const user = window.iReapNetCurrentUser || {};
+    const companyId = adminHomeCurrentCompanyId();
+    const companyAllowed = user.has_all_company_access || !Array.isArray(user.company_ids) || user.company_ids.map(Number).includes(companyId);
+    return companyAllowed && !!adminHomePermission(code);
+  }
+  function adminHomeEmployee(row) {
+    const employees = adminHomeRows("iReapNetEmployees");
+    return employees.find(item => Number(item.id) === Number(row.employee_id)) || employees.find(item => String(item.employee_number || item.employee_no) === String(row.employee_number || row.employee_no)) || {};
+  }
+  function adminHomeRowCompany(row) {
+    return Number(row.company_id || adminHomeEmployee(row).company_id || adminHomeCurrentCompanyId());
+  }
+  function adminHomeScopeAllows(row, code) {
+    if (ADMIN_HOME_MOCKUP_SHOWCASE) return true;
+    const permission = adminHomePermission(code);
+    if (!permission) return false;
+    const scope = permission.scope || {};
+    if (scope.scope_mode === "OWN") {
+      const userName = window.iReapNetCurrentUser?.display_name || window.iReapNetCurrentUserName || "";
+      return String(row.requested_by || row.created_by || row.employee_name || "").toLowerCase().includes(String(userName).toLowerCase());
+    }
+    if (scope.scope_mode !== "FILTER") return true;
+    const employee = adminHomeEmployee(row);
+    const dept = row.department_id ?? employee.department_id ?? row.department;
+    const type = row.employment_type_id ?? employee.employment_type_id ?? row.employment_type;
+    const deptMode = scope.scope_department_mode;
+    const typeMode = scope.scope_employment_type_mode;
+    const deptOk = deptMode === "NONE" || deptMode === "ALL" || (deptMode === "SELECTED" && (scope.scope_department_ids || []).map(String).includes(String(dept)));
+    const typeOk = typeMode === "NONE" || typeMode === "ALL" || (typeMode === "SELECTED" && (scope.scope_employment_type_ids || []).map(String).includes(String(type)));
+    return deptOk && typeOk;
+  }
+  function adminHomeVisibleRows(rows, code) {
+    const companyId = adminHomeCurrentCompanyId();
+    return (rows || []).filter(row => adminHomeRowCompany(row) === companyId && adminHomeScopeAllows(row, code));
+  }
+  function adminHomeCurrentApprovalRows(type) {
+    const userName = String(window.iReapNetCurrentUser?.display_name || window.iReapNetCurrentUserName || "").toLowerCase();
+    return adminHomeVisibleRows(adminHomeRows("iReapNetApprovalRequests"), adminHomeModuleCodes.approval).filter(row => {
+      const transactionType = String(row.transactionType || row.transaction_type || "").toUpperCase();
+      const status = String(row.status || row.approval_status || "").toUpperCase();
+      if (transactionType !== type || status !== "PENDING") return false;
+      const pending = (row.history || row.approval_history || []).find(item => String(item.status || "").toLowerCase().includes("menunggu"));
+      const approver = String(pending?.approver || row.approver || "").toLowerCase();
+      return !approver || approver === "-" || !userName || approver.includes(userName);
+    });
+  }
+  function adminHomeAttendanceRows() {
+    const rows = typeof window.iReapNetGetAttendanceDailyRows === "function" ? window.iReapNetGetAttendanceDailyRows() : adminHomeRows("iReapNetAttendanceDaily");
+    return adminHomeVisibleRows(rows, adminHomeModuleCodes.attendance);
+  }
+  function adminHomeTodayMetrics() {
+    const today = adminHomeToday();
+    const now = new Date();
+    const rows = adminHomeAttendanceRows().filter(row => adminHomeDateOnly(row.work_date) === today);
+    const working = rows.filter(row => !["OFF", "HOLIDAY", "NO_SCHEDULE", "INVALID", "UNRESOLVED"].includes(String(row.schedule_type || row.day_type || row.attendance_status || "").toUpperCase()));
+    const shouldHaveCheckedIn = working.filter(row => {
+      const scheduleIn = String(row.schedule_in || row.scheduled_check_in || "").trim();
+      return !scheduleIn || new Date(scheduleIn.replace(" ", "T")) <= now;
+    });
+    const metrics = [
+      { label: "Dijadwalkan Hari Ini", value: working.length },
+      { label: "Hadir", value: rows.filter(row => String(row.attendance_status).toUpperCase() === "PRESENT" && row.check_in).length },
+      { label: "Terlambat", value: rows.filter(row => String(row.attendance_status).toUpperCase() === "PRESENT" && Number(row.late_minutes || 0) > 0).length },
+      { label: "Belum Check In", value: shouldHaveCheckedIn.filter(row => !row.check_in && !["APPROVED_REQUEST", "OFF", "HOLIDAY"].includes(String(row.attendance_status).toUpperCase())).length },
+      { label: "Pengajuan Disetujui", value: rows.filter(row => String(row.attendance_status).toUpperCase() === "APPROVED_REQUEST" || row.request_type || (row.employee_request_ids || []).length).length }
+    ];
+    return metrics.map(item => ({
+      ...item,
+      value: ADMIN_HOME_MOCKUP_SHOWCASE && Number(item.value || 0) === 0 ? adminHomeShowcaseMetricCounts[item.label] : item.value
+    }));
+  }
+  function adminHomeCountPayrollWaitingPayment() {
+    return adminHomeVisibleRows(adminHomeRows("iReapNetSharedPayrollRuns"), adminHomeModuleCodes.payroll).filter(row => {
+      const approval = String(row.approval_status || row.status || "").toUpperCase();
+      const payment = String(row.payment_status || row.paymentStatus || "").toUpperCase();
+      return ["APPROVED", "LOCKED", "FINAL"].includes(approval) && !["PAID", "PAID_FULL", "COMPLETED", "DONE"].includes(payment);
+    }).length;
+  }
+  function adminHomeAttentionItems() {
+    const today = adminHomeToday();
+    const plus30 = adminHomeAddDays(today, 30);
+    const plus7 = adminHomeAddDays(today, 7);
+    const plus3 = adminHomeAddDays(today, 3);
+    const contracts = adminHomeVisibleRows(adminHomeRows("iReapNetEmployeeContracts"), adminHomeModuleCodes.contract).filter(row => row.is_active !== false);
+    const movements = adminHomeVisibleRows(window.iReapNetGetEmployeeMovements ? window.iReapNetGetEmployeeMovements() : adminHomeRows("iReapNetSharedEmployeeMovements"), adminHomeModuleCodes.employee);
+    const terminations = adminHomeVisibleRows(window.iReapNetGetEmployeeTerminations ? window.iReapNetGetEmployeeTerminations() : adminHomeRows("iReapNetSharedEmployeeTerminations"), adminHomeModuleCodes.employee);
+    const additional = adminHomeVisibleRows(adminHomeRows("iReapNetAdditionalWorks"), adminHomeModuleCodes.additionalWork);
+    const tests = adminHomeVisibleRows(adminHomeRows("iReapNetTestAssignments"), adminHomeModuleCodes.recruitmentApplication);
+    const items = [
+      { label:"Kontrak Akan Berakhir", source:"Kontrak Karyawan", route:"administrasi.employeeContract", icon:"K", count:contracts.filter(row => adminHomeInRange(row.end_date, today, plus30)).length },
+      { label:"Kontrak Berakhir Masih Aktif", source:"Kontrak Karyawan", route:"administrasi.employeeContract", icon:"K", count:contracts.filter(row => adminHomeDateOnly(row.end_date) && adminHomeDateOnly(row.end_date) < today && String(adminHomeEmployee(row).status || adminHomeEmployee(row).employee_status || "ACTIVE").toUpperCase() !== "INACTIVE").length },
+      { label:"Pergerakan Karyawan Akan Efektif", source:"Perubahan Data Kerja", route:"administrasi.employeeMovement", icon:"P", count:movements.filter(row => String(row.approval_status).toUpperCase() === "APPROVED" && String(row.apply_status).toUpperCase() !== "APPLIED" && adminHomeDateOnly(row.effective_date) > today && adminHomeDateOnly(row.effective_date) <= plus7).length },
+      { label:"Pergerakan Karyawan Belum Diterapkan", source:"Perubahan Data Kerja", route:"administrasi.employeeMovement", icon:"P", count:movements.filter(row => String(row.approval_status).toUpperCase() === "APPROVED" && String(row.apply_status).toUpperCase() !== "APPLIED" && adminHomeDateOnly(row.effective_date) && adminHomeDateOnly(row.effective_date) <= today).length },
+      { label:"Pemberhentian Akan Efektif", source:"Pemberhentian Karyawan", route:"administrasi.employeeTermination", icon:"H", count:terminations.filter(row => String(row.approval_status).toUpperCase() === "APPROVED" && String(row.apply_status).toUpperCase() !== "APPLIED" && adminHomeDateOnly(row.effective_date) > today && adminHomeDateOnly(row.effective_date) <= plus7).length },
+      { label:"Pemberhentian Belum Diterapkan", source:"Pemberhentian Karyawan", route:"administrasi.employeeTermination", icon:"H", count:terminations.filter(row => String(row.approval_status).toUpperCase() === "APPROVED" && String(row.apply_status).toUpperCase() !== "APPLIED" && adminHomeDateOnly(row.effective_date) && adminHomeDateOnly(row.effective_date) <= today).length },
+      { label:"Tugas Tambahan Belum Direalisasikan", source:"Tugas Tambahan", route:"attendance.additionalWork", icon:"T", count:additional.filter(row => String(row.approval_status).toUpperCase() === "APPROVED" && adminHomeDateOnly(row.task_date) && adminHomeDateOnly(row.task_date) <= today && !row.realized_at && String(row.realization_status || "").toUpperCase() !== "REALIZED").length },
+      { label:"Tes Akan Ditutup", source:"Pelaksanaan Tes", route:"testOnline.execution", icon:"T", count:tests.filter(row => !["COMPLETED", "CANCELLED", "EXPIRED"].includes(String(row.status).toUpperCase()) && adminHomeInRange(row.close_at, today, plus3)).length }
+    ].map(item => ({
+      ...item,
+      count: ADMIN_HOME_MOCKUP_SHOWCASE && Number(item.count || 0) === 0 ? adminHomeShowcaseAttentionCounts[item.label] : item.count
+    }));
+    return items.filter(item => (ADMIN_HOME_MOCKUP_SHOWCASE || item.count > 0) && adminHomeCan(adminHomeRouteCodes[item.route]));
+  }
+  function adminHomeActionItems() {
+    const attendance = adminHomeAttendanceRows();
+    const applications = adminHomeVisibleRows(adminHomeRows("recruitmentCandidateApplications"), adminHomeModuleCodes.recruitmentApplication);
+    const tests = adminHomeVisibleRows(adminHomeRows("iReapNetTestAssignments"), adminHomeModuleCodes.recruitmentApplication);
+    const today = adminHomeToday();
+    const items = [
+      { label:"Pengajuan Karyawan Menunggu Persetujuan", source:"Approval", route:"approval.process", icon:"A", count:adminHomeCurrentApprovalRows("EMPLOYEE_REQUEST").length },
+      { label:"Tugas Tambahan Menunggu Persetujuan", source:"Approval", route:"approval.process", icon:"A", count:adminHomeCurrentApprovalRows("ADDITIONAL_TASK").length },
+      { label:"Payroll / Transaksi Lain Menunggu Persetujuan", source:"Approval", route:"approval.process", icon:"A", count:adminHomeCurrentApprovalRows("PAYROLL_PROCESS").length },
+      { label:"Data Absensi Perlu Diperiksa", source:"Detail Absensi", route:"attendance.attendanceDaily", icon:"D", count:attendance.filter(row => ["INCOMPLETE", "INVALID"].includes(String(row.data_status).toUpperCase()) || String(row.attendance_status).toUpperCase() === "UNRESOLVED").length },
+      { label:"Jadwal Hari Ini Belum Tersedia", source:"Detail Absensi", route:"attendance.attendanceDaily", icon:"J", count:attendance.filter(row => adminHomeDateOnly(row.work_date) === today && ["NO_SCHEDULE", "UNRESOLVED"].includes(String(row.schedule_type || row.attendance_status).toUpperCase())).length },
+      { label:"Payroll Menunggu Pembayaran", source:"Proses Penggajian", route:"payroll.process", icon:"P", count:adminHomeCan(adminHomeModuleCodes.payroll) ? adminHomeCountPayrollWaitingPayment() : 0 },
+      { label:"Lamaran Baru", source:"Lamaran", route:"recruitment.application", icon:"L", count:applications.filter(row => ["NEW", "BARU"].includes(String(row.status).toUpperCase())).length },
+      { label:"Hasil Tes Menunggu Review", source:"Pelaksanaan Tes", route:"testOnline.execution", icon:"T", count:tests.filter(row => String(row.status).toUpperCase() === "WAITING_REVIEW").length }
+    ];
+    const visibleItems = items.map(item => ({
+      ...item,
+      count: ADMIN_HOME_MOCKUP_SHOWCASE && Number(item.count || 0) === 0 ? adminHomeShowcaseActionCounts[item.label] : item.count
+    }));
+    return visibleItems.filter(item => (ADMIN_HOME_MOCKUP_SHOWCASE || item.count > 0) && adminHomeCan(adminHomeRouteCodes[item.route]));
+  }
+  function adminHomeOpen(route) {
+    if (window.iReapNetOpenRoute) window.iReapNetOpenRoute(route);
+  }
+  function adminHomeMetricHtml(item) {
+    const route = item.route || "";
+    const clickable = !!route;
+    const action = clickable ? ` data-module-action="adminHomeOpen" data-module-args="${adminHomeEscape(route)}"` : "";
+    return `<button class="admin-home-kpi ${adminHomeEscape(item.tone || "")}" type="button" data-clickable="${clickable ? "true" : "false"}"${action}><div class="admin-home-kpi-value">${item.value}</div><div class="admin-home-kpi-label">${adminHomeEscape(item.label)}</div></button>`;
+  }
+  function adminHomeRowHtml(item) {
+    return `<button class="admin-home-row" type="button" data-module-action="adminHomeOpen" data-module-args="${adminHomeEscape(item.route)}"><span class="admin-home-row-label">${adminHomeEscape(item.label)}</span><span class="admin-home-count">${item.count}</span><span class="admin-home-chevron">&gt;</span></button>`;
+  }
+  function adminHomeAttentionGroups(items) {
+    const meta = {
+      "Kontrak Akan Berakhir": { group:"Kontrak Karyawan", label:"Akan berakhir dalam 30 hari", tone:"upcoming" },
+      "Kontrak Berakhir Masih Aktif": { group:"Kontrak Karyawan", label:"Berakhir tetapi masih aktif", tone:"problem" },
+      "Pergerakan Karyawan Akan Efektif": { group:"Pergerakan Karyawan", label:"Akan efektif dalam 7 hari", tone:"upcoming" },
+      "Pergerakan Karyawan Belum Diterapkan": { group:"Pergerakan Karyawan", label:"Lewat tanggal efektif, belum diterapkan", tone:"problem" },
+      "Pemberhentian Akan Efektif": { group:"Pemberhentian Karyawan", label:"Akan efektif dalam 7 hari", tone:"upcoming" },
+      "Pemberhentian Belum Diterapkan": { group:"Pemberhentian Karyawan", label:"Lewat tanggal efektif, belum diterapkan", tone:"problem" },
+      "Tugas Tambahan Belum Direalisasikan": { group:"Tugas Tambahan", label:"Belum direalisasikan", tone:"neutral" },
+      "Tes Akan Ditutup": { group:"Tes Online", label:"Akan ditutup dalam 3 hari", tone:"upcoming" }
+    };
+    const order = ["Kontrak Karyawan", "Pergerakan Karyawan", "Pemberhentian Karyawan", "Tugas Tambahan", "Tes Online"];
+    const groups = order.map(label => ({ label, items: [] }));
+    items.forEach(item => {
+      const detail = meta[item.label];
+      if (!detail) return;
+      const group = groups.find(group => group.label === detail.group);
+      if (group) group.items.push({ ...item, label: detail.label, tone: detail.tone });
+    });
+    return groups.filter(group => group.items.length);
+  }
+  function adminHomeGroupHtml(group) {
+    return `<div class="admin-home-group"><h3 class="admin-home-group-title">${adminHomeEscape(group.label)}</h3>${group.items.map(item => `<button class="admin-home-subrow" type="button" data-module-action="adminHomeOpen" data-module-args="${adminHomeEscape(item.route)}"><span class="admin-home-subcount ${adminHomeEscape(item.tone === "problem" ? "problem" : item.tone === "neutral" ? "neutral" : "")}">${item.count}</span><span class="admin-home-subrow-label">${adminHomeEscape(item.label)}</span><span class="admin-home-chevron">&gt;</span></button>`).join("")}</div>`;
+  }
+  function adminHomeCard(title, metaText, bodyHtml, emptyText) {
+    return `<article class="admin-home-card"><div class="admin-home-card-head"><h2>${adminHomeEscape(title)}</h2><span class="admin-home-card-meta">${adminHomeEscape(metaText)}</span></div>${bodyHtml || `<div class="admin-home-empty">${adminHomeEscape(emptyText)}</div>`}</article>`;
+  }
+  function renderAdminHome() {
+    const todayLabel = new Date().toLocaleDateString("id-ID", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
+    const todaySection = adminHomeEl("adminHomeTodaySection");
+    if (adminHomeCan(adminHomeModuleCodes.attendance)) {
+      const metrics = adminHomeTodayMetrics().map((item, index) => ({
+        ...item,
+        route: "attendance.attendanceDaily",
+        tone: index === 1 ? "is-green" : index === 2 ? "is-amber" : index === 3 ? "is-red" : ""
+      }));
+      todaySection.innerHTML = `<div class="admin-home-summary"><div class="admin-home-summary-head"><h1>Kondisi Hari Ini</h1><div class="admin-home-date">${adminHomeEscape(todayLabel)}</div></div><div class="admin-home-kpis">${metrics.map(adminHomeMetricHtml).join("")}</div></div>`;
+      todaySection.classList.remove("hidden");
+    } else {
+      todaySection.innerHTML = "";
+      todaySection.classList.add("hidden");
+    }
+    const actionsRelevant = ["701", "302", "303", "501", "603"].some(adminHomeCan);
+    const attentionRelevant = ["202", "201", "303", "603"].some(adminHomeCan);
+    const cards = [];
+    if (actionsRelevant) {
+      const actionItems = adminHomeActionItems();
+      cards.push(adminHomeCard("Perlu Tindakan", `${actionItems.length} jenis`, actionItems.length ? `<div class="admin-home-list">${actionItems.map(adminHomeRowHtml).join("")}</div>` : "", "Tidak ada hal yang perlu ditindaklanjuti saat ini."));
+    }
+    if (attentionRelevant) {
+      const attentionGroups = adminHomeAttentionGroups(adminHomeAttentionItems());
+      cards.push(adminHomeCard("Perlu Diperhatikan", `${attentionGroups.length} kelompok`, attentionGroups.length ? attentionGroups.map(adminHomeGroupHtml).join("") : "", "Tidak ada hal yang perlu diperhatikan saat ini."));
+    }
+    const grid = adminHomeEl("adminHomeListGrid");
+    grid.classList.toggle("single", cards.length === 1);
+    grid.innerHTML = cards.join("");
+  }
+  if (!window.iReapNetAdminHomeCompanyHandler) {
+    window.iReapNetAdminHomeCompanyHandler = function iReapNetAdminHomeCompanyHandler() {
+      if (typeof currentRouteKey === "undefined" || currentRouteKey === "general.home") renderAdminHome();
+    };
+    window.addEventListener("ireapnet:company-changed", window.iReapNetAdminHomeCompanyHandler);
+  }
+</script>
+</template>
+
   <template id="page-general-source">
 <style>
     :root {
@@ -52271,6 +52824,8 @@ function validateEmployeeScheduleBulkPayload(data) {
     }
 
     const APP_MODULES = {
+      home: { sourceId: 'page-home-source' },
+      notification: { sourceId: 'page-notification-source' },
       general: { sourceId: 'page-general-source' },
       config: { sourceId: 'page-config-source' },
       payroll: { sourceId: 'page-payroll-source' },
@@ -52294,8 +52849,8 @@ function validateEmployeeScheduleBulkPayload(data) {
     };
 
     const APP_MENU = [
-      { label: 'Beranda', icon: '&#9670;' },
-      { label: 'Notifikasi', icon: '&#9637;' },
+      { label: 'Beranda', icon: '&#9670;', route: 'general.home' },
+      { label: 'Notifikasi', icon: '&#9637;', route: 'notification.center' },
       { label: 'Profil', icon: '&#9635;' },
       {
         label: 'General',
@@ -52464,6 +53019,8 @@ function validateEmployeeScheduleBulkPayload(data) {
     // Breadcrumb halaman daftar diatur dari APP_ROUTES.
     // Breadcrumb halaman form/detail/proses diatur dari module internal dan disinkronkan oleh syncCrumbsFromModule().
     const APP_ROUTES = [
+      ['general.home', 'home', '', '', '', 'renderAdminHome'],
+      ['notification.center', 'notification', 'Notifikasi', '', '', 'renderAdminNotificationCenter'],
       ['general.company', 'general', 'General', 'Perusahaan', 'Daftar Perusahaan', 'renderList'],
       ['general.user', 'general', 'General', 'Pengguna', 'Daftar Pengguna', 'openUserList'],
       ['general.module', 'general', 'General', 'Modul', 'Daftar Modul', 'openModulePage'],
@@ -53328,6 +53885,75 @@ function validateEmployeeScheduleBulkPayload(data) {
         .replaceAll("'", '&#039;');
     }
 
+    function adminNotificationPad(value) {
+      return String(value).padStart(2, '0');
+    }
+
+    function adminNotificationDateTime(offsetDays, hour = null, minute = 0) {
+      const date = new Date();
+      date.setDate(date.getDate() + offsetDays);
+      if (hour === null) date.setMinutes(date.getMinutes() - minute);
+      else date.setHours(hour, minute, 0, 0);
+      return `${date.getFullYear()}-${adminNotificationPad(date.getMonth() + 1)}-${adminNotificationPad(date.getDate())} ${adminNotificationPad(date.getHours())}:${adminNotificationPad(date.getMinutes())}`;
+    }
+
+    function ensureAdminMockNotifications() {
+      /*
+        MOCKUP ONLY:
+        Sample notification data digunakan untuk menunjukkan UX Notification Center.
+
+        Production implementation akan menentukan sendiri:
+        - persistence
+        - recipient
+        - event generation
+        - deduplication
+        - database design
+        - API
+      */
+      if (Array.isArray(window.iReapNetAdminMockNotifications)) return window.iReapNetAdminMockNotifications;
+      window.iReapNetAdminMockNotifications = [
+        { id: 1, type: "APPROVAL_REQUIRED", source_type: "EMPLOYEE_REQUEST", title: "Pengajuan Karyawan menunggu persetujuan", message: "Cuti Tahunan - Andi Wijaya", created_at: adminNotificationDateTime(0, null, 10), is_read: false, route: "approval.process", tone: "default" },
+        { id: 2, type: "APPROVAL_REQUIRED", source_type: "ADDITIONAL_WORK", title: "Tugas Tambahan menunggu persetujuan", message: "Lembur - Budi Santoso", created_at: adminNotificationDateTime(0, null, 35), is_read: false, route: "approval.process", tone: "default" },
+        { id: 3, type: "APPROVAL_REQUIRED", source_type: "PAYROLL", title: "Proses Penggajian menunggu persetujuan", message: "Payroll September 2026", created_at: adminNotificationDateTime(0, null, 60), is_read: false, route: "approval.process", tone: "default" },
+        { id: 4, type: "APPROVED", source_type: "EMPLOYEE_REQUEST", title: "Pengajuan Karyawan telah disetujui", message: "Izin - Budi Santoso", created_at: adminNotificationDateTime(-1, 14, 32), is_read: true, route: "attendance.employeeRequest", tone: "default" },
+        { id: 5, type: "REJECTED", source_type: "EMPLOYEE_REQUEST", title: "Pengajuan Karyawan ditolak", message: "Cuti Tahunan - Rina Wijaya", created_at: adminNotificationDateTime(-1, 9, 10), is_read: true, route: "attendance.employeeRequest", tone: "danger" },
+        { id: 6, type: "RECRUITMENT_NEW", source_type: "APPLICATION", title: "Lamaran baru", message: "Siti Rahma - Staff Accounting", created_at: adminNotificationDateTime(0, null, 120), is_read: false, route: "recruitment.application", tone: "default" },
+        { id: 7, type: "TEST_REVIEW", source_type: "ONLINE_TEST", title: "Hasil tes menunggu review", message: "Tes Staff Accounting - Siti Rahma", created_at: adminNotificationDateTime(0, null, 180), is_read: false, route: "testOnline.execution", tone: "default" },
+        { id: 8, type: "CONTRACT_REMINDER", source_type: "EMPLOYEE_CONTRACT", title: "Kontrak karyawan akan berakhir", message: "Kontrak Andi Wijaya akan berakhir dalam 30 hari", created_at: adminNotificationDateTime(-3, 8, 0), is_read: true, route: "administrasi.employeeContract", tone: "warning" },
+        { id: 9, type: "MOVEMENT_READY", source_type: "EMPLOYEE_MOVEMENT", title: "Pergerakan karyawan siap diterapkan", message: "Mutasi - Budi Santoso", created_at: adminNotificationDateTime(-4, 10, 20), is_read: true, route: "administrasi.employeeMovement", tone: "warning" },
+        { id: 10, type: "MOVEMENT_OVERDUE", source_type: "EMPLOYEE_MOVEMENT", title: "Pergerakan karyawan belum diterapkan", message: "Tanggal efektif telah terlewati - Budi Santoso", created_at: adminNotificationDateTime(-1, 16, 5), is_read: false, route: "administrasi.employeeMovement", tone: "danger" },
+        { id: 11, type: "TERMINATION_READY", source_type: "EMPLOYEE_TERMINATION", title: "Pemberhentian karyawan siap diterapkan", message: "Resign - Sinta Dewi", created_at: adminNotificationDateTime(-5, 11, 45), is_read: true, route: "administrasi.employeeTermination", tone: "warning" },
+        { id: 12, type: "TEST_CLOSING", source_type: "ONLINE_TEST", title: "Tes Online akan ditutup", message: "Tes Staff Accounting akan ditutup dalam 3 hari", created_at: adminNotificationDateTime(-6, 8, 0), is_read: true, route: "testOnline.execution", tone: "warning" }
+      ];
+      return window.iReapNetAdminMockNotifications;
+    }
+
+    function adminNotificationUnreadCount() {
+      return ensureAdminMockNotifications().filter(item => !item.is_read).length;
+    }
+
+    function updateAdminNotificationSidebarBadge() {
+      const badge = ensureAdminNotificationSidebarBadge();
+      if (!badge) return;
+      const count = adminNotificationUnreadCount();
+      badge.textContent = count;
+      badge.classList.toggle('hidden', count === 0);
+    }
+    window.iReapNetAdminNotificationRefreshSidebar = updateAdminNotificationSidebarBadge;
+
+    function ensureAdminNotificationSidebarBadge() {
+      const button = document.querySelector('#sidebarMenu [data-route="notification.center"]');
+      if (!button) return null;
+      let badge = button.querySelector('.notification-nav-badge');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'notification-nav-badge';
+        badge.dataset.sidebarBadge = 'notificationUnread';
+        button.appendChild(badge);
+      }
+      return badge;
+    }
+
     function renderSidebarMenu() {
       const sidebarMenu = document.getElementById('sidebarMenu');
       sidebarMenu.innerHTML = APP_MENU.map(menu => {
@@ -53535,6 +54161,13 @@ function validateEmployeeScheduleBulkPayload(data) {
       crumbGroup.textContent = route.group;
       crumbMenu.textContent = menu || route.menu;
       crumbTitle.textContent = title || route.title || '';
+      [crumbGroup, crumbMenu, crumbTitle].forEach(element => {
+        const visible = !!element.textContent.trim();
+        element.style.display = visible ? '' : 'none';
+        if (element.previousElementSibling) {
+          element.previousElementSibling.style.display = visible ? '' : 'none';
+        }
+      });
       if (crumbTitle.previousElementSibling) {
         crumbTitle.previousElementSibling.style.display = crumbTitle.textContent ? '' : 'none';
       }
@@ -53890,6 +54523,7 @@ function validateEmployeeScheduleBulkPayload(data) {
       });
     }
     renderSidebarMenu();
+    updateAdminNotificationSidebarBadge();
     document.getElementById('sidebarMenu').addEventListener('click', event => {
       const target = event.target.closest ? event.target : event.target.parentElement;
       const toggleButton = target.closest('[data-toggle-group]');
@@ -53901,7 +54535,7 @@ function validateEmployeeScheduleBulkPayload(data) {
       if (routeButton) openRoute(routeButton.dataset.route);
     });
 
-    openRoute('general.company');
+    openRoute('general.home');
   </script>
 </body>
 </html>
