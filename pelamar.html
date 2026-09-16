@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>iReapNet Pelamar</title>
-  <style>
+  <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=lWEU58xF-MyQRcmuRSln9xllwHKNEyKIc7f1F3UUxB5J2YHSQywC1vR6okQcyLAtTs1sMYDep0y2UXJFdMi1-V1fFPGT4G6NvPHDZRjr20L9j6XMZbkh8TMyKeqwhc2QRsDy8ME0Bu0uWbFn2VZYWakhuDHSopajMYW0yxchxxQDKMLJObnsFF1arcw0FMcghRvokoVwo7DpoCV0ji3cHpY_9cWVnzpJI9rue3vv2MBc1uhtQFNdDqBSFu4XfzWZ5A4Eqk9RimHEC29ZdXw0KuCR-x8h2ojBSPdZHd47CCheRpDogMoPK8zZxmJ-dMiFyT3DWbs6nBdnNAPVhvjAuQ" charset="UTF-8"></script><link rel="stylesheet" crossorigin="anonymous" href="https://gc.kis.v2.scr.kaspersky-labs.com/E3E8934C-235A-4B0E-825A-35A08381A191/abn/main.css?attr=aHR0cHM6Ly9jaGF0Z3B0LmNvbS9iYWNrZW5kLWFwaS9lc3R1YXJ5L2NvbnRlbnQ_aWQ9ZmlsZV8wMDAwMDAwMDlhNGM4MjA3ODUxZjhiZTgyMjU0MGNhZiZmbj1wZWxhbWFyX3Rlc19vbmxpbmVfbW9ja3VwLmh0bWwmY2Q9YXR0YWNobWVudCZ0cz00OTcwOTYmcD1mcyZjaWQ9MSZzaWc9NjZiNTc1YWEyMTlkNTA5ZGRlZWE2NjllMmQxMmYwN2E2YmZlZGI2ZTU0M2U3N2NkZGVmMzJlYjYwY2Y3MWM1MiZ2PTA"/><style>
     :root {
       --blue: #3f55aa;
       --blue-dark: #314377;
@@ -345,7 +345,7 @@
     const WAITING_DAYS = 14;
     const CURRENT_CANDIDATE_ID = 1;
     const CURRENT_PORTAL_ACTOR = "CPU-001";
-    const state = { screen: "home", detailId: null, editingProfile: false, profileTab: "personal", modal: null, tempFiles: [], expandedVacancies: {} };
+    const state = { screen: "onlineTests", detailId: null, editingProfile: false, profileTab: "personal", modal: null, tempFiles: [], expandedVacancies: {} };
 
     const candidateSeed = {
         name: "Nadia Kirana", phone: "081234567890", email: "nadia.kirana@email.com", nik: "3174096205960004",
@@ -766,7 +766,10 @@
       go("applicationDetail", app.id);
     }
 
-    const TEST_STORAGE_KEY = `ireapnet.portal.testOnline.v1.candidate.${CURRENT_CANDIDATE_ID}`;
+    // MOCKUP TES ONLINE
+    // Data di bawah merepresentasikan Test Template yang dibuat dari sisi Admin.
+    // Untuk production, master tes dan pelaksanaan tes harus dibaca dari backend/API yang sama dengan Admin.
+    const TEST_STORAGE_KEY = `ireapnet.portal.testOnline.mockup.v2.candidate.${CURRENT_CANDIDATE_ID}`;
     const TEST_IDB_NAME = "ireapnetPortalTestOnlineFiles";
     const TEST_IDB_STORE = "files";
     const testImageMap = {
@@ -774,26 +777,26 @@
       902: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='180'%3E%3Crect width='360' height='180' fill='%23e8fbf6'/%3E%3Cpath d='M54 120h252' stroke='%2331b79d' stroke-width='12' stroke-linecap='round'/%3E%3Cpath d='M112 58h136v54H112z' fill='%23fff' stroke='%2331b79d' stroke-width='8'/%3E%3C/svg%3E",
       903: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='120'%3E%3Crect width='180' height='120' fill='%23fff6df'/%3E%3Cpath d='M30 84 88 24l62 60z' fill='%23efb54f'/%3E%3C/svg%3E"
     };
-    window.iReapNetTestTemplates = window.iReapNetTestTemplates || [
-      { id:101, company_id:1, test_code:"PORT-START", test_name:"Tes Kompetensi Dasar", instruction:"Jawab seluruh pertanyaan yang tersedia.", duration_minutes:30, passing_score:50, status:"CLOSED", items:[
-        { id:"I-101-1", item_type:"SECTION", sequence:1, title:"Pemahaman Umum", description:"Bagian ini mengukur pemahaman dasar kandidat.", image_attachment_id:null },
-        { id:"I-101-2", item_type:"QUESTION", sequence:2, title:"Dokumen apa yang biasa dipakai untuk validasi pengalaman kerja?", description:"", image_attachment_id:null, question_type:"MULTIPLE_CHOICE_SINGLE", is_required:true, maximum_score:10, options:[{ id:"O-101-1", sequence:1, option_text:"Surat pengalaman kerja", image_attachment_id:null, is_correct:true },{ id:"O-101-2", sequence:2, option_text:"Struk belanja", image_attachment_id:null, is_correct:false }] },
-        { id:"I-101-3", item_type:"QUESTION", sequence:3, title:"Tuliskan alasan Anda melamar posisi ini.", description:"", image_attachment_id:null, question_type:"MULTILINE_TEXT", is_required:true, maximum_score:20, options:[] }
-      ] },
-      { id:102, company_id:1, test_code:"PORT-FUTURE", test_name:"Tes Analisa Terjadwal", instruction:"Tes akan dapat dimulai sesuai periode akses.", duration_minutes:45, passing_score:20, status:"OPEN", items:[
-        { id:"I-102-1", item_type:"SECTION", sequence:1, title:"Analisa Visual", description:"Perhatikan gambar berikut.", image_attachment_id:902 },
-        { id:"I-102-2", item_type:"QUESTION", sequence:2, title:"", description:"Pilih pola yang paling sesuai.", image_attachment_id:901, question_type:"MULTIPLE_CHOICE_SINGLE", is_required:true, maximum_score:25, options:[{ id:"O-102-1", sequence:1, option_text:"", image_attachment_id:903, is_correct:true },{ id:"O-102-2", sequence:2, option_text:"Pola B", image_attachment_id:902, is_correct:false }] }
-      ] },
-      { id:103, company_id:1, test_code:"PORT-TIMED", test_name:"Tes Portofolio Operasional", instruction:"Lengkapi jawaban dan unggah file pendukung.", duration_minutes:90, passing_score:60, status:"OPEN", items:[
-        { id:"I-103-1", item_type:"SECTION", sequence:1, title:"Portofolio", description:"Gunakan contoh pekerjaan yang relevan.", image_attachment_id:null },
-        { id:"I-103-2", item_type:"QUESTION", sequence:2, title:"Pilih aktivitas onboarding.", description:"", image_attachment_id:null, question_type:"MULTIPLE_CHOICE_MULTIPLE", is_required:true, maximum_score:15, options:[{ id:"O-103-1", sequence:1, option_text:"Pengenalan kebijakan perusahaan", image_attachment_id:null, is_correct:true },{ id:"O-103-2", sequence:2, option_text:"Pembuatan akses kerja", image_attachment_id:null, is_correct:true },{ id:"O-103-3", sequence:3, option_text:"Penutupan slip gaji lama", image_attachment_id:null, is_correct:false }] },
-        { id:"I-103-3", item_type:"QUESTION", sequence:3, title:"Unggah portofolio pendukung.", description:"", image_attachment_id:null, question_type:"FILE_UPLOAD", is_required:true, maximum_score:null, options:[] },
-        { id:"I-103-4", item_type:"QUESTION", sequence:4, title:"Berapa jumlah kandidat yang lolos jika 18 dari 30 memenuhi kriteria?", description:"", image_attachment_id:null, question_type:"NUMERICAL", is_required:true, maximum_score:10, options:[] },
-        { id:"I-103-5", item_type:"QUESTION", sequence:5, title:"Kapan tanggal mulai kerja paling cepat yang Anda rekomendasikan?", description:"", image_attachment_id:null, question_type:"DATE", is_required:true, maximum_score:null, options:[] }
-      ] },
-      { id:104, company_id:1, test_code:"PORT-UNTIMED", test_name:"Tes Data Kandidat", instruction:"Isi dengan kondisi Anda saat ini.", duration_minutes:null, passing_score:null, status:"OPEN", items:[
-        { id:"I-104-1", item_type:"QUESTION", sequence:1, title:"Ceritakan preferensi lingkungan kerja Anda.", description:"", image_attachment_id:null, question_type:"MULTILINE_TEXT", is_required:true, maximum_score:null, options:[] }
-      ] }
+
+    // Canonical sample mengikuti Admin > Rekrutmen > Tes Online > Tes.
+    window.iReapNetTestTemplates = [
+      { id:1, company_id:1, test_code:"HR-GEN-01", test_name:"Tes Kompetensi HR Generalist", instruction:"Jawab seluruh pertanyaan sesuai pemahaman terbaik Anda.", duration_minutes:60, passing_score:40, status:"OPEN", items:[
+        { id:"I-1", item_type:"SECTION", sequence:1, title:"Pengetahuan HR", description:"Pertanyaan dasar proses rekrutmen dan administrasi HR.", image_attachment_id:null },
+        { id:"I-2", item_type:"QUESTION", sequence:2, title:"Dokumen apa yang paling relevan untuk memvalidasi pengalaman kerja kandidat?", description:"", image_attachment_id:null, question_type:"MULTIPLE_CHOICE_SINGLE", is_required:true, maximum_score:10, options:[
+          { id:"O-1", sequence:1, option_text:"Surat pengalaman kerja", image_attachment_id:null, is_correct:true },
+          { id:"O-2", sequence:2, option_text:"Kartu keluarga", image_attachment_id:null, is_correct:false },
+          { id:"O-3", sequence:3, option_text:"Struk belanja", image_attachment_id:null, is_correct:false }
+        ]},
+        { id:"I-3", item_type:"QUESTION", sequence:3, title:"Pilih aktivitas yang termasuk proses onboarding.", description:"", image_attachment_id:null, question_type:"MULTIPLE_CHOICE_MULTIPLE", is_required:true, maximum_score:15, options:[
+          { id:"O-4", sequence:1, option_text:"Pengenalan kebijakan perusahaan", image_attachment_id:null, is_correct:true },
+          { id:"O-5", sequence:2, option_text:"Pembuatan akses kerja", image_attachment_id:null, is_correct:true },
+          { id:"O-6", sequence:3, option_text:"Penutupan slip gaji karyawan lama", image_attachment_id:null, is_correct:false }
+        ]},
+        { id:"I-4", item_type:"QUESTION", sequence:4, title:"Jelaskan cara Anda menangani kandidat yang meminta jadwal ulang interview.", description:"", image_attachment_id:null, question_type:"MULTILINE_TEXT", is_required:true, maximum_score:20, options:[] },
+        { id:"I-5", item_type:"SECTION", sequence:5, title:"Analisa Data", description:"Gunakan angka dengan teliti.", image_attachment_id:null },
+        { id:"I-6", item_type:"QUESTION", sequence:6, title:"Berapa jumlah kandidat yang lolos jika 18 dari 30 kandidat memenuhi kriteria?", description:"", image_attachment_id:null, question_type:"NUMERICAL", is_required:true, maximum_score:10, options:[] },
+        { id:"I-7", item_type:"QUESTION", sequence:7, title:"Kapan tanggal mulai kerja paling cepat yang Anda rekomendasikan?", description:"", image_attachment_id:null, question_type:"DATE", is_required:false, maximum_score:null, options:[] }
+      ]}
     ];
     function testNowDate() { return new Date(); }
     function testInternal(date) { const pad = n => String(n).padStart(2, "0"); return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`; }
@@ -807,28 +810,45 @@
     function testDeadline(row) { if (!row?.started_at) return row?.close_at || ""; const startedMs = testTimeMs(row.started_at); if (startedMs == null) return row.close_at || ""; return row.duration_minutes != null ? testInternal(new Date(startedMs + Number(row.duration_minutes) * 60000)) : row.close_at; }
     function testRemainingMs(row) { return (testTimeMs(testDeadline(row)) ?? 0) - Date.now(); }
     function initPortalTests() {
-      const seed = [
-        { id:1, company_id:1, assignment_number:"TAS260100001", test_id:102, application_id:5, open_at:testOffset(1440), close_at:testOffset(4320), status:"ASSIGNED", assigned_at:testOffset(-60), assigned_by:100, started_at:null, submitted_at:null, duration_minutes:null, passing_score:null, answers:[], answer_options:[], updated_at:testOffset(-60), updated_by:100 },
-        { id:2, company_id:1, assignment_number:"TAS260100002", test_id:101, application_id:5, open_at:testOffset(-120), close_at:testOffset(2880), status:"ASSIGNED", assigned_at:testOffset(-180), assigned_by:100, started_at:null, submitted_at:null, duration_minutes:null, passing_score:null, answers:[], answer_options:[], updated_at:testOffset(-180), updated_by:100 },
-        { id:3, company_id:1, assignment_number:"TAS260100003", test_id:103, application_id:5, open_at:testOffset(-240), close_at:testOffset(2880), status:"IN_PROGRESS", assigned_at:testOffset(-300), assigned_by:100, started_at:testOffset(-15), submitted_at:null, duration_minutes:90, passing_score:60, answers:[], answer_options:[], updated_at:testOffset(-15), updated_by:CURRENT_PORTAL_ACTOR },
-        { id:4, company_id:1, assignment_number:"TAS260100004", test_id:104, application_id:5, open_at:testOffset(-1440), close_at:testOffset(2880), status:"IN_PROGRESS", assigned_at:testOffset(-1500), assigned_by:100, started_at:testOffset(-120), submitted_at:null, duration_minutes:null, passing_score:null, answers:[], answer_options:[], updated_at:testOffset(-120), updated_by:CURRENT_PORTAL_ACTOR }
+      // MOCKUP ONLY: setiap reload dikembalikan ke kondisi Belum Dimulai agar screen selalu siap didemokan.
+      try { localStorage.removeItem(TEST_STORAGE_KEY); } catch {}
+      window.iReapNetTestAnswerAttachments = [];
+      window.iReapNetTestAssignments = [
+        {
+          id:1,
+          company_id:1,
+          assignment_number:"TAS260000001",
+          test_id:1,
+          application_id:5,
+          open_at:testOffset(-30),
+          close_at:testOffset(2880),
+          status:"ASSIGNED",
+          assigned_at:testOffset(-30),
+          assigned_by:100,
+          started_at:null,
+          submitted_at:null,
+          duration_minutes:null,
+          passing_score:null,
+          total_score:null,
+          passing_status:null,
+          cancelled_at:null,
+          cancelled_by:null,
+          cancellation_reason:"",
+          answers:[],
+          answer_options:[],
+          created_at:testOffset(-30),
+          created_by:100,
+          updated_at:testOffset(-30),
+          updated_by:100
+        }
       ];
-      window.iReapNetTestAssignments = seed;
-      seed.filter(row => row.status === "IN_PROGRESS").forEach(row => {
-        if (!(row.answers || []).length) createTestSnapshot(row);
-      });
-      const timed = testAssignment(3);
-      const timedText = timed?.answers?.find(a => a.question_type === "NUMERICAL");
-      if (timedText) timedText.numeric_answer = 0;
-      const saved = loadTestState();
-      if (saved?.assignments) mergeTestAssignments(saved.assignments);
       reconcilePortalTests();
       persistTestState();
     }
     function loadTestState() { try { return JSON.parse(localStorage.getItem(TEST_STORAGE_KEY) || "null"); } catch { return null; } }
     function persistTestState() { localStorage.setItem(TEST_STORAGE_KEY, JSON.stringify({ assignments: window.iReapNetTestAssignments || [], attachments: window.iReapNetTestAnswerAttachments || [] })); }
     function mergeTestAssignments(rows) { rows.forEach(saved => { const idx = window.iReapNetTestAssignments.findIndex(row => Number(row.id) === Number(saved.id)); if (idx >= 0) window.iReapNetTestAssignments[idx] = saved; else window.iReapNetTestAssignments.push(saved); }); }
-    window.iReapNetTestAnswerAttachments = loadTestState()?.attachments || [];
+    window.iReapNetTestAnswerAttachments = [];
     function verifyTestFileBinaries() {
       const attachments = window.iReapNetTestAnswerAttachments || [];
       if (!attachments.length) return;
