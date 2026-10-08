@@ -2062,6 +2062,433 @@
   });
 </script>
 </template>
+<template id="page-report-payroll-parameter-adjustment-source">
+<style>
+  .payroll-parameter-adjustment-report-toolbar { align-items:center; margin:14px 0 12px; }
+  .payroll-parameter-adjustment-report-toolbar-left,
+  .payroll-parameter-adjustment-report-toolbar-right { display:flex; align-items:center; gap:8px; }
+  .payroll-parameter-adjustment-report-tabs { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin:0 0 12px; }
+  .payroll-parameter-adjustment-report-tabs button { min-height:34px; border:1px solid #d6dce8; border-radius:3px; background:#fff; color:#4f5965; cursor:pointer; padding:8px 14px; font-weight:400; }
+  .payroll-parameter-adjustment-report-tabs button.active { background:#3f55aa; border-color:#3f55aa; color:#fff; font-weight:700; }
+  .module-content:has(.payroll-parameter-adjustment-report-table-wrap),
+  .module-screen-root:has(.payroll-parameter-adjustment-report-table-wrap) { min-width:0; max-width:100%; overflow-x:hidden; }
+  .table-wrap.payroll-parameter-adjustment-report-table-wrap { display:block; width:100%; max-width:100%; min-width:0; box-sizing:border-box; overflow-x:auto !important; overflow-y:visible !important; scrollbar-gutter:stable; }
+  .payroll-parameter-adjustment-report-table { width:max-content; min-width:1180px; table-layout:auto; }
+  .payroll-parameter-adjustment-report-table-wrap .payroll-parameter-adjustment-report-table th { min-width:140px; white-space:normal !important; overflow-wrap:break-word !important; word-break:normal !important; line-height:1.25; vertical-align:middle; }
+  .payroll-parameter-adjustment-report-table-wrap .payroll-parameter-adjustment-report-table td { white-space:nowrap; overflow-wrap:normal; word-break:normal; }
+  .payroll-parameter-adjustment-report-table-wrap .payroll-parameter-adjustment-report-numeric { text-align:right; }
+  .payroll-parameter-adjustment-report-wrap-text { min-width:260px; max-width:360px; white-space:normal !important; overflow-wrap:break-word; word-break:normal; line-height:1.35; }
+  .payroll-parameter-adjustment-report-column-modal { width:840px; }
+  .payroll-parameter-adjustment-report-column-filter { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+  .payroll-parameter-adjustment-report-column-filter label { display:inline-flex; align-items:center; gap:8px; margin:0; font-weight:400; }
+  .payroll-parameter-adjustment-report-column-filter select { height:33px; border:1px solid #ddd; background:#fff; padding:6px 11px; color:#555; }
+  .payroll-parameter-adjustment-report-column-table-wrap { max-height:340px; overflow:auto; }
+  .payroll-parameter-adjustment-report-column-check { width:44px; text-align:center; }
+  .payroll-parameter-adjustment-report-column-check input { width:auto; height:auto; }
+</style>
+<div class="module-screen-root">
+  <div class="module-breadcrumb-meta hidden" aria-hidden="true">
+    <span id="crumbMenu"></span><span id="crumbSection"></span><span id="crumbDivider"></span><span id="crumbTitle"></span>
+  </div>
+  <div class="module-content">
+    <div class="filter-row payroll-parameter-adjustment-report-filters">
+      <div class="filter-controls">
+        <label><span>Dari Tanggal Penerapan</span><input id="payrollParameterAdjustmentReportDateFromFilter" type="date"></label>
+        <label><span>Sampai Tanggal Penerapan</span><input id="payrollParameterAdjustmentReportDateToFilter" type="date"></label>
+        <label><span>Parameter Gaji</span><select id="payrollParameterAdjustmentReportParameterFilter"><option value="all">Semua</option></select></label>
+        <label><span>Tipe Karyawan</span><select id="payrollParameterAdjustmentReportEmploymentTypeFilter"><option value="all">Semua</option></select></label>
+        <label><span>Departemen</span><select id="payrollParameterAdjustmentReportDepartmentFilter"><option value="all">Semua</option></select></label>
+        <label><span>Posisi</span><select id="payrollParameterAdjustmentReportPositionFilter"><option value="all">Semua</option></select></label>
+        <label><span>Lokasi Kerja</span><select id="payrollParameterAdjustmentReportLocationFilter"><option value="all">Semua</option></select></label>
+      </div>
+    </div>
+    <div id="payrollParameterAdjustmentReportErrors" class="error-box"></div>
+    <div class="toolbar payroll-parameter-adjustment-report-toolbar">
+      <div class="payroll-parameter-adjustment-report-toolbar-left">
+        <button class="btn" type="button" data-module-action="applyPayrollParameterAdjustmentReportFilters">Tampilkan</button>
+        <button class="btn secondary" type="button" data-module-action="resetPayrollParameterAdjustmentReportFilters">Reset</button>
+      </div>
+      <div class="payroll-parameter-adjustment-report-toolbar-right">
+        <button class="btn secondary" type="button" data-module-action="openPayrollParameterAdjustmentReportColumnModal">Atur Kolom</button>
+        <button class="btn green" type="button" data-module-action="exportPayrollParameterAdjustmentReportExcel">Export Excel</button>
+      </div>
+    </div>
+    <div class="payroll-parameter-adjustment-report-tabs" role="tablist">
+      <button id="payrollParameterAdjustmentReportSummaryTab" class="active" type="button" role="tab" data-module-action="setPayrollParameterAdjustmentReportView" data-module-args="summary">Ringkasan Karyawan</button>
+      <button id="payrollParameterAdjustmentReportHistoryTab" type="button" role="tab" data-module-action="setPayrollParameterAdjustmentReportView" data-module-args="history">Riwayat Perubahan</button>
+    </div>
+    <div class="table-tools table-utility-row">
+      <div>Menampilkan <select id="payrollParameterAdjustmentReportPageSize"><option selected>10</option><option>25</option><option>50</option><option>100</option></select> data</div>
+      <label class="table-search"><span>Cari</span><input id="payrollParameterAdjustmentReportSearchBox" class="search-box" type="text"></label>
+    </div>
+    <div class="table-wrap payroll-parameter-adjustment-report-table-wrap">
+      <table class="payroll-parameter-adjustment-report-table">
+        <thead><tr id="payrollParameterAdjustmentReportHead"></tr></thead>
+        <tbody id="payrollParameterAdjustmentReportRows"></tbody>
+      </table>
+    </div>
+    <div class="empty-state hidden" id="payrollParameterAdjustmentReportEmptyState">Tidak ada histori penyesuaian parameter gaji yang sesuai.</div>
+    <div class="pager">
+      <span id="payrollParameterAdjustmentReportPageInfo"></span>
+      <span class="pages"><button type="button" data-module-action="changePayrollParameterAdjustmentReportPage" data-module-args="-1">&lt;</button><button type="button" id="payrollParameterAdjustmentReportCurrentPage">1</button><button type="button" data-module-action="changePayrollParameterAdjustmentReportPage" data-module-args="1">&gt;</button></span>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="payrollParameterAdjustmentReportColumnModal">
+    <div class="modal payroll-parameter-adjustment-report-column-modal">
+      <div class="modal-head">Atur Kolom <button class="modal-close" type="button" data-module-action="closePayrollParameterAdjustmentReportColumnModal">&times;</button></div>
+      <div class="modal-body">
+        <div id="payrollParameterAdjustmentReportColumnErrors" class="error-box"></div>
+        <div class="payroll-parameter-adjustment-report-column-filter">
+          <label><span>Kategori</span><select id="payrollParameterAdjustmentReportColumnCategory"><option value="all">Semua</option></select></label>
+        </div>
+        <div class="table-tools table-utility-row">
+          <div>Menampilkan <select id="payrollParameterAdjustmentReportColumnPageSize"><option selected>10</option><option>25</option><option>50</option></select> data</div>
+          <label class="table-search"><span>Cari</span><input id="payrollParameterAdjustmentReportColumnSearch" class="search-box" type="text"></label>
+        </div>
+        <div class="table-wrap payroll-parameter-adjustment-report-column-table-wrap">
+          <table>
+            <thead><tr><th class="payroll-parameter-adjustment-report-column-check"><input id="payrollParameterAdjustmentReportColumnSelectAll" type="checkbox"></th><th>Nama Kolom</th><th style="width:220px">Kategori</th></tr></thead>
+            <tbody id="payrollParameterAdjustmentReportColumnRows"></tbody>
+          </table>
+        </div>
+        <div class="pager"><span id="payrollParameterAdjustmentReportColumnPageInfo"></span><span class="pages"><button type="button" data-module-action="changePayrollParameterAdjustmentReportColumnPage" data-module-args="-1">&lt;</button><button type="button" id="payrollParameterAdjustmentReportColumnCurrentPage">1</button><button type="button" data-module-action="changePayrollParameterAdjustmentReportColumnPage" data-module-args="1">&gt;</button></span></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn secondary" type="button" data-module-action="resetPayrollParameterAdjustmentReportColumns">Reset Default</button>
+        <button class="btn secondary" type="button" data-module-action="closePayrollParameterAdjustmentReportColumnModal">Batal</button>
+        <button class="btn" type="button" data-module-action="applyPayrollParameterAdjustmentReportColumns">Terapkan</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  const payrollParameterAdjustmentReportViews = {
+    summary: { label:"Ringkasan Karyawan", sheet:"Ringkasan Karyawan", filename:"Ringkasan_Karyawan" },
+    history: { label:"Riwayat Perubahan", sheet:"Riwayat Perubahan", filename:"Riwayat_Perubahan" }
+  };
+  const payrollParameterAdjustmentReportMethodLabels = {
+    PERCENT_INCREASE:"Kenaikan (%)",
+    AMOUNT_INCREASE:"Kenaikan (Nilai)",
+    SET_VALUE:"Set Nilai",
+    MANUAL:"Manual"
+  };
+  const payrollParameterAdjustmentReportDefaultColumns = {
+    summary:["employee_number", "employee_name", "employment_type", "department", "change_count", "parameter_count", "document_count", "last_change"],
+    history:["applied_at", "employee_number", "employee_name", "parameter_name", "old_value", "new_value", "delta", "document_number", "applied_by"]
+  };
+  const payrollParameterAdjustmentReportColumns = {
+    summary:[
+      { key:"employee_number", label:"No. Karyawan", category:"Informasi Karyawan", width:150, value:row => row.employeeNumber },
+      { key:"employee_name", label:"Nama Karyawan", category:"Informasi Karyawan", width:180, value:row => row.employeeName },
+      { key:"employment_type", label:"Tipe Karyawan", category:"Informasi Karyawan", width:150, value:row => row.employmentTypeLabel },
+      { key:"department", label:"Departemen", category:"Informasi Karyawan", width:170, value:row => row.departmentLabel },
+      { key:"position", label:"Posisi", category:"Informasi Karyawan", width:170, value:row => row.positionLabel },
+      { key:"work_location", label:"Lokasi Kerja", category:"Informasi Karyawan", width:170, value:row => row.workLocationLabel },
+      { key:"change_count", label:"Jumlah Perubahan", category:"Ringkasan Perubahan", width:150, numeric:true, value:row => row.changeCount, export:row => row.changeCount },
+      { key:"parameter_count", label:"Parameter Berubah", category:"Ringkasan Perubahan", width:150, numeric:true, value:row => row.parameterCount, export:row => row.parameterCount },
+      { key:"document_count", label:"Dokumen Penyesuaian", category:"Ringkasan Perubahan", width:170, numeric:true, value:row => row.documentCount, export:row => row.documentCount },
+      { key:"last_change", label:"Perubahan Terakhir", category:"Ringkasan Perubahan", width:180, value:row => payrollParameterAdjustmentReportDateTimeText(row.lastAppliedAt) }
+    ],
+    history:[
+      { key:"applied_at", label:"Tanggal Penerapan", category:"Informasi Perubahan", width:180, value:row => payrollParameterAdjustmentReportDateTimeText(row.appliedAt) },
+      { key:"parameter_name", label:"Parameter Gaji", category:"Informasi Perubahan", width:180, value:row => row.parameterName },
+      { key:"parameter_code", label:"Kode Parameter", category:"Informasi Perubahan", width:170, value:row => row.parameterCode },
+      { key:"old_value", label:"Nilai Sebelum", category:"Informasi Perubahan", width:150, numeric:true, value:row => payrollParameterAdjustmentReportFormatNumber(row.oldValue), export:row => row.oldValue },
+      { key:"new_value", label:"Nilai Sesudah", category:"Informasi Perubahan", width:150, numeric:true, value:row => payrollParameterAdjustmentReportFormatNumber(row.newValue), export:row => row.newValue },
+      { key:"delta", label:"Perubahan", category:"Informasi Perubahan", width:140, numeric:true, value:row => payrollParameterAdjustmentReportFormatDelta(row.delta), export:row => row.delta },
+      { key:"method", label:"Metode Penyesuaian", category:"Informasi Perubahan", width:180, value:row => row.methodLabel },
+      { key:"method_value", label:"Nilai Metode", category:"Informasi Perubahan", width:150, numeric:true, value:row => payrollParameterAdjustmentReportMethodValueText(row), export:row => payrollParameterAdjustmentReportMethodValueExport(row) },
+      { key:"employee_number", label:"No. Karyawan", category:"Informasi Karyawan", width:150, value:row => row.employeeNumber },
+      { key:"employee_name", label:"Nama Karyawan", category:"Informasi Karyawan", width:180, value:row => row.employeeName },
+      { key:"employment_type", label:"Tipe Karyawan", category:"Informasi Karyawan", width:150, value:row => row.employmentTypeLabel },
+      { key:"department", label:"Departemen", category:"Informasi Karyawan", width:170, value:row => row.departmentLabel },
+      { key:"position", label:"Posisi", category:"Informasi Karyawan", width:170, value:row => row.positionLabel },
+      { key:"work_location", label:"Lokasi Kerja", category:"Informasi Karyawan", width:170, value:row => row.workLocationLabel },
+      { key:"document_number", label:"No. Dokumen", category:"Dokumen", width:160, value:row => row.documentNumber },
+      { key:"document_date", label:"Tanggal Dokumen", category:"Dokumen", width:150, value:row => payrollParameterAdjustmentReportFormatDate(row.documentDate) },
+      { key:"description", label:"Keterangan", category:"Dokumen", width:280, value:row => row.description, html:row => `<div class="payroll-parameter-adjustment-report-wrap-text">${payrollParameterAdjustmentReportEscape(row.description)}</div>` },
+      { key:"applied_by", label:"Diterapkan Oleh", category:"Dokumen", width:170, value:row => row.appliedBy }
+    ]
+  };
+  let payrollParameterAdjustmentReportActiveView = "summary";
+  let payrollParameterAdjustmentReportVisibleColumns = {
+    summary:payrollParameterAdjustmentReportDefaultColumns.summary.slice(),
+    history:payrollParameterAdjustmentReportDefaultColumns.history.slice()
+  };
+  let payrollParameterAdjustmentReportDraftColumns = payrollParameterAdjustmentReportVisibleColumns.summary.slice();
+  let payrollParameterAdjustmentReportAppliedFilters = payrollParameterAdjustmentReportDefaultFilters();
+  let payrollParameterAdjustmentReportPages = { summary:1, history:1 };
+  let payrollParameterAdjustmentReportPageSizes = { summary:10, history:10 };
+  let payrollParameterAdjustmentReportColumnPage = 1;
+  let payrollParameterAdjustmentReportCompanyListenerBound = false;
+
+  function payrollParameterAdjustmentReportEl(id) { return document.getElementById(id); }
+  function payrollParameterAdjustmentReportEscape(value) { return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
+  function payrollParameterAdjustmentReportText(value) { const text = String(value ?? "").trim(); return text || "-"; }
+  function payrollParameterAdjustmentReportDefaultFilters() {
+    // MOCKUP ONLY: default Juli 2026 agar sample historical data terlihat.
+    return { from:"2026-07-01", to:"2026-07-31", parameter:"all", employmentType:"all", department:"all", position:"all", location:"all" };
+  }
+  function payrollParameterAdjustmentReportCurrentCompanyId() { return Number(window.iReapNetGetCurrentCompanyId ? window.iReapNetGetCurrentCompanyId() : 1); }
+  function payrollParameterAdjustmentReportSourceDocuments() { return window.iReapNetGetPayrollParameterAdjustments ? (window.iReapNetGetPayrollParameterAdjustments() || []) : (window.iReapNetSharedPayrollParameterAdjustments || []); }
+  function payrollParameterAdjustmentReportRuleParameters() { return window.iReapNetGetEmployeePayrollRuleParameters ? (window.iReapNetGetEmployeePayrollRuleParameters() || []) : (window.iReapNetEmployeePayrollRuleParameters || []); }
+  function payrollParameterAdjustmentReportEmployees() { return window.iReapNetEmployees || []; }
+  function payrollParameterAdjustmentReportEmployee(id) { return payrollParameterAdjustmentReportEmployees().find(row => Number(row.id) === Number(id)) || {}; }
+  function payrollParameterAdjustmentReportLookup(rows, value) {
+    const text = String(value ?? "").trim();
+    if (!text) return "";
+    const row = (rows || []).find(item => String(item.id) === text || String(item.code || "").toLowerCase() === text.toLowerCase() || String(item.name || "").toLowerCase() === text.toLowerCase());
+    return row?.name || "";
+  }
+  function payrollParameterAdjustmentReportDateValue(value) { return String(value || "").slice(0, 10); }
+  function payrollParameterAdjustmentReportFormatDate(value) {
+    const text = payrollParameterAdjustmentReportDateValue(value);
+    if (!text) return "-";
+    const date = new Date(text + "T00:00:00");
+    if (Number.isNaN(date.getTime())) return text;
+    const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+    return `${String(date.getDate()).padStart(2, "0")}-${months[date.getMonth()]}-${date.getFullYear()}`;
+  }
+  function payrollParameterAdjustmentReportDateTimeText(value) {
+    const text = String(value || "").trim();
+    if (!text) return "-";
+    const time = text.length > 10 ? text.slice(11, 16) : "";
+    return `${payrollParameterAdjustmentReportFormatDate(text.slice(0, 10))}${time ? " " + time : ""}`;
+  }
+  function payrollParameterAdjustmentReportNumericValue(value) {
+    if (value == null || (typeof value === "string" && !value.trim())) return null;
+    const number = Number(value);
+    return Number.isFinite(number) ? number : null;
+  }
+  function payrollParameterAdjustmentReportFormatNumber(value) {
+    const number = payrollParameterAdjustmentReportNumericValue(value);
+    return number == null ? "-" : number.toLocaleString("id-ID");
+  }
+  function payrollParameterAdjustmentReportFormatDelta(value) {
+    const number = payrollParameterAdjustmentReportNumericValue(value);
+    if (number == null) return "-";
+    return number > 0 ? `+${payrollParameterAdjustmentReportFormatNumber(number)}` : payrollParameterAdjustmentReportFormatNumber(number);
+  }
+  function payrollParameterAdjustmentReportMethodLabel(method) { return payrollParameterAdjustmentReportMethodLabels[method] || payrollParameterAdjustmentReportText(method); }
+  function payrollParameterAdjustmentReportMethodValueText(row) {
+    if (row.adjustmentMethod === "MANUAL" || row.adjustmentMethodValue === "" || row.adjustmentMethodValue == null) return "-";
+    if (row.adjustmentMethod === "PERCENT_INCREASE") return `${payrollParameterAdjustmentReportFormatNumber(row.adjustmentMethodValue)}%`;
+    return payrollParameterAdjustmentReportFormatNumber(row.adjustmentMethodValue);
+  }
+  function payrollParameterAdjustmentReportMethodValueExport(row) {
+    if (row.adjustmentMethod === "MANUAL" || row.adjustmentMethodValue === "" || row.adjustmentMethodValue == null) return "-";
+    const number = Number(row.adjustmentMethodValue);
+    return Number.isFinite(number) ? number : row.adjustmentMethodValue;
+  }
+  function payrollParameterAdjustmentReportStableValue(id, code, label) { return String(id ?? "").trim() || String(code ?? "").trim() || String(label ?? "").trim(); }
+  function payrollParameterAdjustmentReportCompanyId(doc, detail) {
+    const docCompany = String(doc.company_id ?? "").trim();
+    if (docCompany) return Number(docCompany);
+    const detailCompany = String(detail.company_id ?? "").trim();
+    if (detailCompany) return Number(detailCompany);
+    return Number(payrollParameterAdjustmentReportEmployee(detail.employee_id).company_id || payrollParameterAdjustmentReportCurrentCompanyId());
+  }
+  function payrollParameterAdjustmentReportHistoricalRows() {
+    const companyId = payrollParameterAdjustmentReportCurrentCompanyId();
+    return payrollParameterAdjustmentReportSourceDocuments().flatMap(doc => {
+      if (doc.approval_status !== "APPROVED" || doc.apply_status !== "APPLIED" || !String(doc.applied_at || "").trim()) return [];
+      if (!Array.isArray(doc.details) || !doc.details.length) return [];
+      return doc.details.filter(detail => payrollParameterAdjustmentReportCompanyId(doc, detail) === companyId).map((detail, detailIndex) => {
+        const employee = payrollParameterAdjustmentReportEmployee(detail.employee_id);
+        const parameter = payrollParameterAdjustmentReportRuleParameters().find(item => Number(item.id) === Number(detail.rule_parameter_id) || (detail.rule_parameter_code && item.code === detail.rule_parameter_code)) || {};
+        const employmentTypeLabel = detail.employment_type_name || payrollParameterAdjustmentReportLookup(window.iReapNetEmploymentTypes, detail.employment_type_id) || employee.employment_type_name || employee.employment_type || "-";
+        const departmentLabel = detail.department_name || payrollParameterAdjustmentReportLookup(window.iReapNetDepartments, detail.department_id) || employee.department_name || employee.department || "-";
+        const positionLabel = detail.position_name || payrollParameterAdjustmentReportLookup(window.iReapNetPositions, detail.position_id) || employee.position_name || employee.position || "-";
+        const locationLabel = detail.work_location_name || payrollParameterAdjustmentReportLookup(window.iReapNetWorkLocations, detail.work_location_id) || employee.work_location_name || employee.work_location || "-";
+        const oldValue = payrollParameterAdjustmentReportNumericValue(detail.old_value);
+        const newValue = payrollParameterAdjustmentReportNumericValue(detail.new_value);
+        return {
+          key:`${doc.id ?? doc.document_number}|${detailIndex}`,
+          documentKey:String(doc.id ?? doc.document_number ?? ""), documentNumber:payrollParameterAdjustmentReportText(doc.document_number), documentDate:doc.document_date || "", description:payrollParameterAdjustmentReportText(doc.description),
+          appliedAt:String(doc.applied_at), appliedDate:payrollParameterAdjustmentReportDateValue(doc.applied_at), appliedBy:payrollParameterAdjustmentReportText(doc.applied_by),
+          employeeKey:payrollParameterAdjustmentReportStableValue(detail.employee_id, "", detail.employee_number || detail.employee_name), employeeId:detail.employee_id,
+          employeeNumber:payrollParameterAdjustmentReportText(detail.employee_number || employee.employee_number), employeeName:payrollParameterAdjustmentReportText(detail.employee_name || employee.employee_name || employee.name),
+          employmentTypeKey:payrollParameterAdjustmentReportStableValue(detail.employment_type_id, "", employmentTypeLabel), employmentTypeLabel:payrollParameterAdjustmentReportText(employmentTypeLabel),
+          departmentKey:payrollParameterAdjustmentReportStableValue(detail.department_id, "", departmentLabel), departmentLabel:payrollParameterAdjustmentReportText(departmentLabel),
+          positionKey:payrollParameterAdjustmentReportStableValue(detail.position_id, "", positionLabel), positionLabel:payrollParameterAdjustmentReportText(positionLabel),
+          locationKey:payrollParameterAdjustmentReportStableValue(detail.work_location_id, "", locationLabel), workLocationLabel:payrollParameterAdjustmentReportText(locationLabel),
+          parameterKey:payrollParameterAdjustmentReportStableValue(detail.rule_parameter_id, detail.rule_parameter_code, detail.rule_parameter_name), parameterId:detail.rule_parameter_id,
+          parameterCode:payrollParameterAdjustmentReportText(detail.rule_parameter_code || parameter.code), parameterName:payrollParameterAdjustmentReportText(detail.rule_parameter_name || parameter.name),
+          oldValue, newValue, delta:oldValue == null || newValue == null ? null : newValue - oldValue,
+          adjustmentMethod:detail.adjustment_method || "", adjustmentMethodValue:detail.adjustment_method_value, methodLabel:payrollParameterAdjustmentReportMethodLabel(detail.adjustment_method)
+        };
+      });
+    });
+  }
+  function payrollParameterAdjustmentReportAppliedDocumentsWithoutDetails() {
+    const companyId = payrollParameterAdjustmentReportCurrentCompanyId();
+    return payrollParameterAdjustmentReportSourceDocuments().filter(doc => doc.approval_status === "APPROVED" && doc.apply_status === "APPLIED" && String(doc.applied_at || "").trim() && (!Array.isArray(doc.details) || !doc.details.length) && Number(doc.company_id || companyId) === companyId);
+  }
+  function payrollParameterAdjustmentReportOptionHtml(rows, valueKey, labelKey) {
+    const values = new Map();
+    rows.forEach(row => { const value = String(row[valueKey] ?? ""); const label = String(row[labelKey] ?? ""); if (value && label && label !== "-") values.set(value, { value, label }); });
+    return Array.from(values.values()).sort((a, b) => a.label.localeCompare(b.label, "id"));
+  }
+  function payrollParameterAdjustmentReportFillSelect(id, options) {
+    const select = payrollParameterAdjustmentReportEl(id); const current = select.value || "all";
+    select.innerHTML = '<option value="all">Semua</option>' + options.map(item => `<option value="${payrollParameterAdjustmentReportEscape(item.value)}">${payrollParameterAdjustmentReportEscape(item.label)}</option>`).join("");
+    select.value = Array.from(select.options).some(option => option.value === current) ? current : "all";
+  }
+  function renderPayrollParameterAdjustmentReportFilters() {
+    const rows = payrollParameterAdjustmentReportHistoricalRows();
+    const parameterMap = new Map(payrollParameterAdjustmentReportOptionHtml(rows, "parameterKey", "parameterName").map(item => [item.value, item]));
+    payrollParameterAdjustmentReportRuleParameters().filter(item => item.is_employee_parameter === true).forEach(item => { const value = payrollParameterAdjustmentReportStableValue(item.id, item.code, item.name); if (value && !parameterMap.has(value)) parameterMap.set(value, { value, label:item.name || item.code || value }); });
+    payrollParameterAdjustmentReportFillSelect("payrollParameterAdjustmentReportParameterFilter", Array.from(parameterMap.values()).sort((a,b) => a.label.localeCompare(b.label, "id")));
+    payrollParameterAdjustmentReportFillSelect("payrollParameterAdjustmentReportEmploymentTypeFilter", payrollParameterAdjustmentReportOptionHtml(rows, "employmentTypeKey", "employmentTypeLabel"));
+    payrollParameterAdjustmentReportFillSelect("payrollParameterAdjustmentReportDepartmentFilter", payrollParameterAdjustmentReportOptionHtml(rows, "departmentKey", "departmentLabel"));
+    payrollParameterAdjustmentReportFillSelect("payrollParameterAdjustmentReportPositionFilter", payrollParameterAdjustmentReportOptionHtml(rows, "positionKey", "positionLabel"));
+    payrollParameterAdjustmentReportFillSelect("payrollParameterAdjustmentReportLocationFilter", payrollParameterAdjustmentReportOptionHtml(rows, "locationKey", "workLocationLabel"));
+  }
+  function payrollParameterAdjustmentReportReadFilters() {
+    return { from:payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportDateFromFilter").value, to:payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportDateToFilter").value, parameter:payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportParameterFilter").value, employmentType:payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportEmploymentTypeFilter").value, department:payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportDepartmentFilter").value, position:payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportPositionFilter").value, location:payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportLocationFilter").value };
+  }
+  function payrollParameterAdjustmentReportSetFilterControls(filters) {
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportDateFromFilter").value = filters.from;
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportDateToFilter").value = filters.to;
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportParameterFilter").value = filters.parameter;
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportEmploymentTypeFilter").value = filters.employmentType;
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportDepartmentFilter").value = filters.department;
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportPositionFilter").value = filters.position;
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportLocationFilter").value = filters.location;
+  }
+  function payrollParameterAdjustmentReportValidateFilters(filters) {
+    const errors = [];
+    if (!filters.from) errors.push("Dari Tanggal Penerapan wajib diisi.");
+    if (!filters.to) errors.push("Sampai Tanggal Penerapan wajib diisi.");
+    if (filters.from && filters.to && filters.from > filters.to) errors.push("Dari Tanggal Penerapan tidak boleh lebih besar dari Sampai Tanggal Penerapan.");
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportErrors").innerHTML = errors.map(error => `<div>${payrollParameterAdjustmentReportEscape(error)}</div>`).join("");
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportErrors").classList.toggle("show", errors.length > 0);
+    return errors.length === 0;
+  }
+  function payrollParameterAdjustmentReportFilteredHistoricalRows() {
+    const filters = payrollParameterAdjustmentReportAppliedFilters;
+    return payrollParameterAdjustmentReportHistoricalRows().filter(row => row.appliedDate >= filters.from && row.appliedDate <= filters.to && (filters.parameter === "all" || row.parameterKey === filters.parameter) && (filters.employmentType === "all" || row.employmentTypeKey === filters.employmentType) && (filters.department === "all" || row.departmentKey === filters.department) && (filters.position === "all" || row.positionKey === filters.position) && (filters.location === "all" || row.locationKey === filters.location));
+  }
+  function payrollParameterAdjustmentReportHistorySearch(row, query) {
+    if (!query) return true;
+    return [row.documentNumber, row.employeeNumber, row.employeeName, row.parameterName, row.parameterCode, row.employmentTypeLabel, row.departmentLabel, row.positionLabel, row.workLocationLabel, row.appliedBy, row.description, row.methodLabel].join(" ").toLowerCase().includes(query);
+  }
+  function payrollParameterAdjustmentReportHistoryRows(includeSearch = true) {
+    const query = includeSearch ? payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportSearchBox").value.trim().toLowerCase() : "";
+    return payrollParameterAdjustmentReportFilteredHistoricalRows().filter(row => payrollParameterAdjustmentReportHistorySearch(row, query)).sort((a,b) => b.appliedAt.localeCompare(a.appliedAt) || a.documentNumber.localeCompare(b.documentNumber, "id") || a.employeeNumber.localeCompare(b.employeeNumber, "id") || a.parameterName.localeCompare(b.parameterName, "id"));
+  }
+  function payrollParameterAdjustmentReportSummaryRows(includeSearch = true) {
+    const grouped = new Map();
+    payrollParameterAdjustmentReportFilteredHistoricalRows().forEach(row => {
+      let item = grouped.get(row.employeeKey);
+      if (!item) { item = { employeeKey:row.employeeKey, changeCount:0, parameterKeys:new Set(), documentKeys:new Set(), latest:null }; grouped.set(row.employeeKey, item); }
+      item.changeCount++;
+      item.parameterKeys.add(row.parameterKey);
+      item.documentKeys.add(row.documentKey);
+      const isLater = !item.latest
+        || row.appliedAt.localeCompare(item.latest.appliedAt) > 0
+        || (row.appliedAt === item.latest.appliedAt && row.documentNumber.localeCompare(item.latest.documentNumber, "id") > 0)
+        || (row.appliedAt === item.latest.appliedAt && row.documentNumber === item.latest.documentNumber && String(row.parameterId ?? row.parameterKey).localeCompare(String(item.latest.parameterId ?? item.latest.parameterKey), "id", { numeric:true }) > 0);
+      if (isLater) item.latest = row;
+    });
+    const query = includeSearch ? payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportSearchBox").value.trim().toLowerCase() : "";
+    return Array.from(grouped.values()).map(item => ({
+      employeeKey:item.employeeKey, employeeNumber:item.latest.employeeNumber, employeeName:item.latest.employeeName, employmentTypeLabel:item.latest.employmentTypeLabel, departmentLabel:item.latest.departmentLabel, positionLabel:item.latest.positionLabel, workLocationLabel:item.latest.workLocationLabel,
+      changeCount:item.changeCount, parameterCount:item.parameterKeys.size, documentCount:item.documentKeys.size, lastAppliedAt:item.latest.appliedAt
+    })).filter(row => !query || [row.employeeNumber, row.employeeName, row.employmentTypeLabel, row.departmentLabel, row.positionLabel, row.workLocationLabel].join(" ").toLowerCase().includes(query)).sort((a,b) => b.lastAppliedAt.localeCompare(a.lastAppliedAt) || a.employeeName.localeCompare(b.employeeName, "id") || a.employeeNumber.localeCompare(b.employeeNumber, "id"));
+  }
+  function payrollParameterAdjustmentReportRowsForView(view = payrollParameterAdjustmentReportActiveView, includeSearch = true) { return view === "history" ? payrollParameterAdjustmentReportHistoryRows(includeSearch) : payrollParameterAdjustmentReportSummaryRows(includeSearch); }
+  function payrollParameterAdjustmentReportColumnsForView(view = payrollParameterAdjustmentReportActiveView) { return payrollParameterAdjustmentReportVisibleColumns[view].map(key => payrollParameterAdjustmentReportColumns[view].find(column => column.key === key)).filter(Boolean); }
+  function payrollParameterAdjustmentReportColumnClass(column) { return column.numeric ? ' class="payroll-parameter-adjustment-report-numeric"' : ""; }
+  function payrollParameterAdjustmentReportEmptyText() { return payrollParameterAdjustmentReportActiveView === "history" ? "Tidak ada riwayat perubahan parameter gaji yang sesuai." : "Tidak ada histori penyesuaian parameter gaji yang sesuai."; }
+  function renderPayrollParameterAdjustmentReportTable() {
+    renderPayrollParameterAdjustmentReportFilters();
+    const rows = payrollParameterAdjustmentReportRowsForView();
+    const pageSize = payrollParameterAdjustmentReportPageSizes[payrollParameterAdjustmentReportActiveView];
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportPageSize").value = String(pageSize);
+    const maxPage = Math.max(1, Math.ceil(rows.length / pageSize));
+    payrollParameterAdjustmentReportPages[payrollParameterAdjustmentReportActiveView] = Math.min(payrollParameterAdjustmentReportPages[payrollParameterAdjustmentReportActiveView], maxPage);
+    const page = payrollParameterAdjustmentReportPages[payrollParameterAdjustmentReportActiveView]; const start = (page - 1) * pageSize; const pageRows = rows.slice(start, start + pageSize);
+    const columns = payrollParameterAdjustmentReportColumnsForView(); const minWidth = columns.reduce((total, column) => total + (column.width || 150), 0);
+    document.querySelector(".payroll-parameter-adjustment-report-table").style.minWidth = `${Math.max(1180, minWidth)}px`;
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportHead").innerHTML = columns.map(column => `<th${payrollParameterAdjustmentReportColumnClass(column)}>${payrollParameterAdjustmentReportEscape(column.label)}</th>`).join("");
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportRows").innerHTML = pageRows.map(row => `<tr>${columns.map(column => column.html ? `<td${payrollParameterAdjustmentReportColumnClass(column)}>${column.html(row)}</td>` : `<td${payrollParameterAdjustmentReportColumnClass(column)}>${payrollParameterAdjustmentReportEscape(column.value(row) ?? "-")}</td>`).join("")}</tr>`).join("");
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportEmptyState").textContent = payrollParameterAdjustmentReportEmptyText();
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportEmptyState").classList.toggle("hidden", rows.length > 0);
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportPageInfo").textContent = `Menampilkan ${rows.length ? `${start + 1}-${start + pageRows.length}` : "0-0"} dari ${rows.length} data`;
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportCurrentPage").textContent = String(page);
+  }
+  function setPayrollParameterAdjustmentReportView(view) {
+    if (!payrollParameterAdjustmentReportViews[view]) return;
+    payrollParameterAdjustmentReportActiveView = view; payrollParameterAdjustmentReportPages[view] = 1;
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportSearchBox").value = "";
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportSummaryTab").classList.toggle("active", view === "summary");
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportHistoryTab").classList.toggle("active", view === "history");
+    renderPayrollParameterAdjustmentReportTable();
+  }
+  function applyPayrollParameterAdjustmentReportFilters() {
+    const filters = payrollParameterAdjustmentReportReadFilters(); if (!payrollParameterAdjustmentReportValidateFilters(filters)) return;
+    payrollParameterAdjustmentReportAppliedFilters = filters; payrollParameterAdjustmentReportPages = { summary:1, history:1 }; renderPayrollParameterAdjustmentReportTable();
+  }
+  function resetPayrollParameterAdjustmentReportFilters() {
+    const defaults = payrollParameterAdjustmentReportDefaultFilters(); payrollParameterAdjustmentReportSetFilterControls(defaults); payrollParameterAdjustmentReportAppliedFilters = defaults;
+    payrollParameterAdjustmentReportPages = { summary:1, history:1 }; payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportSearchBox").value = ""; payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportErrors").classList.remove("show"); renderPayrollParameterAdjustmentReportTable();
+  }
+  function changePayrollParameterAdjustmentReportPage(delta) {
+    const rows = payrollParameterAdjustmentReportRowsForView(); const pageSize = payrollParameterAdjustmentReportPageSizes[payrollParameterAdjustmentReportActiveView]; const maxPage = Math.max(1, Math.ceil(rows.length / pageSize));
+    payrollParameterAdjustmentReportPages[payrollParameterAdjustmentReportActiveView] = Math.min(maxPage, Math.max(1, payrollParameterAdjustmentReportPages[payrollParameterAdjustmentReportActiveView] + Number(delta || 0))); renderPayrollParameterAdjustmentReportTable();
+  }
+  function payrollParameterAdjustmentReportColumnRows() {
+    const category = payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnCategory").value; const query = payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnSearch").value.trim().toLowerCase();
+    return payrollParameterAdjustmentReportColumns[payrollParameterAdjustmentReportActiveView].filter(column => (category === "all" || column.category === category) && (!query || [column.label, column.category].join(" ").toLowerCase().includes(query)));
+  }
+  function renderPayrollParameterAdjustmentReportColumnCategories() {
+    const categories = Array.from(new Set(payrollParameterAdjustmentReportColumns[payrollParameterAdjustmentReportActiveView].map(column => column.category)));
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnCategory").innerHTML = '<option value="all">Semua</option>' + categories.map(category => `<option>${payrollParameterAdjustmentReportEscape(category)}</option>`).join("");
+  }
+  function payrollParameterAdjustmentReportSyncColumnSelectAll() {
+    const rows = payrollParameterAdjustmentReportColumnRows(); const selected = rows.filter(column => payrollParameterAdjustmentReportDraftColumns.includes(column.key)).length; const checkbox = payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnSelectAll");
+    checkbox.checked = rows.length > 0 && selected === rows.length; checkbox.indeterminate = selected > 0 && selected < rows.length;
+  }
+  function renderPayrollParameterAdjustmentReportColumnOptions() {
+    const rows = payrollParameterAdjustmentReportColumnRows(); const pageSize = Number(payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnPageSize").value || 10); const maxPage = Math.max(1, Math.ceil(rows.length / pageSize));
+    payrollParameterAdjustmentReportColumnPage = Math.min(payrollParameterAdjustmentReportColumnPage, maxPage); const start = (payrollParameterAdjustmentReportColumnPage - 1) * pageSize; const pageRows = rows.slice(start, start + pageSize);
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnRows").innerHTML = pageRows.map(column => `<tr><td class="payroll-parameter-adjustment-report-column-check"><input type="checkbox" data-payroll-parameter-adjustment-report-column-key="${payrollParameterAdjustmentReportEscape(column.key)}" ${payrollParameterAdjustmentReportDraftColumns.includes(column.key) ? "checked" : ""}></td><td>${payrollParameterAdjustmentReportEscape(column.label)}</td><td>${payrollParameterAdjustmentReportEscape(column.category)}</td></tr>`).join("") || '<tr><td colspan="3">Tidak ada kolom yang sesuai.</td></tr>';
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnPageInfo").textContent = `Menampilkan ${rows.length ? `${start + 1}-${start + pageRows.length}` : "0-0"} dari ${rows.length} data`; payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnCurrentPage").textContent = String(payrollParameterAdjustmentReportColumnPage); payrollParameterAdjustmentReportSyncColumnSelectAll();
+  }
+  function openPayrollParameterAdjustmentReportColumnModal() {
+    payrollParameterAdjustmentReportDraftColumns = payrollParameterAdjustmentReportVisibleColumns[payrollParameterAdjustmentReportActiveView].slice(); payrollParameterAdjustmentReportColumnPage = 1;
+    payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnSearch").value = ""; renderPayrollParameterAdjustmentReportColumnCategories(); payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnCategory").value = "all"; payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnErrors").classList.remove("show"); renderPayrollParameterAdjustmentReportColumnOptions(); payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnModal").classList.add("show");
+  }
+  function closePayrollParameterAdjustmentReportColumnModal() { payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnModal").classList.remove("show"); }
+  function resetPayrollParameterAdjustmentReportColumns() { payrollParameterAdjustmentReportDraftColumns = payrollParameterAdjustmentReportDefaultColumns[payrollParameterAdjustmentReportActiveView].slice(); payrollParameterAdjustmentReportColumnPage = 1; renderPayrollParameterAdjustmentReportColumnOptions(); }
+  function setPayrollParameterAdjustmentReportColumnChecked(key, checked) { payrollParameterAdjustmentReportDraftColumns = checked ? Array.from(new Set(payrollParameterAdjustmentReportDraftColumns.concat(key))) : payrollParameterAdjustmentReportDraftColumns.filter(item => item !== key); payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnErrors").classList.remove("show"); }
+  function togglePayrollParameterAdjustmentReportColumnFiltered(checked) { payrollParameterAdjustmentReportColumnRows().forEach(column => setPayrollParameterAdjustmentReportColumnChecked(column.key, checked)); renderPayrollParameterAdjustmentReportColumnOptions(); }
+  function applyPayrollParameterAdjustmentReportColumns() {
+    if (!payrollParameterAdjustmentReportDraftColumns.length) { payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnErrors").textContent = "Minimal 1 kolom harus dipilih."; payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnErrors").classList.add("show"); return; }
+    payrollParameterAdjustmentReportVisibleColumns[payrollParameterAdjustmentReportActiveView] = payrollParameterAdjustmentReportDraftColumns.filter(key => payrollParameterAdjustmentReportColumns[payrollParameterAdjustmentReportActiveView].some(column => column.key === key)); closePayrollParameterAdjustmentReportColumnModal(); renderPayrollParameterAdjustmentReportTable();
+  }
+  function changePayrollParameterAdjustmentReportColumnPage(delta) { const rows = payrollParameterAdjustmentReportColumnRows(); const pageSize = Number(payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnPageSize").value || 10); const maxPage = Math.max(1, Math.ceil(rows.length / pageSize)); payrollParameterAdjustmentReportColumnPage = Math.min(maxPage, Math.max(1, payrollParameterAdjustmentReportColumnPage + Number(delta || 0))); renderPayrollParameterAdjustmentReportColumnOptions(); }
+  function exportPayrollParameterAdjustmentReportExcel() {
+    const rows = payrollParameterAdjustmentReportRowsForView(); if (!rows.length) { alert("Tidak ada data untuk diekspor."); return; } if (!window.XLSX) { alert("Library Excel belum tersedia. Silakan muat ulang halaman."); return; }
+    const columns = payrollParameterAdjustmentReportColumnsForView(); const sheetRows = [columns.map(column => column.label)].concat(rows.map(row => columns.map(column => column.export ? column.export(row) : column.value(row))));
+    const workbook = XLSX.utils.book_new(); const meta = payrollParameterAdjustmentReportViews[payrollParameterAdjustmentReportActiveView]; XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(sheetRows), meta.sheet);
+    const compact = value => String(value || "").replaceAll("-", ""); XLSX.writeFile(workbook, `Laporan_Penyesuaian_Parameter_Gaji_${meta.filename}_${compact(payrollParameterAdjustmentReportAppliedFilters.from)}_${compact(payrollParameterAdjustmentReportAppliedFilters.to)}.xlsx`, { bookType:"xlsx" });
+  }
+  function renderPayrollParameterAdjustmentReportScreen() {
+    if (!payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportDateFromFilter").value) { const defaults = payrollParameterAdjustmentReportDefaultFilters(); payrollParameterAdjustmentReportAppliedFilters = defaults; payrollParameterAdjustmentReportSetFilterControls(defaults); }
+    renderPayrollParameterAdjustmentReportFilters(); payrollParameterAdjustmentReportSetFilterControls(payrollParameterAdjustmentReportAppliedFilters); renderPayrollParameterAdjustmentReportTable();
+    if (!payrollParameterAdjustmentReportCompanyListenerBound) { payrollParameterAdjustmentReportCompanyListenerBound = true; window.addEventListener("ireapnet:company-changed", () => { payrollParameterAdjustmentReportPages = { summary:1, history:1 }; renderPayrollParameterAdjustmentReportTable(); }); }
+  }
+  payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportSearchBox").addEventListener("input", () => { payrollParameterAdjustmentReportPages[payrollParameterAdjustmentReportActiveView] = 1; renderPayrollParameterAdjustmentReportTable(); });
+  payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportPageSize").addEventListener("change", event => { payrollParameterAdjustmentReportPageSizes[payrollParameterAdjustmentReportActiveView] = Number(event.target.value || 10); payrollParameterAdjustmentReportPages[payrollParameterAdjustmentReportActiveView] = 1; renderPayrollParameterAdjustmentReportTable(); });
+  payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnSearch").addEventListener("input", () => { payrollParameterAdjustmentReportColumnPage = 1; renderPayrollParameterAdjustmentReportColumnOptions(); });
+  payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnCategory").addEventListener("change", () => { payrollParameterAdjustmentReportColumnPage = 1; renderPayrollParameterAdjustmentReportColumnOptions(); });
+  payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnPageSize").addEventListener("change", () => { payrollParameterAdjustmentReportColumnPage = 1; renderPayrollParameterAdjustmentReportColumnOptions(); });
+  payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnSelectAll").addEventListener("change", event => togglePayrollParameterAdjustmentReportColumnFiltered(event.target.checked));
+  payrollParameterAdjustmentReportEl("payrollParameterAdjustmentReportColumnRows").addEventListener("change", event => { if (!event.target.matches("[data-payroll-parameter-adjustment-report-column-key]")) return; setPayrollParameterAdjustmentReportColumnChecked(event.target.dataset.payrollParameterAdjustmentReportColumnKey, event.target.checked); payrollParameterAdjustmentReportSyncColumnSelectAll(); });
+</script>
+</template>
 <template id="page-report-allocation-balance-source">
 <style>
   .allocation-balance-report-toolbar { align-items:center; margin:14px 0 12px; }
@@ -30056,15 +30483,7 @@ EMP001;BONUS;200000;2026-06-30;2026-06-01;2026-06-30;;Y;Y;Import bonus Juni tanp
     { id: 5, code: "SHIFT_PRODUKSI", name: "Shift Produksi", period_type: "Bulanan" }
   ];
 
-  const employeePayrollRuleParameters = [
-    { id: 1, code: "BASIC_SALARY", name: "Gaji Pokok", is_employee_parameter: true },
-    { id: 2, code: "POSITION_ALLOWANCE", name: "Tunjangan Jabatan", is_employee_parameter: true },
-    { id: 3, code: "TRANSPORT_ALLOWANCE", name: "Uang Transport", is_employee_parameter: true },
-    { id: 4, code: "MEAL_ALLOWANCE", name: "Uang Makan", is_employee_parameter: true },
-    { id: 5, code: "BPJS_HEALTH_DEDUCTION", name: "Potongan BPJS Kesehatan", is_employee_parameter: true },
-    { id: 6, code: "BPJS_EMPLOYMENT_DEDUCTION", name: "Potongan BPJS Ketenagakerjaan", is_employee_parameter: true },
-    { id: 7, code: "BPJS_KES_EMPLOYEE_RATE", name: "BPJS Kesehatan Karyawan", is_employee_parameter: false }
-  ];
+  const employeePayrollRuleParameters = window.iReapNetEmployeePayrollRuleParameters;
 
   let employeePayrollMode = "list";
   let employeePayrollEditingEmployeeId = null;
@@ -30114,13 +30533,7 @@ EMP001;BONUS;200000;2026-06-30;2026-06-01;2026-06-30;;Y;Y;Import bonus Juni tanp
 
   refreshSharedEmployeePayrollStructureAssignments();
 
-  let employeePayrollParameterRows = [
-    { employee_id: 1, rule_parameter_id: 1, value: 8500000, is_active: true }, { employee_id: 1, rule_parameter_id: 2, value: 1500000, is_active: true }, { employee_id: 1, rule_parameter_id: 5, value: 120000, is_active: false },
-    { employee_id: 2, rule_parameter_id: 1, value: 6500000, is_active: true }, { employee_id: 2, rule_parameter_id: 3, value: 500000, is_active: true },
-    { employee_id: 3, rule_parameter_id: 1, value: 180000, is_active: true }, { employee_id: 13, rule_parameter_id: 1, value: 12000000, is_active: true }, { employee_id: 13, rule_parameter_id: 2, value: 3000000, is_active: true },
-    { employee_id: 5, rule_parameter_id: 4, value: 25000, is_active: true }, { employee_id: 6, rule_parameter_id: 3, value: 350000, is_active: true }, { employee_id: 7, rule_parameter_id: 1, value: 7000000, is_active: true },
-    { employee_id: 8, rule_parameter_id: 1, value: 6200000, is_active: true }
-  ];
+  let employeePayrollParameterRows = window.iReapNetSharedEmployeePayrollParameterRows;
 
   const payrollParameterAdjustmentApprovalStatusLabels = {
     DRAFT: ["Draft", "approval-draft"],
@@ -30142,7 +30555,7 @@ EMP001;BONUS;200000;2026-06-30;2026-06-01;2026-06-30;;Y;Y;Import bonus Juni tanp
     MANUAL: "Manual"
   };
 
-  let payrollParameterAdjustmentSeed = 9;
+  let payrollParameterAdjustmentSeed = 15;
   let payrollParameterAdjustmentMode = "list";
   let payrollParameterAdjustmentEditingId = null;
   let payrollParameterAdjustmentViewingId = null;
@@ -30157,16 +30570,7 @@ EMP001;BONUS;200000;2026-06-30;2026-06-01;2026-06-30;;Y;Y;Import bonus Juni tanp
   let payrollParameterAdjustmentConfirmId = null;
   let payrollParameterAdjustmentCancelId = null;
 
-  let payrollParameterAdjustments = [
-    { id: 1, document_number: "PPA-2026-0001", document_date: "2026-07-01", description: "Penyesuaian Gaji Pokok Produksi", approval_status: "DRAFT", apply_status: "NOT_APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "", applied_at: "", applied_by: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: null, approval_history: [], criteria: { employee_type: "all", department: "Produksi", position: "all", employee_ids: [] }, parameters: [{ rule_parameter_id: 1, method: "AMOUNT_INCREASE", method_value: 250000 }], details: [] },
-    { id: 2, document_number: "PPA-2026-0002", document_date: "2026-07-02", description: "Tunjangan Jabatan Staff", approval_status: "DRAFT", apply_status: "NOT_APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "", applied_at: "", applied_by: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: null, approval_history: [], criteria: { employee_type: "Staff", department: "all", position: "all", employee_ids: [] }, parameters: [{ rule_parameter_id: 2, method: "SET_VALUE", method_value: 1750000 }], details: [] },
-    { id: 3, document_number: "PPA-2026-0003", document_date: "2026-07-03", description: "Uang Transport HR", approval_status: "PENDING", apply_status: "NOT_APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "2026-07-03 09:00", applied_at: "", applied_by: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: "APR-PPA-0003", approval_history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-03 09:30", note: "OK" }, { stage: "Tahap 2", approver: "HR Manager", status: "Menunggu", actionDate: "-", note: "-" }], criteria: { employee_type: "all", department: "HR", position: "all", employee_ids: [] }, parameters: [{ rule_parameter_id: 3, method: "AMOUNT_INCREASE", method_value: 100000 }], details: [] },
-    { id: 4, document_number: "PPA-2026-0004", document_date: "2026-07-04", description: "Gaji Pokok Disetujui", approval_status: "APPROVED", apply_status: "NOT_APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "2026-07-04 09:00", applied_at: "", applied_by: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: "APR-PPA-0004", approval_history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-04 10:00", note: "OK" }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-04 14:15", note: "Disetujui" }], criteria: { employee_type: "all", department: "Finance", position: "all", employee_ids: [] }, parameters: [{ rule_parameter_id: 1, method: "PERCENT_INCREASE", method_value: 5 }], details: [] },
-    { id: 5, document_number: "PPA-2026-0005", document_date: "2026-07-05", description: "Penyesuaian Ditolak", approval_status: "REJECTED", apply_status: "NOT_APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "2026-07-05 09:00", applied_at: "", applied_by: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: "APR-PPA-0005", approval_history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-05 09:20", note: "OK" }, { stage: "Tahap 2", approver: "HR Manager", status: "Ditolak", actionDate: "2026-07-05 11:10", note: "Nominal perlu direvisi" }], criteria: { employee_type: "all", department: "Gudang", position: "all", employee_ids: [] }, parameters: [{ rule_parameter_id: 1, method: "MANUAL", method_value: "" }], details: [] },
-    { id: 6, document_number: "PPA-2026-0006", document_date: "2026-07-06", description: "Penyesuaian Dibatalkan", approval_status: "CANCELLED", apply_status: "NOT_APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "", applied_at: "", applied_by: "", cancelled_at: "2026-07-06 13:00", cancelled_by: "HR STERLING", cancel_reason: "Dibatalkan sebelum diajukan.", approval_request_id: null, approval_history: [], criteria: { employee_type: "Harian", department: "all", position: "all", employee_ids: [] }, parameters: [{ rule_parameter_id: 3, method: "AMOUNT_INCREASE", method_value: 50000 }], details: [] },
-    { id: 7, document_number: "PPA-2026-0007", document_date: "2026-07-07", description: "Penyesuaian Sudah Diterapkan", approval_status: "APPROVED", apply_status: "APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "2026-07-07 09:00", applied_at: "2026-07-08 09:30", applied_by: "HR STERLING", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: "APR-PPA-0007", approval_history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-07 09:00", note: "OK" }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-07 15:30", note: "Disetujui" }], criteria: { employee_type: "all", department: "HR", position: "all", employee_ids: [2] }, parameters: [{ rule_parameter_id: 1, method: "AMOUNT_INCREASE", method_value: 100000 }], details: [] },
-    { id: 8, document_number: "PPA-2026-0008", document_date: "2026-07-08", description: "Tanpa Approval - Uang Makan Gudang", approval_status: "APPROVED", apply_status: "NOT_APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "2026-07-08 09:00", applied_at: "", applied_by: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: null, approval_history: [], auto_approved_without_template: true, criteria: { employee_type: "all", department: "Gudang", position: "all", employee_ids: [] }, parameters: [{ rule_parameter_id: 4, method: "AMOUNT_INCREASE", method_value: 25000 }], details: [] }
-  ];
+  let payrollParameterAdjustments = window.iReapNetSharedPayrollParameterAdjustments;
 
   const employeeRequisitionsSeed = [
     {
@@ -32970,10 +33374,24 @@ function validateEmployeeScheduleBulkPayload(data) {
           skipped = true;
           return;
         }
+        const parameter = employeePayrollRuleParameters.find(item => item.id === Number(choice.rule_parameter_id)) || {};
         const oldValue = Number(existing.value) || 0;
         rows.push({
+          company_id: Number(employee.company_id || (window.iReapNetGetCurrentCompanyId ? window.iReapNetGetCurrentCompanyId() : 1)),
           employee_id: employee.id,
+          employee_number: employee.employee_number || "",
+          employee_name: employee.employee_name || employee.name || "",
+          employment_type_id: employee.employment_type_id ?? null,
+          employment_type_name: employee.employment_type_name || employee.employment_type || "",
+          department_id: employee.department_id ?? null,
+          department_name: employee.department_name || employee.department || "",
+          position_id: employee.position_id ?? null,
+          position_name: employee.position_name || employee.position || "",
+          work_location_id: employee.work_location_id ?? null,
+          work_location_name: employee.work_location_name || employee.work_location || "",
           rule_parameter_id: Number(choice.rule_parameter_id),
+          rule_parameter_code: parameter.code || "",
+          rule_parameter_name: parameter.name || "",
           old_value: oldValue,
           adjustment_method: choice.method,
           adjustment_method_value: choice.method === "MANUAL" ? "" : Number(choice.method_value || 0),
@@ -32985,11 +33403,7 @@ function validateEmployeeScheduleBulkPayload(data) {
   }
 
   function payrollParameterAdjustmentEnsureDetails(doc) {
-    if (!doc.details || !doc.details.length) {
-      const result = payrollParameterAdjustmentBuildPreview(doc.criteria, doc.parameters, false);
-      doc.details = result.rows;
-    }
-    return doc.details || [];
+    return doc && Array.isArray(doc.details) ? doc.details : [];
   }
 
   function renderPayrollParameterAdjustmentFilterOptions() {
@@ -33027,7 +33441,7 @@ function validateEmployeeScheduleBulkPayload(data) {
     const query = el("payrollParameterAdjustmentSearchBox").value.trim().toLowerCase();
     return payrollParameterAdjustments.filter(doc => {
       const details = payrollParameterAdjustmentEnsureDetails(doc);
-      const departments = new Set(details.map(row => employeePayrollEmployee(row.employee_id).department));
+      const departments = new Set(details.map(row => row.department_name || row.department_id || ""));
       const params = new Set(details.map(row => Number(row.rule_parameter_id)));
       const matches = (status === "all" || payrollParameterAdjustmentApprovalStatus(doc) === status)
         && (param === "all" || params.has(Number(param)))
@@ -33117,17 +33531,17 @@ function validateEmployeeScheduleBulkPayload(data) {
   function updatePayrollParameterAdjustmentPreviewVisibility() {
     const showPreview = payrollParameterAdjustmentPreviewValid || payrollParameterAdjustmentMode === "view";
     const canSave = payrollParameterAdjustmentPreviewValid && payrollParameterAdjustmentMode !== "view";
-    const showSetupSections = payrollParameterAdjustmentMode === "create";
+    const showSetupSections = payrollParameterAdjustmentMode === "create" || payrollParameterAdjustmentMode === "edit";
     const currentDoc = payrollParameterAdjustmentCurrentDocForView();
     el("payrollParameterAdjustmentFilterSection").classList.toggle("hidden", !showSetupSections);
     el("payrollParameterAdjustmentParamSection").classList.toggle("hidden", !showSetupSections);
     el("payrollParameterAdjustmentHeaderSection").classList.toggle("hidden", !showPreview);
     el("payrollParameterAdjustmentPreviewSection").classList.toggle("hidden", !showPreview);
     el("payrollParameterAdjustmentApplyInfoSection").classList.toggle("hidden", payrollParameterAdjustmentApprovalStatus(currentDoc) !== "APPROVED");
-    el("payrollParameterAdjustmentPreviewActions").classList.toggle("hidden", payrollParameterAdjustmentMode !== "create");
+    el("payrollParameterAdjustmentPreviewActions").classList.toggle("hidden", payrollParameterAdjustmentMode === "view");
     ["payrollParameterAdjustmentSaveDraftBtn", "payrollParameterAdjustmentSubmitBtn"].forEach(id => {
-      const button = el(id);
-      button.disabled = !canSave;
+      const button = document.querySelector(`#${id}`);
+      if (button) button.disabled = !canSave;
     });
   }
 
@@ -33170,6 +33584,7 @@ function validateEmployeeScheduleBulkPayload(data) {
     el("payrollParameterAdjustmentPreviewHead").innerHTML = `<tr>${fixedHead}${paramHead}</tr>`;
     el("payrollParameterAdjustmentPreviewRows").innerHTML = employeeIds.map(employeeId => {
       const employee = employeePayrollEmployee(employeeId);
+      const employeeSnapshot = payrollParameterAdjustmentPreviewRows.find(row => row.employee_id === employeeId) || {};
       const cells = selectedParams.map(param => {
         const detailIndex = payrollParameterAdjustmentPreviewRows.findIndex(row => row.employee_id === employeeId && row.rule_parameter_id === param.id);
         const detail = payrollParameterAdjustmentPreviewRows[detailIndex];
@@ -33177,10 +33592,10 @@ function validateEmployeeScheduleBulkPayload(data) {
         return `<td>${payrollParameterAdjustmentFormatAmount(detail.old_value)}</td><td><input class="form-control payroll-adjust-new-value" type="number" data-index="${detailIndex}" value="${escapeAdminHtml(detail.new_value)}" ${readonly ? "disabled" : ""}></td>`;
       }).join("");
       return `<tr>
-        <td>${escapeAdminHtml(employee.employee_number || "-")}</td>
-        <td>${escapeAdminHtml(employee.name || "-")}</td>
-        <td>${escapeAdminHtml(employee.department || "-")}</td>
-        <td>${escapeAdminHtml(employee.position || "-")}</td>
+        <td>${escapeAdminHtml(employeeSnapshot.employee_number || employee.employee_number || "-")}</td>
+        <td>${escapeAdminHtml(employeeSnapshot.employee_name || employee.name || "-")}</td>
+        <td>${escapeAdminHtml(employeeSnapshot.department_name || employee.department || "-")}</td>
+        <td>${escapeAdminHtml(employeeSnapshot.position_name || employee.position || "-")}</td>
         ${cells}
       </tr>`;
     }).join("") || `<tr><td colspan="${4 + selectedParams.length * 2}">Belum ada preview detail.</td></tr>`;
@@ -33327,7 +33742,16 @@ function validateEmployeeScheduleBulkPayload(data) {
       .map(item => Number(item.rule_parameter_id));
     const detailIds = payrollParameterAdjustmentPreviewRows.map(row => Number(row.rule_parameter_id));
     const ids = selectedIds.length ? selectedIds : [...new Set(detailIds)];
-    return ids.map(id => employeePayrollRuleParameters.find(param => param.id === id)).filter(Boolean);
+    return ids.map(id => {
+      const snapshot = payrollParameterAdjustmentPreviewRows.find(row => Number(row.rule_parameter_id) === id);
+      const master = employeePayrollRuleParameters.find(param => param.id === id);
+      if (!snapshot && !master) return null;
+      return {
+        id,
+        code: snapshot?.rule_parameter_code || master?.code || "",
+        name: snapshot?.rule_parameter_name || master?.name || "-"
+      };
+    }).filter(Boolean);
   }
 
   function previewPayrollParameterAdjustment() {
@@ -33471,7 +33895,7 @@ function validateEmployeeScheduleBulkPayload(data) {
     syncPayrollParameterAdjustmentParamChoices();
     syncPayrollParameterAdjustmentPreviewValues();
     return {
-      company_id: 1,
+      company_id: Number(window.iReapNetGetCurrentCompanyId ? window.iReapNetGetCurrentCompanyId() : 1),
       document_number: el("payrollParameterAdjustmentDocumentNumber").value.trim(),
       document_date: el("payrollParameterAdjustmentDocumentDate").value,
       description: el("payrollParameterAdjustmentDescription").value.trim(),
@@ -33669,7 +34093,13 @@ function validateEmployeeScheduleBulkPayload(data) {
     if (!doc) return;
     if (action === "apply") {
       if (payrollParameterAdjustmentApprovalStatus(doc) !== "APPROVED" || payrollParameterAdjustmentApplyStatus(doc) !== "NOT_APPLIED") return;
-      const mismatch = payrollParameterAdjustmentEnsureDetails(doc).some(detail => {
+      const details = Array.isArray(doc.details) ? doc.details : [];
+      if (!details.length) {
+        el("payrollParameterAdjustmentConfirmErrors").innerHTML = "<div>Snapshot detail dokumen tidak tersedia. Dokumen tidak dapat diterapkan otomatis.</div>";
+        el("payrollParameterAdjustmentConfirmErrors").classList.add("show");
+        return;
+      }
+      const mismatch = details.some(detail => {
         const current = employeePayrollParameterRows.find(row => row.employee_id === detail.employee_id && row.rule_parameter_id === detail.rule_parameter_id);
         return !current || Number(current.value) !== Number(detail.old_value);
       });
@@ -33678,7 +34108,7 @@ function validateEmployeeScheduleBulkPayload(data) {
         el("payrollParameterAdjustmentConfirmErrors").classList.add("show");
         return;
       }
-      doc.details.forEach(detail => {
+      details.forEach(detail => {
         const current = employeePayrollParameterRows.find(row => row.employee_id === detail.employee_id && row.rule_parameter_id === detail.rule_parameter_id);
         if (current) current.value = Number(detail.new_value) || 0;
       });
@@ -52471,6 +52901,104 @@ function validateEmployeeScheduleBulkPayload(data) {
     window.iReapNetGetEmployeePayrollPayments = window.iReapNetGetEmployeePayrollPayments || function iReapNetGetEmployeePayrollPayments() {
       return window.iReapNetSharedEmployeePayrollPayments;
     };
+    window.iReapNetEmployeePayrollRuleParameters = window.iReapNetEmployeePayrollRuleParameters || [
+      { id: 1, code: "BASIC_SALARY", name: "Gaji Pokok", is_employee_parameter: true },
+      { id: 2, code: "POSITION_ALLOWANCE", name: "Tunjangan Jabatan", is_employee_parameter: true },
+      { id: 3, code: "TRANSPORT_ALLOWANCE", name: "Uang Transport", is_employee_parameter: true },
+      { id: 4, code: "MEAL_ALLOWANCE", name: "Uang Makan", is_employee_parameter: true },
+      { id: 5, code: "BPJS_HEALTH_DEDUCTION", name: "Potongan BPJS Kesehatan", is_employee_parameter: true },
+      { id: 6, code: "BPJS_EMPLOYMENT_DEDUCTION", name: "Potongan BPJS Ketenagakerjaan", is_employee_parameter: true },
+      { id: 7, code: "BPJS_KES_EMPLOYEE_RATE", name: "BPJS Kesehatan Karyawan", is_employee_parameter: false }
+    ];
+    window.iReapNetGetEmployeePayrollRuleParameters = window.iReapNetGetEmployeePayrollRuleParameters || function iReapNetGetEmployeePayrollRuleParameters() {
+      return window.iReapNetEmployeePayrollRuleParameters;
+    };
+    window.iReapNetSharedEmployeePayrollParameterRows = window.iReapNetSharedEmployeePayrollParameterRows || [
+      { employee_id: 1, rule_parameter_id: 1, value: 8500000, is_active: true }, { employee_id: 1, rule_parameter_id: 2, value: 1500000, is_active: true }, { employee_id: 1, rule_parameter_id: 5, value: 120000, is_active: false },
+      { employee_id: 2, rule_parameter_id: 1, value: 6700000, is_active: true }, { employee_id: 2, rule_parameter_id: 2, value: 1500000, is_active: true }, { employee_id: 2, rule_parameter_id: 3, value: 500000, is_active: true },
+      { employee_id: 3, rule_parameter_id: 1, value: 180000, is_active: true }, { employee_id: 3, rule_parameter_id: 4, value: 25000, is_active: true }, { employee_id: 13, rule_parameter_id: 1, value: 12000000, is_active: true }, { employee_id: 13, rule_parameter_id: 2, value: 3000000, is_active: true },
+      { employee_id: 4, rule_parameter_id: 3, value: 450000, is_active: true }, { employee_id: 4, rule_parameter_id: 4, value: 32000, is_active: true },
+      { employee_id: 5, rule_parameter_id: 1, value: 5140000, is_active: true }, { employee_id: 5, rule_parameter_id: 4, value: 35000, is_active: true },
+      { employee_id: 6, rule_parameter_id: 3, value: 400000, is_active: true },
+      { employee_id: 7, rule_parameter_id: 1, value: 7350000, is_active: true }, { employee_id: 7, rule_parameter_id: 3, value: 350000, is_active: true },
+      { employee_id: 8, rule_parameter_id: 1, value: 6200000, is_active: true },
+      { employee_id: 10, rule_parameter_id: 1, value: 6000000, is_active: true }, { employee_id: 12, rule_parameter_id: 3, value: 500000, is_active: true }
+    ];
+    window.iReapNetGetEmployeePayrollParameterRows = window.iReapNetGetEmployeePayrollParameterRows || function iReapNetGetEmployeePayrollParameterRows() {
+      return window.iReapNetSharedEmployeePayrollParameterRows;
+    };
+    window.iReapNetSharedPayrollParameterAdjustments = window.iReapNetSharedPayrollParameterAdjustments || [
+      { id: 1, company_id: 1, document_number: "PPA-2026-0001", document_date: "2026-07-01", description: "Penyesuaian Gaji Pokok Produksi", approval_status: "DRAFT", apply_status: "NOT_APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "", applied_at: "", applied_by: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: null, approval_history: [], criteria: { employee_type: "all", department: "Produksi", position: "all", employee_ids: [] }, parameters: [{ rule_parameter_id: 1, method: "AMOUNT_INCREASE", method_value: 250000 }], details: [{ company_id: 1, employee_id: 1, employee_number: "EMP-0001", employee_name: "Budi Santoso", employment_type_id: 4, employment_type_name: "Staff", department_id: 1, department_name: "Produksi", position_id: null, position_name: "Leader Line", work_location_id: null, work_location_name: "Plant A", rule_parameter_id: 1, rule_parameter_code: "BASIC_SALARY", rule_parameter_name: "Gaji Pokok", old_value: 8500000, new_value: 8750000, adjustment_method: "AMOUNT_INCREASE", adjustment_method_value: 250000 }] },
+      { id: 2, company_id: 1, document_number: "PPA-2026-0002", document_date: "2026-07-02", description: "Tunjangan Jabatan Staff", approval_status: "DRAFT", apply_status: "NOT_APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "", applied_at: "", applied_by: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: null, approval_history: [], criteria: { employee_type: "Staff", department: "all", position: "all", employee_ids: [] }, parameters: [{ rule_parameter_id: 2, method: "SET_VALUE", method_value: 1750000 }], details: [{ company_id: 1, employee_id: 1, employee_number: "EMP-0001", employee_name: "Budi Santoso", employment_type_id: 4, employment_type_name: "Staff", department_id: 1, department_name: "Produksi", position_id: null, position_name: "Leader Line", work_location_id: null, work_location_name: "Plant A", rule_parameter_id: 2, rule_parameter_code: "POSITION_ALLOWANCE", rule_parameter_name: "Tunjangan Jabatan", old_value: 1500000, new_value: 1750000, adjustment_method: "SET_VALUE", adjustment_method_value: 1750000 }] },
+      { id: 3, company_id: 1, document_number: "PPA-2026-0003", document_date: "2026-07-03", description: "Uang Transport HR", approval_status: "PENDING", apply_status: "NOT_APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "2026-07-03 09:00", applied_at: "", applied_by: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: "APR-PPA-0003", approval_history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-03 09:30", note: "OK" }, { stage: "Tahap 2", approver: "HR Manager", status: "Menunggu", actionDate: "-", note: "-" }], criteria: { employee_type: "all", department: "HR", position: "all", employee_ids: [] }, parameters: [{ rule_parameter_id: 3, method: "AMOUNT_INCREASE", method_value: 100000 }], details: [{ company_id: 1, employee_id: 2, employee_number: "EMP-0002", employee_name: "Jennie Lou", employment_type_id: 3, employment_type_name: "Bulanan", department_id: 3, department_name: "Human Resources", position_id: null, position_name: "HR Staff", work_location_id: null, work_location_name: "Head Office", rule_parameter_id: 3, rule_parameter_code: "TRANSPORT_ALLOWANCE", rule_parameter_name: "Uang Transport", old_value: 500000, new_value: 600000, adjustment_method: "AMOUNT_INCREASE", adjustment_method_value: 100000 }] },
+      { id: 4, company_id: 1, document_number: "PPA-2026-0004", document_date: "2026-07-04", description: "Gaji Pokok Disetujui", approval_status: "APPROVED", apply_status: "NOT_APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "2026-07-04 09:00", applied_at: "", applied_by: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: "APR-PPA-0004", approval_history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-04 10:00", note: "OK" }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-04 14:15", note: "Disetujui" }], criteria: { employee_type: "all", department: "Finance", position: "all", employee_ids: [] }, parameters: [{ rule_parameter_id: 1, method: "PERCENT_INCREASE", method_value: 5 }], details: [{ company_id: 1, employee_id: 8, employee_number: "EMP-0008", employee_name: "Maya Sari", employment_type_id: 4, employment_type_name: "Staff", department_id: 4, department_name: "Finance", position_id: null, position_name: "Finance Staff", work_location_id: null, work_location_name: "Head Office", rule_parameter_id: 1, rule_parameter_code: "BASIC_SALARY", rule_parameter_name: "Gaji Pokok", old_value: 6200000, new_value: 6510000, adjustment_method: "PERCENT_INCREASE", adjustment_method_value: 5 }] },
+      { id: 5, company_id: 1, document_number: "PPA-2026-0005", document_date: "2026-07-05", description: "Penyesuaian Ditolak", approval_status: "REJECTED", apply_status: "NOT_APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "2026-07-05 09:00", applied_at: "", applied_by: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: "APR-PPA-0005", approval_history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-05 09:20", note: "OK" }, { stage: "Tahap 2", approver: "HR Manager", status: "Ditolak", actionDate: "2026-07-05 11:10", note: "Nominal perlu direvisi" }], criteria: { employee_type: "all", department: "Gudang", position: "all", employee_ids: [] }, parameters: [{ rule_parameter_id: 1, method: "MANUAL", method_value: "" }], details: [{ company_id: 1, employee_id: 3, employee_number: "EMP-0003", employee_name: "Andi Pratama", employment_type_id: 1, employment_type_name: "Harian", department_id: 5, department_name: "Gudang", position_id: null, position_name: "Admin Gudang", work_location_id: null, work_location_name: "Warehouse A", rule_parameter_id: 1, rule_parameter_code: "BASIC_SALARY", rule_parameter_name: "Gaji Pokok", old_value: 180000, new_value: 200000, adjustment_method: "MANUAL", adjustment_method_value: "" }] },
+      { id: 6, company_id: 1, document_number: "PPA-2026-0006", document_date: "2026-07-06", description: "Penyesuaian Dibatalkan", approval_status: "CANCELLED", apply_status: "NOT_APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "", applied_at: "", applied_by: "", cancelled_at: "2026-07-06 13:00", cancelled_by: "HR STERLING", cancel_reason: "Dibatalkan sebelum diajukan.", approval_request_id: null, approval_history: [], criteria: { employee_type: "Harian", department: "all", position: "all", employee_ids: [] }, parameters: [{ rule_parameter_id: 3, method: "AMOUNT_INCREASE", method_value: 50000 }], details: [{ company_id: 1, employee_id: 6, employee_number: "EMP-0006", employee_name: "Dian Permata", employment_type_id: 1, employment_type_name: "Harian", department_id: 9, department_name: "Logistik", position_id: null, position_name: "Driver", work_location_id: null, work_location_name: "Warehouse A", rule_parameter_id: 3, rule_parameter_code: "TRANSPORT_ALLOWANCE", rule_parameter_name: "Uang Transport", old_value: 350000, new_value: 400000, adjustment_method: "AMOUNT_INCREASE", adjustment_method_value: 50000 }] },
+      { id: 7, company_id: 1, document_number: "PPA-2026-0007", document_date: "2026-07-07", description: "Penyesuaian Sudah Diterapkan", approval_status: "APPROVED", apply_status: "APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "2026-07-07 09:00", applied_at: "2026-07-08 09:30", applied_by: "HR STERLING", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: "APR-PPA-0007", approval_history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-07 09:00", note: "OK" }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-07 15:30", note: "Disetujui" }], criteria: { employee_type: "all", department: "HR", position: "all", employee_ids: [2] }, parameters: [{ rule_parameter_id: 1, method: "AMOUNT_INCREASE", method_value: 100000 }], details: [{ company_id: 1, employee_id: 2, employee_number: "EMP-0002", employee_name: "Jennie Lou", employment_type_id: 3, employment_type_name: "Bulanan", department_id: 3, department_name: "Human Resources", position_id: null, position_name: "HR Staff", work_location_id: null, work_location_name: "Head Office", rule_parameter_id: 1, rule_parameter_code: "BASIC_SALARY", rule_parameter_name: "Gaji Pokok", old_value: 6400000, new_value: 6500000, adjustment_method: "AMOUNT_INCREASE", adjustment_method_value: 100000 }] },
+      { id: 8, company_id: 1, document_number: "PPA-2026-0008", document_date: "2026-07-08", description: "Tanpa Approval - Uang Makan Gudang", approval_status: "APPROVED", apply_status: "NOT_APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "2026-07-08 09:00", applied_at: "", applied_by: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: null, approval_history: [], auto_approved_without_template: true, criteria: { employee_type: "all", department: "Gudang", position: "all", employee_ids: [] }, parameters: [{ rule_parameter_id: 4, method: "AMOUNT_INCREASE", method_value: 25000 }], details: [{ company_id: 1, employee_id: 3, employee_number: "EMP-0003", employee_name: "Andi Pratama", employment_type_id: 1, employment_type_name: "Harian", department_id: 5, department_name: "Gudang", position_id: null, position_name: "Admin Gudang", work_location_id: null, work_location_name: "Warehouse A", rule_parameter_id: 4, rule_parameter_code: "MEAL_ALLOWANCE", rule_parameter_name: "Uang Makan", old_value: 25000, new_value: 50000, adjustment_method: "AMOUNT_INCREASE", adjustment_method_value: 25000 }] },
+      {
+        id: 9, company_id: 1, document_number: "PPA-2026-0009", document_date: "2026-07-09", description: "Penyesuaian Parameter Produksi", approval_status: "APPROVED", apply_status: "APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "2026-07-09 09:00", applied_at: "2026-07-10 09:15", applied_by: "HR STERLING", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: "APR-PPA-0009",
+        approval_history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-09 10:00", note: "Sesuai evaluasi." }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-09 14:00", note: "Disetujui." }],
+        criteria: { employee_type: "Borongan", department: "Produksi", position: "all", employee_ids: [5] },
+        parameters: [{ rule_parameter_id: 1, method: "PERCENT_INCREASE", method_value: 5 }, { rule_parameter_id: 4, method: "AMOUNT_INCREASE", method_value: 10000 }],
+        details: [
+          { company_id: 1, employee_id: 5, employee_number: "EMP-0005", employee_name: "Siti Aminah", employment_type_id: 2, employment_type_name: "Borongan", department_id: 1, department_name: "Produksi", position_id: null, position_name: "Operator Produksi", work_location_id: null, work_location_name: "Plant A", rule_parameter_id: 1, rule_parameter_code: "BASIC_SALARY", rule_parameter_name: "Gaji Pokok", old_value: 4800000, new_value: 5040000, adjustment_method: "PERCENT_INCREASE", adjustment_method_value: 5 },
+          { company_id: 1, employee_id: 5, employee_number: "EMP-0005", employee_name: "Siti Aminah", employment_type_id: 2, employment_type_name: "Borongan", department_id: 1, department_name: "Produksi", position_id: null, position_name: "Operator Produksi", work_location_id: null, work_location_name: "Plant A", rule_parameter_id: 4, rule_parameter_code: "MEAL_ALLOWANCE", rule_parameter_name: "Uang Makan", old_value: 25000, new_value: 35000, adjustment_method: "AMOUNT_INCREASE", adjustment_method_value: 10000 }
+        ]
+      },
+      {
+        id: 10, company_id: 1, document_number: "PPA-2026-0010", document_date: "2026-07-11", description: "Penyesuaian Uang Transport Operasional", approval_status: "APPROVED", apply_status: "APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "2026-07-11 09:00", applied_at: "2026-07-12 10:20", applied_by: "HR STERLING", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: "APR-PPA-0010",
+        approval_history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-11 10:15", note: "Sesuai kebijakan transport." }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-11 15:00", note: "Disetujui." }],
+        criteria: { employee_type: "all", department: "all", position: "all", employee_ids: [4, 6, 7] },
+        parameters: [{ rule_parameter_id: 3, method: "AMOUNT_INCREASE", method_value: 50000 }],
+        details: [
+          { company_id: 1, employee_id: 6, employee_number: "EMP-0006", employee_name: "Dian Permata", employment_type_id: 1, employment_type_name: "Harian", department_id: 9, department_name: "Logistik", position_id: null, position_name: "Driver", work_location_id: null, work_location_name: "Warehouse A", rule_parameter_id: 3, rule_parameter_code: "TRANSPORT_ALLOWANCE", rule_parameter_name: "Uang Transport", old_value: 350000, new_value: 400000, adjustment_method: "SET_VALUE", adjustment_method_value: 400000 },
+          { company_id: 1, employee_id: 7, employee_number: "EMP-0007", employee_name: "Anton Kurnia", employment_type_id: 3, employment_type_name: "Bulanan", department_id: 8, department_name: "Maintenance", position_id: null, position_name: "Technician", work_location_id: null, work_location_name: "Plant A", rule_parameter_id: 3, rule_parameter_code: "TRANSPORT_ALLOWANCE", rule_parameter_name: "Uang Transport", old_value: 300000, new_value: 350000, adjustment_method: "AMOUNT_INCREASE", adjustment_method_value: 50000 },
+          { company_id: 1, employee_id: 4, employee_number: "EMP-0004", employee_name: "Rina Putri", employment_type_id: 3, employment_type_name: "Bulanan", department_id: 2, department_name: "Operasional", position_id: null, position_name: "Staff Operasional", work_location_id: null, work_location_name: "Head Office", rule_parameter_id: 3, rule_parameter_code: "TRANSPORT_ALLOWANCE", rule_parameter_name: "Uang Transport", old_value: 400000, new_value: 450000, adjustment_method: "AMOUNT_INCREASE", adjustment_method_value: 50000 }
+        ]
+      },
+      {
+        id: 11, company_id: 1, document_number: "PPA-2026-0011", document_date: "2026-07-14", description: "Kenaikan Gaji Pokok HR", approval_status: "APPROVED", apply_status: "APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "2026-07-14 09:10", applied_at: "2026-07-15 11:00", applied_by: "HR STERLING", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: "APR-PPA-0011",
+        approval_history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-14 10:00", note: "Sesuai evaluasi kinerja." }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-14 15:30", note: "Disetujui." }],
+        criteria: { employee_type: "Bulanan", department: "Human Resources", position: "all", employee_ids: [2] },
+        parameters: [{ rule_parameter_id: 1, method: "AMOUNT_INCREASE", method_value: 250000 }],
+        details: [{ company_id: 1, employee_id: 2, employee_number: "EMP-0002", employee_name: "Jennie Lou", employment_type_id: 3, employment_type_name: "Bulanan", department_id: 3, department_name: "Human Resources", position_id: null, position_name: "HR Staff", work_location_id: null, work_location_name: "Head Office", rule_parameter_id: 1, rule_parameter_code: "BASIC_SALARY", rule_parameter_name: "Gaji Pokok", old_value: 6500000, new_value: 6750000, adjustment_method: "AMOUNT_INCREASE", adjustment_method_value: 250000 }]
+      },
+      {
+        id: 12, company_id: 1, document_number: "PPA-2026-0012", document_date: "2026-07-17", description: "Penyesuaian Parameter Bulanan", approval_status: "APPROVED", apply_status: "APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "2026-07-17 09:00", applied_at: "2026-07-18 13:40", applied_by: "HR STERLING", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: "APR-PPA-0012",
+        approval_history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-17 10:20", note: "Nominal telah diverifikasi." }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-17 15:45", note: "Disetujui." }],
+        criteria: { employee_type: "Bulanan", department: "all", position: "all", employee_ids: [4, 7] },
+        parameters: [{ rule_parameter_id: 1, method: "PERCENT_INCREASE", method_value: 5 }, { rule_parameter_id: 4, method: "MANUAL", method_value: "" }],
+        details: [
+          { company_id: 1, employee_id: 7, employee_number: "EMP-0007", employee_name: "Anton Kurnia", employment_type_id: 3, employment_type_name: "Bulanan", department_id: 8, department_name: "Maintenance", position_id: null, position_name: "Technician", work_location_id: null, work_location_name: "Plant A", rule_parameter_id: 1, rule_parameter_code: "BASIC_SALARY", rule_parameter_name: "Gaji Pokok", old_value: 7000000, new_value: 7350000, adjustment_method: "PERCENT_INCREASE", adjustment_method_value: 5 },
+          { company_id: 1, employee_id: 4, employee_number: "EMP-0004", employee_name: "Rina Putri", employment_type_id: 3, employment_type_name: "Bulanan", department_id: 2, department_name: "Operasional", position_id: null, position_name: "Staff Operasional", work_location_id: null, work_location_name: "Head Office", rule_parameter_id: 4, rule_parameter_code: "MEAL_ALLOWANCE", rule_parameter_name: "Uang Makan", old_value: 30000, new_value: 32000, adjustment_method: "MANUAL", adjustment_method_value: "" }
+        ]
+      },
+      {
+        id: 13, company_id: 1, document_number: "PPA-2026-0013", document_date: "2026-07-21", description: "Koreksi Gaji dan Tunjangan HR", approval_status: "APPROVED", apply_status: "APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "2026-07-21 09:20", applied_at: "2026-07-22 09:45", applied_by: "HR STERLING", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: "APR-PPA-0013",
+        approval_history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-21 10:00", note: "Koreksi dan tunjangan telah diperiksa." }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-21 16:00", note: "Disetujui." }],
+        criteria: { employee_type: "Bulanan", department: "Human Resources", position: "all", employee_ids: [2] },
+        parameters: [{ rule_parameter_id: 1, method: "MANUAL", method_value: "" }, { rule_parameter_id: 2, method: "SET_VALUE", method_value: 1500000 }],
+        details: [
+          { company_id: 1, employee_id: 2, employee_number: "EMP-0002", employee_name: "Jennie Lou", employment_type_id: 3, employment_type_name: "Bulanan", department_id: 3, department_name: "Human Resources", position_id: null, position_name: "HR Staff", work_location_id: null, work_location_name: "Head Office", rule_parameter_id: 1, rule_parameter_code: "BASIC_SALARY", rule_parameter_name: "Gaji Pokok", old_value: 6750000, new_value: 6700000, adjustment_method: "MANUAL", adjustment_method_value: "" },
+          { company_id: 1, employee_id: 2, employee_number: "EMP-0002", employee_name: "Jennie Lou", employment_type_id: 3, employment_type_name: "Bulanan", department_id: 3, department_name: "Human Resources", position_id: null, position_name: "HR Staff", work_location_id: null, work_location_name: "Head Office", rule_parameter_id: 2, rule_parameter_code: "POSITION_ALLOWANCE", rule_parameter_name: "Tunjangan Jabatan", old_value: 1200000, new_value: 1500000, adjustment_method: "SET_VALUE", adjustment_method_value: 1500000 }
+        ]
+      },
+      {
+        id: 14, company_id: 1, document_number: "PPA-2026-0014", document_date: "2026-07-24", description: "Penyesuaian Gaji dan Transport Lintas Departemen", approval_status: "APPROVED", apply_status: "APPLIED", created_by: "HR STERLING", requested_by: "HR STERLING", submitted_at: "2026-07-24 09:00", applied_at: "2026-07-25 14:10", applied_by: "HR STERLING", cancelled_at: "", cancelled_by: "", cancel_reason: "", approval_request_id: "APR-PPA-0014",
+        approval_history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-24 10:30", note: "Sesuai evaluasi bulanan." }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-24 16:10", note: "Disetujui." }],
+        criteria: { employee_type: "all", department: "all", position: "all", employee_ids: [5, 10, 12] },
+        parameters: [{ rule_parameter_id: 1, method: "SET_VALUE", method_value: 6000000 }, { rule_parameter_id: 3, method: "AMOUNT_INCREASE", method_value: 50000 }],
+        details: [
+          { company_id: 1, employee_id: 10, employee_number: "EMP-0010", employee_name: "Nina Kartika", employment_type_id: 4, employment_type_name: "Staff", department_id: 3, department_name: "Human Resources", position_id: null, position_name: "HR Staff", work_location_id: null, work_location_name: "Head Office", rule_parameter_id: 1, rule_parameter_code: "BASIC_SALARY", rule_parameter_name: "Gaji Pokok", old_value: 5800000, new_value: 6000000, adjustment_method: "SET_VALUE", adjustment_method_value: 6000000 },
+          { company_id: 1, employee_id: 12, employee_number: "EMP-0012", employee_name: "Lina Marlina", employment_type_id: 3, employment_type_name: "Bulanan", department_id: 6, department_name: "Sales", position_id: null, position_name: "Sales Staff", work_location_id: null, work_location_name: "Head Office", rule_parameter_id: 3, rule_parameter_code: "TRANSPORT_ALLOWANCE", rule_parameter_name: "Uang Transport", old_value: 450000, new_value: 500000, adjustment_method: "AMOUNT_INCREASE", adjustment_method_value: 50000 },
+          { company_id: 1, employee_id: 5, employee_number: "EMP-0005", employee_name: "Siti Aminah", employment_type_id: 2, employment_type_name: "Borongan", department_id: 1, department_name: "Produksi", position_id: null, position_name: "Operator Produksi", work_location_id: null, work_location_name: "Plant A", rule_parameter_id: 1, rule_parameter_code: "BASIC_SALARY", rule_parameter_name: "Gaji Pokok", old_value: 5040000, new_value: 5140000, adjustment_method: "AMOUNT_INCREASE", adjustment_method_value: 100000 }
+        ]
+      }
+    ];
+    window.iReapNetGetPayrollParameterAdjustments = window.iReapNetGetPayrollParameterAdjustments || function iReapNetGetPayrollParameterAdjustments() {
+      return window.iReapNetSharedPayrollParameterAdjustments;
+    };
     window.iReapNetSharedEmployeeMovements = window.iReapNetSharedEmployeeMovements || [
       { id: 1, company_id: 1, document_number: "MOV-000001", document_date: "2026-07-01", requested_by: "HR STERLING", employee_id: 1, movement_type: "PROMOTION", effective_date: "2026-07-15", reason: "Promosi berdasarkan evaluasi kinerja.", old_employee_number: "EMP-0001", old_employment_type_id: "Staff", old_department_id: "Produksi", old_job: "Supervisor Produksi", old_position_id: "Leader Line", old_work_location_id: "Plant A", old_manager_employee_id: "Rina Wijaya", new_employee_number: "", new_employment_type_id: "Staff", new_department_id: "Produksi", new_job: "Production Manager", new_position_id: "Leader Line", new_work_location_id: "Plant A", new_manager_employee_id: "Rina Wijaya", approval_status: "APPROVED", approval_request_id: "APR-MOV-0001", apply_status: "NOT_APPLIED", employee_history_id: null, submitted_at: "2026-07-01 09:00", applied_at: "", applied_by: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", created_at: "2026-07-01 08:30", created_by: "HR STERLING", updated_at: "", updated_by: "", approval_history: [{ stage: "Approval Atasan Langsung", approver: "Rina Wijaya", status: "Disetujui", actionDate: "2026-07-01 10:00", note: "Disetujui" }, { stage: "Approval HR", approver: "Jennie Lou", status: "Disetujui", actionDate: "2026-07-01 11:30", note: "OK" }] },
       { id: 2, company_id: 1, document_number: "MOV-000002", document_date: "2026-07-05", requested_by: "HR STERLING", employee_id: 3, movement_type: "TRANSFER", effective_date: "2026-07-20", reason: "Mutasi kebutuhan operasional gudang.", old_employee_number: "EMP-0003", old_employment_type_id: "Harian", old_department_id: "Gudang", old_job: "Admin Gudang", old_position_id: "Admin Gudang", old_work_location_id: "Warehouse A", old_manager_employee_id: "Budi Santoso", new_employee_number: "", new_employment_type_id: "Harian", new_department_id: "Logistik", new_job: "Admin Logistik", new_position_id: "Admin Gudang", new_work_location_id: "Site Project", new_manager_employee_id: "Andi Pratama", approval_status: "PENDING", approval_request_id: "APR-MOV-0002", apply_status: "NOT_APPLIED", employee_history_id: null, submitted_at: "2026-07-05 09:20", applied_at: "", applied_by: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", created_at: "2026-07-05 09:00", created_by: "HR STERLING", updated_at: "", updated_by: "", approval_history: [{ stage: "Approval Atasan Langsung", approver: "Budi Santoso", status: "Disetujui", actionDate: "2026-07-05 10:00", note: "OK" }, { stage: "Approval HR", approver: "Jennie Lou", status: "Menunggu", actionDate: "-", note: "-" }] },
@@ -52771,6 +53299,7 @@ function validateEmployeeScheduleBulkPayload(data) {
       report: { sourceId: 'page-report-source' },
       reportEmployeeMovement: { sourceId: 'page-report-employee-movement-source' },
       reportEmployeeRequest: { sourceId: 'page-report-employee-request-source' },
+      reportPayrollParameterAdjustment: { sourceId: 'page-report-payroll-parameter-adjustment-source' },
       reportAllocationBalance: { sourceId: 'page-report-allocation-balance-source' },
       reportAttendanceDetail: { sourceId: 'page-report-attendance-detail-source' },
       reportLateness: { sourceId: 'page-report-lateness-source' },
@@ -52904,6 +53433,7 @@ function validateEmployeeScheduleBulkPayload(data) {
           { label: 'Laporan Ketidakhadiran', route: 'report.absence' },
           { label: 'Laporan Pengajuan Karyawan', route: 'report.employee-request' },
           { label: 'Laporan Tugas Tambahan', route: 'report.additional-work' },
+          { label: 'Laporan Penyesuaian Parameter Gaji', route: 'report.payroll-parameter-adjustment' },
           { label: 'Laporan Proses Penggajian', route: 'report.payroll-process' },
           { label: 'Rekap Komponen Penggajian', route: 'report.payroll-component-recap' },
           { label: 'Rekap Pembayaran Penggajian', route: 'report.payroll-payment-recap' }
@@ -53000,6 +53530,7 @@ function validateEmployeeScheduleBulkPayload(data) {
       ['report.absence', 'reportAbsence', 'Laporan', 'Laporan Ketidakhadiran', '', 'renderAbsenceReportScreen'],
       ['report.employee-request', 'reportEmployeeRequest', 'Laporan', 'Laporan Pengajuan Karyawan', '', 'renderEmployeeRequestReportScreen'],
       ['report.additional-work', 'reportAdditionalWork', 'Laporan', 'Laporan Tugas Tambahan', '', 'renderAdditionalWorkReportScreen'],
+      ['report.payroll-parameter-adjustment', 'reportPayrollParameterAdjustment', 'Laporan', 'Laporan Penyesuaian Parameter Gaji', '', 'renderPayrollParameterAdjustmentReportScreen'],
       ['report.payroll-process', 'reportPayrollProcess', 'Laporan', 'Laporan Proses Penggajian', '', 'renderPayrollProcessReportScreen'],
       ['report.payroll-component-recap', 'reportPayrollComponentRecap', 'Laporan', 'Rekap Komponen Penggajian', '', 'renderPayrollComponentRecapScreen'],
       ['report.payroll-payment-recap', 'reportPayrollPaymentRecap', 'Laporan', 'Rekap Pembayaran Penggajian', '', 'renderPayrollPaymentRecapScreen'],
@@ -53730,7 +54261,7 @@ function validateEmployeeScheduleBulkPayload(data) {
         { id: 3, status: "PENDING", submittedAt: "2026-07-10 11:20", submittedDate: "2026-07-10", requester: "Andi Pratama", documentNo: "RECRUIT-0003", transactionType: "EMPLOYEE_REQUISITION", transaction_date: "2026-07-09", typeLabel: "Permohonan Penambahan Karyawan - Posisi Baru", approval_object: "Produksi - 5 karyawan Harian", approval_period: "Dibutuhkan 01/08/2026", approval_description: "Penambahan shift malam", stage: "Approval HR", note: "" },
         { id: 4, approvalRequestNo: "APR-PPR-0004", approval_request_no: "APR-PPR-0004", approval_request_id: "APR-PPR-0004", status: "PENDING", approval_status: "PENDING", submittedAt: "2026-07-31 16:00", submitted_at: "2026-07-31 16:00", submittedDate: "2026-07-31", requester: "HR STERLING", requestedBy: "HR STERLING", requested_by: "HR STERLING", documentNo: "PPR260000004", document_number: "PPR260000004", transactionType: "PAYROLL_PROCESS", transaction_type: "PAYROLL_PROCESS", transactionSubtype: "MONTHLY", transaction_subtype: "MONTHLY", transactionId: 1004, transaction_id: 1004, transactionNo: "PPR260000004", transaction_no: "PPR260000004", transaction_date: "2026-07-01", typeLabel: "Proses Penggajian", approval_object: "STAFF_MONTHLY - Approval Juli 2026", approval_period: "2026-07-01 s/d 2026-07-31", approval_description: "-", stage: "Approval Payroll", note: "", history: [{ sequence_no: 1, stage: "Approval Payroll", approver: "Payroll Approver", status: "Menunggu", actionDate: "-", note: "-" }] },
         { id: 5, status: "PENDING", submittedAt: "2026-07-11 08:30", submittedDate: "2026-07-11", requester: "HR Admin", documentNo: "MOV-0005", transactionType: "EMPLOYEE_MOVEMENT", transaction_date: "2026-07-11", typeLabel: "Perubahan Data Kerja - Promosi", approval_object: "Andi Pratama - Staff Admin -> Supervisor", approval_period: "Efektif 01/08/2026", approval_description: "Promosi berdasarkan evaluasi kinerja", stage: "Approval Direktur", note: "" },
-        { id: 6, approvalRequestNo: "APR-PPA-0004", status: "APPROVED", approval_status: "APPROVED", company_id: 1, submittedAt: "2026-07-04 09:00", submittedDate: "2026-07-04", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "PPA-2026-0004", transactionType: "PAYROLL_PARAMETER_ADJUSTMENT", transactionSubtype: null, transaction_subtype: null, transactionId: 4, transactionNo: "PPA-2026-0004", transaction_date: "2026-07-04", employee_id: null, department_id: null, employment_type_id: null, typeLabel: "Penyesuaian Parameter Gaji", approval_object: "0 karyawan, 1 parameter", approval_period: "-", approval_description: "Gaji Pokok Disetujui", stage: "Approval HR", note: "", history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-04 10:00", note: "OK" }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-04 14:15", note: "Disetujui" }] },
+        { id: 6, approvalRequestNo: "APR-PPA-0004", status: "APPROVED", approval_status: "APPROVED", company_id: 1, submittedAt: "2026-07-04 09:00", submittedDate: "2026-07-04", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "PPA-2026-0004", transactionType: "PAYROLL_PARAMETER_ADJUSTMENT", transactionSubtype: null, transaction_subtype: null, transactionId: 4, transactionNo: "PPA-2026-0004", transaction_date: "2026-07-04", employee_id: null, department_id: null, employment_type_id: null, typeLabel: "Penyesuaian Parameter Gaji", approval_object: "1 karyawan, 1 parameter", approval_period: "-", approval_description: "Gaji Pokok Disetujui", stage: "Approval HR", note: "", history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-04 10:00", note: "OK" }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-04 14:15", note: "Disetujui" }] },
         { id: 7, status: "REJECTED", submittedAt: "2026-07-08 13:10", submittedDate: "2026-07-08", requester: "Dewi Lestari", documentNo: "TERM-0002", transactionType: "EMPLOYEE_TERMINATION", transaction_date: "2026-07-08", typeLabel: "Pemberhentian Karyawan - Resign", approval_object: "Michael Tan - Sales", approval_period: "Efektif 31/07/2026", approval_description: "Dokumen pendukung belum lengkap", stage: "Approval HR", note: "Dokumen pendukung belum lengkap" },
         { id: 8, status: "CANCELLED", submittedAt: "2026-07-07 09:45", submittedDate: "2026-07-07", requester: "Budi Santoso", documentNo: "EMPREQ-0009", transactionType: "EMPLOYEE_REQUEST", transaction_date: "2026-07-07", typeLabel: "Pengajuan Karyawan - Izin", approval_object: "Budi Santoso - Produksi", approval_period: "12/07/2026", approval_description: "Izin pribadi", stage: "Approval Atasan Langsung", note: "" },
         { id: 100001, approvalRequestNo: "APR-ALK-0001", approval_request_id: "APR-ALK-0001", status: "APPROVED", approval_status: "APPROVED", submittedAt: "2026-07-01 09:00", submitted_at: "2026-07-01 09:00", submittedDate: "2026-07-01", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "ALK-000001", transactionType: "EMPLOYEE_ALLOCATION", transaction_type: "EMPLOYEE_ALLOCATION", transactionSubtype: "CUTI", transaction_subtype: "CUTI", transactionId: 1, transaction_id: 1, transactionNo: "ALK-000001", transaction_no: "ALK-000001", transaction_date: "2026-07-01", company_id: 1, department_id: "Produksi", employment_type_id: "Staff", employee_id: 1, typeLabel: "Alokasi Karyawan - Cuti", approval_object: "EMP-0001 - Budi Santoso", approval_period: "Periode Berlaku 01-Jan-2026 s.d. 31-Dec-2026", approval_description: "Alokasi Cuti 12 Hari. Saldo cuti tahunan 2026.", stage: "Approval HR", note: "", history: [{ stage: "Approval HR", approver: "Jennie Lou", status: "Disetujui", actionDate: "2026-07-01 10:00", note: "Disetujui" }] },
@@ -53747,9 +54278,9 @@ function validateEmployeeScheduleBulkPayload(data) {
         { id: 100007, approvalRequestNo: "APR-AC-0008", status: "APPROVED", approval_status: "APPROVED", submittedAt: "2026-07-20 10:05", submittedDate: "2026-07-20", requester: "HR STERLING", documentNo: "KA-20260720-008", transactionType: "ATTENDANCE_CORRECTION", transaction_type: "ATTENDANCE_CORRECTION", transactionSubtype: "", transaction_subtype: "", transactionId: 8, transaction_id: 8, transactionNo: "KA-20260720-008", transaction_no: "KA-20260720-008", transaction_date: "2026-07-20", employee_id: null, department_id: null, employment_type_id: null, approvalRequestType: "ATTENDANCE_CORRECTION", typeLabel: "Koreksi Absensi", approval_object: "EMP-0004 - Siti Aminah", approval_period: "20-Jul-2026", approval_description: "Check In: 20-Jul-2026 08:20 -> 20-Jul-2026 08:05; Catatan: Approval normal untuk departemen Finance.", stage: "Approval HR", note: "", history: [{ stage: "Approval HR", approver: "Dian Permata", status: "Disetujui", actionDate: "2026-07-20 10:25", note: "Disetujui" }] },
         { id: 100008, approvalRequestNo: "APR-AC-0009", status: "APPROVED", approval_status: "APPROVED", submittedAt: "2026-07-20 10:15", submittedDate: "2026-07-20", requester: "HR STERLING", documentNo: "KA-20260720-009", transactionType: "ATTENDANCE_CORRECTION", transaction_type: "ATTENDANCE_CORRECTION", transactionSubtype: "", transaction_subtype: "", transactionId: 9, transaction_id: 9, transactionNo: "KA-20260720-009", transaction_no: "KA-20260720-009", transaction_date: "2026-07-20", employee_id: null, department_id: null, employment_type_id: null, approvalRequestType: "ATTENDANCE_CORRECTION", typeLabel: "Koreksi Absensi", approval_object: "EMP-0010 - Nina Kartika", approval_period: "19-Jul-2026", approval_description: "Check Out: 19-Jul-2026 17:02 -> 19-Jul-2026 17:00; Catatan: Approved belum diterapkan untuk modal Terapkan Massal.", stage: "Approval HR", note: "", history: [{ stage: "Approval HR", approver: "Dian Permata", status: "Disetujui", actionDate: "2026-07-20 10:35", note: "Disetujui" }] },
         { id: 100009, approvalRequestNo: "APR-AC-0010", status: "APPROVED", approval_status: "APPROVED", submittedAt: "2026-07-20 10:40", submittedDate: "2026-07-20", requester: "HR STERLING", documentNo: "KA-20260720-010", transactionType: "ATTENDANCE_CORRECTION", transaction_type: "ATTENDANCE_CORRECTION", transactionSubtype: "", transaction_subtype: "", transactionId: 10, transaction_id: 10, transactionNo: "KA-20260720-010", transaction_no: "KA-20260720-010", transaction_date: "2026-07-20", employee_id: null, department_id: null, employment_type_id: null, approvalRequestType: "ATTENDANCE_CORRECTION", typeLabel: "Koreksi Absensi", approval_object: "EMP-0012 - Lina Marlina", approval_period: "19-Jul-2026", approval_description: "Check In: 19-Jul-2026 08:30 -> 19-Jul-2026 08:20; Catatan: Conflict apply: Data Absensi saat ini sudah berubah dari snapshot 08:30.", stage: "Approval HR", note: "", history: [{ stage: "Approval HR", approver: "Dian Permata", status: "Disetujui", actionDate: "2026-07-20 11:00", note: "Disetujui" }] },
-        { id: 100015, approvalRequestNo: "APR-PPA-0003", status: "PENDING", approval_status: "PENDING", company_id: 1, submittedAt: "2026-07-03 09:00", submittedDate: "2026-07-03", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "PPA-2026-0003", transactionType: "PAYROLL_PARAMETER_ADJUSTMENT", transactionSubtype: null, transaction_subtype: null, transactionId: 3, transactionNo: "PPA-2026-0003", transaction_date: "2026-07-03", employee_id: null, department_id: null, employment_type_id: null, typeLabel: "Penyesuaian Parameter Gaji", approval_object: "0 karyawan, 1 parameter", approval_period: "-", approval_description: "Uang Transport HR", stage: "Approval HR", note: "", history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-03 09:30", note: "OK" }, { stage: "Tahap 2", approver: "HR Manager", status: "Menunggu", actionDate: "-", note: "-" }] },
-        { id: 100016, approvalRequestNo: "APR-PPA-0005", status: "REJECTED", approval_status: "REJECTED", company_id: 1, submittedAt: "2026-07-05 09:00", submittedDate: "2026-07-05", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "PPA-2026-0005", transactionType: "PAYROLL_PARAMETER_ADJUSTMENT", transactionSubtype: null, transaction_subtype: null, transactionId: 5, transactionNo: "PPA-2026-0005", transaction_date: "2026-07-05", employee_id: null, department_id: null, employment_type_id: null, typeLabel: "Penyesuaian Parameter Gaji", approval_object: "0 karyawan, 1 parameter", approval_period: "-", approval_description: "Penyesuaian Ditolak", stage: "Approval HR", note: "", history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-05 09:20", note: "OK" }, { stage: "Tahap 2", approver: "HR Manager", status: "Ditolak", actionDate: "2026-07-05 11:10", note: "Nominal perlu direvisi" }] },
-        { id: 100017, approvalRequestNo: "APR-PPA-0007", status: "APPROVED", approval_status: "APPROVED", company_id: 1, submittedAt: "2026-07-07 09:00", submittedDate: "2026-07-07", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "PPA-2026-0007", transactionType: "PAYROLL_PARAMETER_ADJUSTMENT", transactionSubtype: null, transaction_subtype: null, transactionId: 7, transactionNo: "PPA-2026-0007", transaction_date: "2026-07-07", employee_id: null, department_id: null, employment_type_id: null, typeLabel: "Penyesuaian Parameter Gaji", approval_object: "0 karyawan, 1 parameter", approval_period: "-", approval_description: "Penyesuaian Sudah Diterapkan", stage: "Approval HR", note: "", history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-07 09:00", note: "OK" }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-07 15:30", note: "Disetujui" }] },
+        { id: 100015, approvalRequestNo: "APR-PPA-0003", status: "PENDING", approval_status: "PENDING", company_id: 1, submittedAt: "2026-07-03 09:00", submittedDate: "2026-07-03", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "PPA-2026-0003", transactionType: "PAYROLL_PARAMETER_ADJUSTMENT", transactionSubtype: null, transaction_subtype: null, transactionId: 3, transactionNo: "PPA-2026-0003", transaction_date: "2026-07-03", employee_id: null, department_id: null, employment_type_id: null, typeLabel: "Penyesuaian Parameter Gaji", approval_object: "1 karyawan, 1 parameter", approval_period: "-", approval_description: "Uang Transport HR", stage: "Approval HR", note: "", history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-03 09:30", note: "OK" }, { stage: "Tahap 2", approver: "HR Manager", status: "Menunggu", actionDate: "-", note: "-" }] },
+        { id: 100016, approvalRequestNo: "APR-PPA-0005", status: "REJECTED", approval_status: "REJECTED", company_id: 1, submittedAt: "2026-07-05 09:00", submittedDate: "2026-07-05", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "PPA-2026-0005", transactionType: "PAYROLL_PARAMETER_ADJUSTMENT", transactionSubtype: null, transaction_subtype: null, transactionId: 5, transactionNo: "PPA-2026-0005", transaction_date: "2026-07-05", employee_id: null, department_id: null, employment_type_id: null, typeLabel: "Penyesuaian Parameter Gaji", approval_object: "1 karyawan, 1 parameter", approval_period: "-", approval_description: "Penyesuaian Ditolak", stage: "Approval HR", note: "", history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-05 09:20", note: "OK" }, { stage: "Tahap 2", approver: "HR Manager", status: "Ditolak", actionDate: "2026-07-05 11:10", note: "Nominal perlu direvisi" }] },
+        { id: 100017, approvalRequestNo: "APR-PPA-0007", status: "APPROVED", approval_status: "APPROVED", company_id: 1, submittedAt: "2026-07-07 09:00", submittedDate: "2026-07-07", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "PPA-2026-0007", transactionType: "PAYROLL_PARAMETER_ADJUSTMENT", transactionSubtype: null, transaction_subtype: null, transactionId: 7, transactionNo: "PPA-2026-0007", transaction_date: "2026-07-07", employee_id: null, department_id: null, employment_type_id: null, typeLabel: "Penyesuaian Parameter Gaji", approval_object: "1 karyawan, 1 parameter", approval_period: "-", approval_description: "Penyesuaian Sudah Diterapkan", stage: "Approval HR", note: "", history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-07 09:00", note: "OK" }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-07 15:30", note: "Disetujui" }] },
         { id: 100018, approvalRequestNo: "APR-MOV-0001", status: "APPROVED", submittedAt: "2026-07-01 09:00", submittedDate: "2026-07-01", requester: "HR STERLING", documentNo: "MOV-000001", transactionType: "EMPLOYEE_MOVEMENT", transactionId: 1, transactionNo: "MOV-000001", transaction_date: "2026-07-01", typeLabel: "Perubahan Data Kerja - Promosi", approval_object: "Budi Santoso - Produksi", approval_period: "Efektif 2026-07-15", approval_description: "Promosi berdasarkan evaluasi kinerja.", stage: "Approval HR", note: "", history: [{ stage: "Approval Atasan Langsung", approver: "Rina Wijaya", status: "Disetujui", actionDate: "2026-07-01 10:00", note: "Disetujui" }, { stage: "Approval HR", approver: "Jennie Lou", status: "Disetujui", actionDate: "2026-07-01 11:30", note: "OK" }] },
         { id: 100019, approvalRequestNo: "APR-MOV-0002", status: "PENDING", submittedAt: "2026-07-05 09:20", submittedDate: "2026-07-05", requester: "HR STERLING", documentNo: "MOV-000002", transactionType: "EMPLOYEE_MOVEMENT", transactionId: 2, transactionNo: "MOV-000002", transaction_date: "2026-07-05", typeLabel: "Perubahan Data Kerja - Mutasi", approval_object: "Andi Pratama - Gudang", approval_period: "Efektif 2026-07-20", approval_description: "Mutasi kebutuhan operasional gudang.", stage: "Approval HR", note: "", history: [{ stage: "Approval Atasan Langsung", approver: "Budi Santoso", status: "Disetujui", actionDate: "2026-07-05 10:00", note: "OK" }, { stage: "Approval HR", approver: "Jennie Lou", status: "Menunggu", actionDate: "-", note: "-" }] },
         { id: 100020, approvalRequestNo: "APR-MOV-0003", status: "APPROVED", submittedAt: "2026-06-20 13:00", submittedDate: "2026-06-20", requester: "HR STERLING", documentNo: "MOV-000003", transactionType: "EMPLOYEE_MOVEMENT", transactionId: 3, transactionNo: "MOV-000003", transaction_date: "2026-06-20", typeLabel: "Perubahan Data Kerja - Perubahan Tipe Karyawan", approval_object: "Siti Aminah - Produksi", approval_period: "Efektif 2026-07-01", approval_description: "Perubahan tipe karyawan setelah evaluasi masa kerja.", stage: "Approval HR", note: "", history: [{ stage: "Approval HR", approver: "Jennie Lou", status: "Disetujui", actionDate: "2026-06-20 14:00", note: "Disetujui" }] },
@@ -53766,7 +54297,21 @@ function validateEmployeeScheduleBulkPayload(data) {
         { id: 100031, approvalRequestNo: "APR-ERQ-0005", approval_request_id: "APR-ERQ-0005", status: "CANCELLED", approval_status: "CANCELLED", submittedAt: "2026-07-20 11:00", submitted_at: "2026-07-20 11:00", submittedDate: "2026-07-20", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "ERQ-000005", transactionType: "EMPLOYEE_REQUEST", transaction_type: "EMPLOYEE_REQUEST", transactionSubtype: "IZIN", transaction_subtype: "IZIN", transactionId: 5, transaction_id: 5, transactionNo: "ERQ-000005", transaction_no: "ERQ-000005", transaction_date: "2026-07-20", company_id: 1, department_id: 2, employment_type_id: 3, employee_id: 4, typeLabel: "Pengajuan Karyawan - Izin", approval_object: "EMP-0004 - Rina Putri", approval_period: "22 Juli 2026", approval_description: "Izin 1 Hari. Alasan: Keperluan keluarga mendadak.", stage: "Approval HR", note: "", history: [{ stage: "Approval HR", approver: "Jennie Lou", status: "Menunggu", actionDate: "-", note: "-" }, { stage: "Approval HR", approver: "HR STERLING", status: "Dibatalkan", actionDate: "2026-07-20 14:00", note: "Dibatalkan oleh pemohon." }] },
         { id: 100032, approvalRequestNo: "APR-ERQ-0006", approval_request_id: "APR-ERQ-0006", status: "APPROVED", approval_status: "APPROVED", submittedAt: "2026-07-21 09:30", submitted_at: "2026-07-21 09:30", submittedDate: "2026-07-21", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "ERQ-000006", transactionType: "EMPLOYEE_REQUEST", transaction_type: "EMPLOYEE_REQUEST", transactionSubtype: "PULANG_CEPAT", transaction_subtype: "PULANG_CEPAT", transactionId: 6, transaction_id: 6, transactionNo: "ERQ-000006", transaction_no: "ERQ-000006", transaction_date: "2026-07-21", company_id: 1, department_id: 1, employment_type_id: 4, employee_id: 1, typeLabel: "Pengajuan Karyawan - Pulang Cepat", approval_object: "EMP-0001 - Budi Santoso", approval_period: "21 Juli 2026, 13:00-15:00", approval_description: "Pulang Cepat 2 Jam. Diizinkan pulang mulai pukul 13:00. Alasan: Pemeriksaan kesehatan.", stage: "Approval HR", note: "", history: [{ stage: "Approval HR", approver: "Jennie Lou", status: "Disetujui", actionDate: "2026-07-21 10:30", note: "Disetujui." }] },
         { id: 100033, approvalRequestNo: "APR-ERQ-0007", approval_request_id: "APR-ERQ-0007", status: "APPROVED", approval_status: "APPROVED", submittedAt: "2026-07-22 09:00", submitted_at: "2026-07-22 09:00", submittedDate: "2026-07-22", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "ERQ-000007", transactionType: "EMPLOYEE_REQUEST", transaction_type: "EMPLOYEE_REQUEST", transactionSubtype: "GANTI_LIBUR", transaction_subtype: "GANTI_LIBUR", transactionId: 7, transaction_id: 7, transactionNo: "ERQ-000007", transaction_no: "ERQ-000007", transaction_date: "2026-07-22", company_id: 1, department_id: 4, employment_type_id: 4, employee_id: 8, typeLabel: "Pengajuan Karyawan - Ganti Libur", approval_object: "EMP-0008 - Maya Sari", approval_period: "24 Juli 2026", approval_description: "Ganti Libur 1 Hari. Alasan: Menggunakan hak ganti libur.", stage: "Approval HR", note: "", history: [{ stage: "Approval HR", approver: "Jennie Lou", status: "Disetujui", actionDate: "2026-07-22 10:00", note: "Disetujui." }] },
+        { id: 100034, approvalRequestNo: "APR-PPA-0009", approval_request_id: "APR-PPA-0009", status: "APPROVED", approval_status: "APPROVED", company_id: 1, submittedAt: "2026-07-09 09:00", submittedDate: "2026-07-09", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "PPA-2026-0009", transactionType: "PAYROLL_PARAMETER_ADJUSTMENT", transactionId: 9, transactionNo: "PPA-2026-0009", transaction_date: "2026-07-09", typeLabel: "Penyesuaian Parameter Gaji", approval_object: "1 karyawan, 2 parameter", approval_period: "-", approval_description: "Penyesuaian Parameter Produksi", stage: "Approval HR", note: "", history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-09 10:00", note: "Sesuai evaluasi." }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-09 14:00", note: "Disetujui." }] },
+        { id: 100035, approvalRequestNo: "APR-PPA-0010", approval_request_id: "APR-PPA-0010", status: "APPROVED", approval_status: "APPROVED", company_id: 1, submittedAt: "2026-07-11 09:00", submittedDate: "2026-07-11", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "PPA-2026-0010", transactionType: "PAYROLL_PARAMETER_ADJUSTMENT", transactionId: 10, transactionNo: "PPA-2026-0010", transaction_date: "2026-07-11", typeLabel: "Penyesuaian Parameter Gaji", approval_object: "3 karyawan, 1 parameter", approval_period: "-", approval_description: "Penyesuaian Uang Transport Operasional", stage: "Approval HR", note: "", history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-11 10:15", note: "Sesuai kebijakan transport." }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-11 15:00", note: "Disetujui." }] },
+        { id: 100036, approvalRequestNo: "APR-PPA-0011", approval_request_id: "APR-PPA-0011", status: "APPROVED", approval_status: "APPROVED", company_id: 1, submittedAt: "2026-07-14 09:10", submittedDate: "2026-07-14", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "PPA-2026-0011", transactionType: "PAYROLL_PARAMETER_ADJUSTMENT", transactionId: 11, transactionNo: "PPA-2026-0011", transaction_date: "2026-07-14", typeLabel: "Penyesuaian Parameter Gaji", approval_object: "1 karyawan, 1 parameter", approval_period: "-", approval_description: "Kenaikan Gaji Pokok HR", stage: "Approval HR", note: "", history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-14 10:00", note: "Sesuai evaluasi kinerja." }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-14 15:30", note: "Disetujui." }] },
+        { id: 100037, approvalRequestNo: "APR-PPA-0012", approval_request_id: "APR-PPA-0012", status: "APPROVED", approval_status: "APPROVED", company_id: 1, submittedAt: "2026-07-17 09:00", submittedDate: "2026-07-17", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "PPA-2026-0012", transactionType: "PAYROLL_PARAMETER_ADJUSTMENT", transactionId: 12, transactionNo: "PPA-2026-0012", transaction_date: "2026-07-17", typeLabel: "Penyesuaian Parameter Gaji", approval_object: "2 karyawan, 2 parameter", approval_period: "-", approval_description: "Penyesuaian Parameter Bulanan", stage: "Approval HR", note: "", history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-17 10:20", note: "Nominal telah diverifikasi." }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-17 15:45", note: "Disetujui." }] },
+        { id: 100038, approvalRequestNo: "APR-PPA-0013", approval_request_id: "APR-PPA-0013", status: "APPROVED", approval_status: "APPROVED", company_id: 1, submittedAt: "2026-07-21 09:20", submittedDate: "2026-07-21", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "PPA-2026-0013", transactionType: "PAYROLL_PARAMETER_ADJUSTMENT", transactionId: 13, transactionNo: "PPA-2026-0013", transaction_date: "2026-07-21", typeLabel: "Penyesuaian Parameter Gaji", approval_object: "1 karyawan, 2 parameter", approval_period: "-", approval_description: "Koreksi Gaji dan Tunjangan HR", stage: "Approval HR", note: "", history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-21 10:00", note: "Koreksi dan tunjangan telah diperiksa." }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-21 16:00", note: "Disetujui." }] },
+        { id: 100039, approvalRequestNo: "APR-PPA-0014", approval_request_id: "APR-PPA-0014", status: "APPROVED", approval_status: "APPROVED", company_id: 1, submittedAt: "2026-07-24 09:00", submittedDate: "2026-07-24", requester: "HR STERLING", requested_by: "HR STERLING", documentNo: "PPA-2026-0014", transactionType: "PAYROLL_PARAMETER_ADJUSTMENT", transactionId: 14, transactionNo: "PPA-2026-0014", transaction_date: "2026-07-24", typeLabel: "Penyesuaian Parameter Gaji", approval_object: "3 karyawan, 2 parameter", approval_period: "-", approval_description: "Penyesuaian Gaji dan Transport Lintas Departemen", stage: "Approval HR", note: "", history: [{ stage: "Tahap 1", approver: "Supervisor HR", status: "Disetujui", actionDate: "2026-07-24 10:30", note: "Sesuai evaluasi bulanan." }, { stage: "Tahap 2", approver: "HR Manager", status: "Disetujui", actionDate: "2026-07-24 16:10", note: "Disetujui." }] },
       ], row => row.id != null ? `ID:${row.id}` : `CODE:${row.approvalRequestNo || row.approval_request_id || row.documentNo}`);
+      (window.iReapNetApprovalRequests || []).forEach(request => {
+        if ((request.transactionType || request.transaction_type) !== "PAYROLL_PARAMETER_ADJUSTMENT") return;
+        const document = (window.iReapNetSharedPayrollParameterAdjustments || []).find(item => Number(item.id) === Number(request.transactionId || request.transaction_id) || item.document_number === (request.documentNo || request.transactionNo || request.transaction_no));
+        if (!document || !Array.isArray(document.details) || !document.details.length) return;
+        const employeeCount = new Set(document.details.map(detail => String(detail.employee_id ?? "").trim()).filter(Boolean)).size;
+        const parameterCount = new Set(document.details.map(detail => String(detail.rule_parameter_id ?? "").trim() || String(detail.rule_parameter_code || "").trim()).filter(Boolean)).size;
+        request.approval_object = `${employeeCount} karyawan, ${parameterCount} parameter`;
+      });
       iReapNetMergeSeedData("iReapNetEmployeeRequests", [
         { id: 1, company_id: 1, document_number: "ERQ-000001", document_date: "2026-07-22", requested_by: "HR STERLING", employee_id: 1, employee_number: "EMP-0001", employee_name: "Budi Santoso", department_id: 1, department_name: "Produksi", employment_type_id: 4, employment_type_name: "Staff", position_name: "Leader Line", work_location_name: "Plant A", manager_employee_id: 13, manager_employee_name: "Rina Wijaya", employee_request_type_id: 3, employee_request_type_code: "CUTI", employee_request_type_name: "Cuti", request_unit: "DAY", duration_step: 0.5, allow_partial_day: true, is_partial_day: false, requires_allocation: true, attendance_treatment: "ABSENCE", work_entry_type_id: "CUTI", request_date_from: "2026-07-24", request_date_to: "2026-07-24", request_start_at: null, request_end_at: null, requested_quantity: 1, reason: "Keperluan keluarga.", approval_status: "DRAFT", approval_request_id: null, submitted_at: "", cancelled_at: "", cancelled_by: "", cancel_reason: "", created_at: "2026-07-22 09:00", created_by: "HR STERLING", updated_at: "", updated_by: "", approval_history: [] },
         { id: 2, company_id: 1, document_number: "ERQ-000002", document_date: "2026-07-23", requested_by: "HR STERLING", employee_id: 2, employee_number: "EMP-0002", employee_name: "Jennie Lou", department_id: 3, department_name: "Human Resources", employment_type_id: 3, employment_type_name: "Bulanan", position_name: "HR Staff", work_location_name: "Head Office", manager_employee_id: 1, manager_employee_name: "Budi Santoso", employee_request_type_id: 4, employee_request_type_code: "TERLAMBAT", employee_request_type_name: "Datang Terlambat", request_unit: "HOUR", duration_step: 0.25, allow_partial_day: false, is_partial_day: false, requires_allocation: false, attendance_treatment: "LATE", work_entry_type_id: "TERLAMBAT", request_date_from: "2026-07-24", request_date_to: "2026-07-24", request_start_at: "2026-07-24 08:00", request_end_at: "2026-07-24 09:00", requested_quantity: 1, reason: "Urusan keluarga pagi hari.", approval_status: "PENDING", approval_request_id: "APR-ERQ-0002", submitted_at: "2026-07-23 10:00", cancelled_at: "", cancelled_by: "", cancel_reason: "", created_at: "2026-07-23 09:40", created_by: "HR STERLING", updated_at: "", updated_by: "", approval_history: [{ stage: "Approval HR", approver: "Jennie Lou", status: "Menunggu", actionDate: "-", note: "-" }] },
